@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "name", "default_currency", "default_language", "timezone"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "name": { "bsonType": "string" },
+    "business_type": { "bsonType": "string" },
+    "default_currency": { "bsonType": "string" },
+    "default_language": { "bsonType": "string", "enum": ["ar", "en"] },
+    "timezone": { "bsonType": "string" },
+    "subscription_tier": { "bsonType": "string" },
+    "eta_enabled": { "bsonType": "bool" },
+    "is_deleted": { "bsonType": "bool" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" },
+    "created_by_device_id": { "bsonType": "string" }
+  }
+}

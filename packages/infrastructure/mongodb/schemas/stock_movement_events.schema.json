@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "warehouse_id",
+    "product_variant_id",
+    "event_type",
+    "quantity_delta",
+    "occurred_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "warehouse_id": { "bsonType": "string" },
+    "product_variant_id": { "bsonType": "string" },
+    "batch_id": { "bsonType": "string" },
+    "event_type": {
+      "bsonType": "string",
+      "enum": ["SALE", "RETURN", "TRANSFER_OUT", "TRANSFER_IN", "ADJUSTMENT", "PURCHASE_RECEIPT"]
+    },
+    "quantity_delta": { "bsonType": "int" },
+    "occurred_at": { "bsonType": "date" },
+    "originating_device_id": { "bsonType": "string" },
+    "sequence_no": { "bsonType": "long" },
+    "causality_vector": { "bsonType": "object" },
+    "reference_type": { "bsonType": "string" },
+    "reference_id": { "bsonType": "string" }
+  }
+}

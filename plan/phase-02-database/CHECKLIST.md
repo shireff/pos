@@ -1,0 +1,32 @@
+# Phase 02 — Authentication & Licensing Checklist
+
+- [ ] All auth collections created with correct JSON Schema validators
+- [ ] System roles and all permission codes seeded
+- [ ] Online login returns JWT (15min) + hashed refresh token
+- [ ] Offline PIN login works after one prior online login
+- [ ] Refresh token is rotated on every use — replayed token is rejected
+- [ ] 403 responses include the specific missing permissionCode (never generic)
+- [ ] Owner role bypasses per-branch permission lookup (cross-branch short-circuit)
+- [ ] 14-day trial starts on company creation with all features unlocked
+- [ ] Trial expiry job transitions status to trial_expired
+- [ ] Device self-locks locally when trialEndsAt passes while fully offline
+- [ ] Write-lock guard rejects state-changing commands when trial_expired or suspended
+- [ ] Read-only access preserved during lock (reports, export, billing screen still accessible)
+- [ ] Platform Admin JWT has different signing key and aud claim from tenant JWT
+- [ ] Tenant JWT is rejected by every /v1/platform-admin/* endpoint
+- [ ] Platform Admin JWT is rejected by every /v1/* tenant endpoint
+- [ ] MFA is mandatory for Platform Admin — no login without TOTP verification
+- [ ] 5 failed Platform Admin login attempts locks account for 15 minutes
+- [ ] Every Platform Admin action requires non-empty reason and writes platform_admin_actions record
+- [ ] platform_admin_actions is append-only (no update/delete — verified by contract test)
+- [ ] Subscription status change propagates to online devices via sync stream
+- [ ] Desktop Login screen renders in Arabic RTL by default
+- [ ] Android Login screen uses shared components
+- [ ] Trial countdown banner appears and is non-dismissible after day 10
+- [ ] Paywall screen distinguishes trial_expired from suspended (different CTAs)
+- [ ] No Kotlin/Java code in Android auth implementation
+- [ ] Auth store never persists accessToken to disk in plaintext
+- [ ] Permission matrix test passes for all 17 roles × all permission codes
+- [ ] All unit, integration, and E2E tests pass
+- [ ] Zero TypeScript errors, zero ESLint errors
+- [ ] Documentation updated

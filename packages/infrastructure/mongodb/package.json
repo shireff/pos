@@ -1,0 +1,21 @@
+{
+  "name": "@packages/infrastructure-mongodb",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/shared-kernel": "workspace:*",
+    "mongodb": "6.5.0",
+    "mongoose": "8.3.0",
+    "mongodb-client-encryption": "6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/node": "^20.12.12"
+  }
+}

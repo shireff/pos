@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "branch_id", "cashier_id", "status", "grand_total"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "branch_id": { "bsonType": "string" },
+    "cashier_id": { "bsonType": "string" },
+    "customer_id": { "bsonType": "string" },
+    "status": { "bsonType": "string" },
+    "subtotal": { "bsonType": "int", "minimum": 0 },
+    "discount_total": { "bsonType": "int", "minimum": 0 },
+    "tax_total": { "bsonType": "int", "minimum": 0 },
+    "grand_total": { "bsonType": "int", "minimum": 0 },
+    "is_deleted": { "bsonType": "bool" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" },
+    "created_by_device_id": { "bsonType": "string" }
+  }
+}

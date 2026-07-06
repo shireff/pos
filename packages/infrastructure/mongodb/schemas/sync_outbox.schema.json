@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "aggregate_type",
+    "aggregate_id",
+    "event_payload_json",
+    "created_at",
+    "device_id"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "aggregate_type": { "bsonType": "string" },
+    "aggregate_id": { "bsonType": "string" },
+    "event_payload_json": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "sent_at": { "bsonType": "date" },
+    "device_id": { "bsonType": "string" }
+  }
+}

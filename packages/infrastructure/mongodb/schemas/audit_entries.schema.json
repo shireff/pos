@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "actor_user_id",
+    "action_code",
+    "entity_type",
+    "entity_id",
+    "occurred_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "actor_user_id": { "bsonType": "string" },
+    "action_code": { "bsonType": "string" },
+    "entity_type": { "bsonType": "string" },
+    "entity_id": { "bsonType": "string" },
+    "before_json": { "bsonType": "string" },
+    "after_json": { "bsonType": "string" },
+    "occurred_at": { "bsonType": "date" },
+    "device_id": { "bsonType": "string" }
+  }
+}
