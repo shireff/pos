@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { HealthScreen, HealthStatus } from '@packages/ui-components';
-import { bootstrapDesktop } from '../bootstrap/di-container';
+import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { logger } from '@packages/shared-kernel';
 
 const APP_VERSION = process.env.npm_package_version ?? '1.0.0';

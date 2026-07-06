@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 
 /**
- * Request ID Middleware
+ * Request ID Middleware + Rate Limiting skeleton
  *
- * Generates a unique `X-Request-Id` header for every incoming request.
- * The request ID is attached to all log lines and included in every response.
+ * Runs in the Edge Runtime — uses Web Crypto API (crypto.randomUUID),
+ * NOT Node.js 'crypto' module (unavailable in Edge).
  *
- * API.md §6 — Rate Limiting skeleton is also applied here.
+ * Rate limiting uses an in-memory Map. In production replace with
+ * Upstash Redis (@upstash/ratelimit) for multi-instance deployments.
  */
 
 // ─── In-memory rate-limit store (per IP) ─────────────────────────────────────
-// In production, replace with Redis via ioredis or Upstash.
 
 interface RateLimitEntry {
   count: number;
@@ -36,7 +35,6 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
   const entry = rateLimitStore.get(ip);
 
   if (!entry || now > entry.resetAt) {
-    // New window
     const newEntry: RateLimitEntry = { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
     rateLimitStore.set(ip, newEntry);
     return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetAt: newEntry.resetAt };
@@ -58,10 +56,10 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
 // ─── Middleware ────────────────────────────────────────────────────────────────
 
 export function middleware(request: NextRequest): NextResponse {
-  const requestId = randomUUID();
+  // Web Crypto API — available in Edge Runtime (no Node.js import needed)
+  const requestId = crypto.randomUUID();
   const ip = getClientIp(request);
 
-  // Apply rate limiting only to /api/* routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const rl = checkRateLimit(ip);
 
@@ -103,7 +101,6 @@ export function middleware(request: NextRequest): NextResponse {
     return response;
   }
 
-  // Non-API routes: just attach request ID
   const response = NextResponse.next();
   response.headers.set('X-Request-Id', requestId);
   return response;

@@ -12,11 +12,20 @@
   ],
   "scripts": {
     "dev": "npm run --workspaces dev --if-present",
-    "build": "npm run --workspaces build --if-present",
+    "dev:backend": "npm run dev --workspace @apps/backend",
+    "dev:desktop": "npm run dev --workspace @apps/desktop",
+    "dev:android": "npm run dev --workspace @apps/android",
+    "build": "npm run build:backend && npm run build:desktop && npm run build:android",
+    "build:backend": "npm run build --workspace @apps/backend",
+    "build:desktop": "npm run build --workspace @apps/desktop",
+    "build:android": "npm run build --workspace @apps/android",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint \"{apps,packages}/**/*.{ts,tsx}\"",
     "typecheck": "npm run --workspaces typecheck --if-present",
+    "typecheck:backend": "npm run typecheck --workspace @apps/backend",
+    "typecheck:desktop": "npm run typecheck --workspace @apps/desktop",
+    "typecheck:android": "npm run typecheck --workspace @apps/android",
     "prepare": "husky"
   },
   "devDependencies": {

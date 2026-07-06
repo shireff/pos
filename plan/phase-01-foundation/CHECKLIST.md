@@ -63,12 +63,14 @@
 - [x] di-container.ts wires MongoConnection + BackupScheduler
 - [x] tauri-bridge.ts with isTauri() guard
 - [x] HealthScreen.tsx shared component
+- [x] Desktop shell scaffold and runtime wiring are in place for the health screen path
 - [ ] **MANUAL**: app builds and renders health screen
 
 ## Android (Capacitor + Next.js)
 
 - [x] Capacitor scaffold: capacitor.config.ts, di-container.ts, health bridge
 - [x] Arabic RTL health page
+- [x] Android shell scaffold and health-screen path are in place
 - [ ] **MANUAL**: APK builds and health screen renders on emulator
 
 ## Backend (Next.js 15)
@@ -76,6 +78,7 @@
 - [x] GET /api/health → 200 with requestId
 - [x] Middleware: request ID + rate limiting
 - [x] Dockerfile + docker-compose.yml
+- [x] Backend compose and health endpoint scaffolding are in place
 - [ ] **MANUAL**: docker-compose up starts successfully
 
 ## Tests

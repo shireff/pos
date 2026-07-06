@@ -31,13 +31,22 @@ fn get_app_data_dir(app_handle: tauri::AppHandle) -> Result<String, String> {
         .ok_or_else(|| "Could not resolve app data directory.".to_string())
 }
 
+// ─── Desktop Health Status Command ─────────────────────────────────────────────
+
+#[tauri::command]
+fn desktop_health_status() -> serde_json::Value {
+    serde_json::json!({
+        "dbConnected": false,
+        "encryptionActive": false,
+    })
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![health_check, get_app_data_dir])
+        .invoke_handler(tauri::generate_handler![health_check, get_app_data_dir, desktop_health_status])
         .setup(|app| {
-            // Ensure the app data directory exists on first launch
             if let Some(data_dir) = app.path_resolver().app_data_dir() {
                 std::fs::create_dir_all(&data_dir).map_err(|e| {
                     eprintln!("[Smart Retail OS] Failed to create data dir: {e}");
