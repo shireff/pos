@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packages/shared-kernel": "workspace:*",
-    "@packages/domain-sync": "workspace:*"
+    "@packages/shared-kernel": "*",
+    "@packages/domain-sync": "*"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

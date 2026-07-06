@@ -1,0 +1,79 @@
+version: '3.9'
+
+# Smart Retail OS — Backend Services
+# Usage:
+#   docker compose up          → start all services (detached)
+#   docker compose down -v     → stop and remove volumes
+
+services:
+  # ─── Next.js Backend API ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+      DATABASE_URL: postgres://smart_retail:smart_retail_pass@postgres:5432/smart_retail
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - smart-retail-net
+
+  # ─── PostgreSQL (cloud sync / reporting data) ────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smart_retail
+      POSTGRES_USER: smart_retail
+      POSTGRES_PASSWORD: smart_retail_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U smart_retail -d smart_retail']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - smart-retail-net
+
+  # ─── Redis (session cache / rate-limit store / job queue) ───────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - smart-retail-net
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ─── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  smart-retail-net:
+    driver: bridge

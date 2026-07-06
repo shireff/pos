@@ -5,7 +5,10 @@
   "description": "Smart Retail OS Monorepo",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/domain/*",
+    "packages/application/*",
+    "packages/infrastructure/*"
   ],
   "scripts": {
     "dev": "npm run --workspaces dev --if-present",
@@ -37,5 +40,8 @@
     "*.{json,md,css}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "mongodb-client-encryption": "^6.5.0"
   }
 }

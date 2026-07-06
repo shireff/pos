@@ -9,10 +9,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packages/shared-kernel": "workspace:*",
+    "@packages/shared-kernel": "*",
     "mongodb": "6.5.0",
     "mongoose": "8.3.0",
-    "mongodb-client-encryption": "6.0.0"
+    "mongodb-client-encryption": "^6.5.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { HealthScreen, HealthStatus } from '@packages/ui-components';
 import { bootstrapDesktop } from '../bootstrap/di-container';
+import { logger } from '@packages/shared-kernel';
 
 const APP_VERSION = process.env.npm_package_version ?? '1.0.0';
 
@@ -27,8 +28,7 @@ export default function App() {
         });
         container.backupScheduler.start();
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('[App] Bootstrap failed:', err);
+        logger.error('[App] Bootstrap failed', { error: String(err) });
       }
     };
 

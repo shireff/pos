@@ -6,6 +6,7 @@ import {
   InMemoryBackupQueueStorage,
 } from '@packages/infrastructure-backup/src/backup-queue';
 import { BackupScheduler } from '@packages/infrastructure-backup/src/backup-scheduler';
+import { logger } from '@packages/shared-kernel';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as os from 'os';
@@ -45,9 +46,7 @@ export async function bootstrapDesktop(): Promise<DesktopContainer> {
   } catch (err) {
     dbConnected = false;
     encryptionActive = false;
-    // Log error — in production this goes to structured logger
-    // eslint-disable-next-line no-console
-    console.error('[DI] MongoDB connection failed:', err);
+    logger.error('[DI] MongoDB connection failed', { error: String(err) });
   }
 
   // Backup infrastructure

@@ -1,30 +1,40 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SupabaseStorageAdapter } from './supabase-storage.adapter';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 
-function makeMockSupabaseClient(online: boolean) {
+// Minimal typed mock matching the Supabase Storage surface used by SupabaseStorageAdapter
+interface MockStorageBucket {
+  upload: ReturnType<typeof vi.fn>;
+  download: ReturnType<typeof vi.fn>;
+  list: ReturnType<typeof vi.fn>;
+}
+
+function makeMockSupabaseClient(online: boolean): Pick<SupabaseClient, 'storage'> {
+  const bucket: MockStorageBucket = {
+    upload: vi
+      .fn()
+      .mockResolvedValue(online ? { error: null } : { error: { message: 'Network Error' } }),
+    download: vi
+      .fn()
+      .mockResolvedValue(
+        online
+          ? { data: new Blob([Buffer.from('test')]), error: null }
+          : { data: null, error: { message: 'Network Error' } },
+      ),
+    list: vi
+      .fn()
+      .mockResolvedValue(
+        online
+          ? { data: [{ name: 'abc.enc', created_at: '2026-01-01T00:00:00Z' }], error: null }
+          : { data: null, error: { message: 'Network Error' } },
+      ),
+  };
+
   return {
     storage: {
-      from: () => ({
-        upload: vi
-          .fn()
-          .mockResolvedValue(online ? { error: null } : { error: { message: 'Network Error' } }),
-        download: vi
-          .fn()
-          .mockResolvedValue(
-            online
-              ? { data: new Blob([Buffer.from('test')]), error: null }
-              : { data: null, error: { message: 'Network Error' } },
-          ),
-        list: vi
-          .fn()
-          .mockResolvedValue(
-            online
-              ? { data: [{ name: 'abc.enc', created_at: '2026-01-01T00:00:00Z' }], error: null }
-              : { data: null, error: { message: 'Network Error' } },
-          ),
-      }),
-    },
+      from: () => bucket,
+    } as unknown as SupabaseClient['storage'],
   };
 }
 
@@ -40,11 +50,9 @@ const MOCK_PAYLOAD = {
 
 describe('SupabaseStorageAdapter', () => {
   it('uploads backup when online', async () => {
-    const mockClient = makeMockSupabaseClient(true);
     const adapter = new SupabaseStorageAdapter(
       { supabaseUrl: 'http://localhost', supabaseKey: 'key', bucketName: 'backups' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockClient as any,
+      makeMockSupabaseClient(true) as SupabaseClient,
     );
 
     const key = await adapter.upload(MOCK_PAYLOAD);
@@ -52,22 +60,18 @@ describe('SupabaseStorageAdapter', () => {
   });
 
   it('throws when Supabase is offline', async () => {
-    const mockClient = makeMockSupabaseClient(false);
     const adapter = new SupabaseStorageAdapter(
       { supabaseUrl: 'http://localhost', supabaseKey: 'key', bucketName: 'backups' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockClient as any,
+      makeMockSupabaseClient(false) as SupabaseClient,
     );
 
     await expect(adapter.upload(MOCK_PAYLOAD)).rejects.toThrow(/Supabase upload failed/);
   });
 
   it('lists snapshots from remote storage', async () => {
-    const mockClient = makeMockSupabaseClient(true);
     const adapter = new SupabaseStorageAdapter(
       { supabaseUrl: 'http://localhost', supabaseKey: 'key', bucketName: 'backups' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockClient as any,
+      makeMockSupabaseClient(true) as SupabaseClient,
     );
 
     const snapshots = await adapter.listSnapshots('company-001');

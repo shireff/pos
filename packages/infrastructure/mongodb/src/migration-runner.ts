@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Db } from 'mongodb';
+import { createRequire } from 'module';
 
 const MIGRATIONS_COLLECTION = '_migrations';
 
@@ -9,28 +10,36 @@ interface MigrationEntry {
   appliedAt: Date;
 }
 
-interface Migration {
-  name: string;
+interface MigrationModule {
   up: (db: Db) => Promise<void>;
   down: (db: Db) => Promise<void>;
+}
+
+interface Migration extends MigrationModule {
+  name: string;
 }
 
 /**
  * MigrationRunner applies versioned, idempotent migrations to MongoDB.
  * Tracks applied migrations in the `_migrations` collection.
+ *
+ * Migration files must export `up(db: Db)` and `down(db: Db)` functions.
  */
 export class MigrationRunner {
   private readonly db: Db;
   private readonly migrationsDir: string;
+  private readonly requireModule: NodeRequire;
 
   public constructor(db: Db, migrationsDir?: string) {
     this.db = db;
     this.migrationsDir = migrationsDir ?? path.resolve(__dirname, '..', 'migrations');
+    // createRequire with __filename resolves migrations relative to this file
+    this.requireModule = createRequire(__filename);
   }
 
   /**
    * Runs all pending migrations in alphabetical (numbered) order.
-   * Safe to run multiple times (idempotent).
+   * Safe to run multiple times — idempotent.
    */
   public async up(): Promise<void> {
     const applied = await this.getAppliedMigrations();
@@ -89,8 +98,7 @@ export class MigrationRunner {
 
     return files.map((file) => {
       const filePath = path.join(this.migrationsDir, file);
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const mod = require(filePath) as Migration;
+      const mod = this.requireModule(filePath) as MigrationModule;
       return {
         name: file.replace(/\.[jt]s$/, ''),
         up: mod.up,

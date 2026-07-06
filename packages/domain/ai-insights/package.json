@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packages/shared-kernel": "workspace:*"
+    "@packages/shared-kernel": "*"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

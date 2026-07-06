@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packages/shared-kernel": "workspace:*",
+    "@packages/shared-kernel": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

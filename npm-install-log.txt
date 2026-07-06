@@ -1,0 +1,138 @@
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+npm warn deprecated next@15.0.0: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
+npm warn deprecated next@15.0.0: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
+npm warn cleanup Failed to remove some directories [
+npm warn cleanup   [
+npm warn cleanup     'D:\\Front-End Projects\\pos\\node_modules\\jsx-ast-utils',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\node_modules\jsx-ast-utils\src\values\expressions'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\node_modules\\jsx-ast-utils\\src\\values\\expressions'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     'D:\\Front-End Projects\\pos\\node_modules\\yaml',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\node_modules\yaml\browser\dist\parse'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\node_modules\\yaml\\browser\\dist\\parse'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     'D:\\Front-End Projects\\pos\\node_modules\\@typescript-eslint\\utils',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\node_modules\@typescript-eslint\utils\dist\ts-eslint\eslint'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\node_modules\\@typescript-eslint\\utils\\dist\\ts-eslint\\eslint'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\D:\\Front-End Projects\\pos\\apps\\android\\node_modules',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\apps\android\node_modules\@ionic\utils-subprocess'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\apps\\android\\node_modules\\@ionic\\utils-subprocess'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\D:\\Front-End Projects\\pos\\node_modules\\@vitest',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\node_modules\@vitest\expect\node_modules\chai'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\node_modules\\@vitest\\expect\\node_modules\\chai'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     'D:\\Front-End Projects\\pos\\node_modules\\lint-staged',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\node_modules\lint-staged\node_modules'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\node_modules\\lint-staged\\node_modules'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '\\\\?\\D:\\Front-End Projects\\pos\\apps\\backend\\node_modules',
+npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'D:\Front-End Projects\pos\apps\backend\node_modules\next\dist\esm\build\webpack\loaders'] {
+npm warn cleanup       errno: -4048,
+npm warn cleanup       code: 'EPERM',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: 'D:\\Front-End Projects\\pos\\apps\\backend\\node_modules\\next\\dist\\esm\\build\\webpack\\loaders'
+npm warn cleanup     }
+npm warn cleanup   ]
+npm warn cleanup ]
+npm error code 1
+npm error path D:\Front-End Projects\pos\packages\infrastructure\mongodb\node_modules\mongodb-client-encryption
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c prebuild-install --runtime napi --tag-prefix node-v || node-gyp rebuild
+npm error mongocrypt.cc
+npm error D:\Front-End Projects\pos\packages\infrastructure\mongodb\node_modules\mongodb-client-encryption\addon\mongocrypt.h(16,10): error C1083: Cannot open include file: 'mongocrypt/mongocrypt.h': No such file or directory [D:\Front-End Projects\pos\packages\infrastructure\mongodb\node_modules\mongodb-client-encryption\build\mongocrypt.vcxproj]
+npm error   (compiling source file '../addon/mongocrypt.cc')
+npm error prebuild-install warn This package does not support N-API version undefined
+npm error (node:12052) [DEP0176] DeprecationWarning: fs.R_OK is deprecated, use fs.constants.R_OK instead
+npm error (Use `node --trace-deprecation ...` to show where the warning was created)
+npm error prebuild-install warn install No prebuilt binaries found (target=undefined runtime=napi arch=x64 libc= platform=win32)
+npm error gyp info it worked if it ends with ok
+npm error gyp info using node-gyp@12.2.0
+npm error gyp info using node@24.15.0 | win32 | x64
+npm error gyp info find Python using Python version 3.14.5 found at "C:\Users\Shireff\AppData\Local\Python\pythoncore-3.14-64\python.exe"
+npm error gyp info find VS using VS2026 (18.6.11806.211) found at:
+npm error gyp info find VS "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools"
+npm error gyp info find VS run with --verbose for detailed information
+npm error gyp info spawn C:\Users\Shireff\AppData\Local\Python\pythoncore-3.14-64\python.exe
+npm error gyp info spawn args [
+npm error gyp info spawn args 'C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\gyp\\gyp_main.py',
+npm error gyp info spawn args 'binding.gyp',
+npm error gyp info spawn args '-f',
+npm error gyp info spawn args 'msvs',
+npm error gyp info spawn args '-I',
+npm error gyp info spawn args 'D:\\Front-End Projects\\pos\\packages\\infrastructure\\mongodb\\node_modules\\mongodb-client-encryption\\build\\config.gypi',
+npm error gyp info spawn args '-I',
+npm error gyp info spawn args 'C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\addon.gypi',
+npm error gyp info spawn args '-I',
+npm error gyp info spawn args 'C:\\Users\\Shireff\\AppData\\Local\\node-gyp\\Cache\\24.15.0\\include\\node\\common.gypi',
+npm error gyp info spawn args '-Dlibrary=shared_library',
+npm error gyp info spawn args '-Dvisibility=default',
+npm error gyp info spawn args '-Dnode_root_dir=C:\\Users\\Shireff\\AppData\\Local\\node-gyp\\Cache\\24.15.0',
+npm error gyp info spawn args '-Dnode_gyp_dir=C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp',
+npm error gyp info spawn args '-Dnode_lib_file=C:\\\\Users\\\\Shireff\\\\AppData\\\\Local\\\\node-gyp\\\\Cache\\\\24.15.0\\\\<(target_arch)\\\\node.lib',
+npm error gyp info spawn args '-Dmodule_root_dir=D:\\Front-End Projects\\pos\\packages\\infrastructure\\mongodb\\node_modules\\mongodb-client-encryption',
+npm error gyp info spawn args '-Dnode_engine=v8',
+npm error gyp info spawn args '--depth=.',
+npm error gyp info spawn args '--no-parallel',
+npm error gyp info spawn args '--generator-output',
+npm error gyp info spawn args 'D:\\Front-End Projects\\pos\\packages\\infrastructure\\mongodb\\node_modules\\mongodb-client-encryption\\build',
+npm error gyp info spawn args '-Goutput_dir=.'
+npm error gyp info spawn args ]
+npm error gyp info spawn C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\MSBuild.exe
+npm error gyp info spawn args [
+npm error gyp info spawn args 'build/binding.sln',
+npm error gyp info spawn args '/clp:Verbosity=minimal',
+npm error gyp info spawn args '/nologo',
+npm error gyp info spawn args '/nodeReuse:false',
+npm error gyp info spawn args '/p:Configuration=Release;Platform=x64'
+npm error gyp info spawn args ]
+npm error gyp ERR! build error 
+npm error gyp ERR! stack Error: `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\MSBuild.exe` failed with exit code: 1
+npm error gyp ERR! stack at ChildProcess.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\lib\build.js:219:23)
+npm error gyp ERR! stack at ChildProcess.emit (node:events:509:28)
+npm error gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:295:12)
+npm error gyp ERR! System Windows_NT 10.0.26200
+npm error gyp ERR! command "C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js" "rebuild"
+npm error gyp ERR! cwd D:\Front-End Projects\pos\packages\infrastructure\mongodb\node_modules\mongodb-client-encryption
+npm error gyp ERR! node -v v24.15.0
+npm error gyp ERR! node-gyp -v v12.2.0
+npm error gyp ERR! $npm_package_name mongodb-client-encryption
+npm error gyp ERR! $npm_package_version 6.0.0
+npm error gyp ERR! not ok
+npm error A complete log of this run can be found in: C:\Users\Shireff\AppData\Local\npm-cache\_logs\2026-07-06T09_06_09_090Z-debug-0.log

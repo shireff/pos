@@ -1,1 +1,2 @@
-// placeholder for application use cases in identity
+export * from './use-cases';
+export * from './ports';

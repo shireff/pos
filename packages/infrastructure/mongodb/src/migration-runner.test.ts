@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoClient, Db } from 'mongodb';
 import { MigrationRunner } from './migration-runner';
@@ -7,7 +6,7 @@ import * as path from 'path';
 /**
  * Integration tests for MigrationRunner.
  * Requires a running MongoDB instance at MONGODB_TEST_URI (defaults to localhost:27017).
- * Tests are skipped automatically when MongoDB is not available.
+ * Tests auto-skip when MongoDB is unavailable (CI without a MongoDB service).
  */
 const MONGODB_TEST_URI = process.env.MONGODB_TEST_URI ?? 'mongodb://localhost:27017';
 const TEST_DB_NAME = 'migration_test_' + Date.now();
@@ -20,7 +19,9 @@ let mongoAvailable = false;
 describe('MigrationRunner Integration Tests', () => {
   beforeAll(async () => {
     try {
-      client = new MongoClient(MONGODB_TEST_URI, { serverSelectionTimeoutMS: CONNECT_TIMEOUT_MS });
+      client = new MongoClient(MONGODB_TEST_URI, {
+        serverSelectionTimeoutMS: CONNECT_TIMEOUT_MS,
+      });
       await client.connect();
       db = client.db(TEST_DB_NAME);
       mongoAvailable = true;
@@ -35,7 +36,7 @@ describe('MigrationRunner Integration Tests', () => {
       await db?.dropDatabase();
       await client?.close();
     } catch {
-      // Best effort cleanup
+      // Best-effort cleanup — ignore errors
     }
   });
 
@@ -49,10 +50,7 @@ describe('MigrationRunner Integration Tests', () => {
   });
 
   it('applies 001_initial_schema.ts cleanly on fresh DB', async () => {
-    if (!mongoAvailable || !db) {
-      console.log('[SKIP] MongoDB not available — skipping integration test');
-      return;
-    }
+    if (!mongoAvailable || !db) return;
 
     const migrationsDir = path.resolve(__dirname, '..', 'migrations');
     const runner = new MigrationRunner(db, migrationsDir);
@@ -64,17 +62,14 @@ describe('MigrationRunner Integration Tests', () => {
     expect(applied.some((entry) => entry.name === '001_initial_schema')).toBe(true);
   });
 
-  it('is idempotent — running runner.up() twice does not error', async () => {
-    if (!mongoAvailable || !db) {
-      console.log('[SKIP] MongoDB not available — skipping integration test');
-      return;
-    }
+  it('is idempotent — running runner.up() twice does not error or duplicate entries', async () => {
+    if (!mongoAvailable || !db) return;
 
     const migrationsDir = path.resolve(__dirname, '..', 'migrations');
     const runner = new MigrationRunner(db, migrationsDir);
 
     await runner.up();
-    await runner.up(); // Second run should be no-op
+    await runner.up(); // Second run must be a no-op
 
     const applied = await db.collection('_migrations').find({}).toArray();
     const migrationNames = applied.map((m) => m.name);
@@ -82,11 +77,8 @@ describe('MigrationRunner Integration Tests', () => {
     expect(migrationNames.length).toBe(uniqueNames.length);
   });
 
-  it('records applied migrations in the _migrations collection', async () => {
-    if (!mongoAvailable || !db) {
-      console.log('[SKIP] MongoDB not available');
-      return;
-    }
+  it('records applied migrations in the _migrations collection with a timestamp', async () => {
+    if (!mongoAvailable || !db) return;
 
     const migrationsDir = path.resolve(__dirname, '..', 'migrations');
     const runner = new MigrationRunner(db, migrationsDir);
@@ -98,11 +90,8 @@ describe('MigrationRunner Integration Tests', () => {
     expect(record?.appliedAt).toBeInstanceOf(Date);
   });
 
-  it('rolling back a migration removes the record from _migrations', async () => {
-    if (!mongoAvailable || !db) {
-      console.log('[SKIP] MongoDB not available');
-      return;
-    }
+  it('rolling back removes the last migration record from _migrations', async () => {
+    if (!mongoAvailable || !db) return;
 
     const migrationsDir = path.resolve(__dirname, '..', 'migrations');
     const runner = new MigrationRunner(db, migrationsDir);
