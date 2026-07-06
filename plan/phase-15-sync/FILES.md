@@ -34,9 +34,7 @@ packages/application/ai-insights/src/submit-feedback/submit-feedback.handler.ts
 packages/infrastructure/ai-clients/src/ai-gateway.ts
 packages/infrastructure/ai-clients/src/ai-provider.interface.ts
 packages/infrastructure/ai-clients/src/providers/local-model.provider.ts
-packages/infrastructure/ai-clients/src/providers/groq.provider.ts
-packages/infrastructure/ai-clients/src/providers/gemini-flash.provider.ts
-packages/infrastructure/ai-clients/src/providers/openai-compatible.provider.ts
+packages/infrastructure/ai-clients/src/providers/nara-router.provider.ts
 packages/infrastructure/ai-clients/src/query-classifier.ts
 packages/infrastructure/ai-clients/src/context-assembler.ts
 packages/infrastructure/ai-clients/src/response-validator.ts

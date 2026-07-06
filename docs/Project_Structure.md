@@ -110,9 +110,7 @@ smart-retail-os/
 │   │   ├── ai-clients/                 # Provider-agnostic AI Gateway (AI.md §1)
 │   │   │   ├── providers/
 │   │   │   │   ├── local-model.provider.ts
-│   │   │   │   ├── groq.provider.ts
-│   │   │   │   ├── gemini-flash.provider.ts
-│   │   │   │   └── openai-compatible.provider.ts
+│   │   │   │   └── nara-router.provider.ts
 │   │   │   └── ai-gateway.ts
 │   │   ├── hardware/                   # ESC/POS, scanner, scale, cash-drawer drivers (Hardware.md)
 │   │   │   ├── printer/

@@ -85,7 +85,7 @@ Primary risks this document defends against, in priority order (matching the fou
 
 ## 7. Data Privacy & AI Data Handling
 
-- Reinforces AI.md §2: no raw database dumps are ever sent to a third-party cloud AI provider (Groq, Gemini) — only pre-aggregated, minimal read-model slices relevant to the specific query.
+- Reinforces AI.md §2: no raw database dumps are ever sent to NaraRouter — only pre-aggregated, minimal read-model slices relevant to the specific query. NaraRouter is the sole permitted cloud AI endpoint; no other external AI provider may receive any data from the system.
 - Customer PII (phone, name) is included in AI context only when the query genuinely requires identifying a customer (e.g., "what does customer X usually buy") and is never included in prompts used for caching/comparison across unrelated queries (AI.md §9) to avoid PII persisting in a shared cache key.
 - Local-model queries (AI.md §1 routing policy step 1) never leave the device at all — the strongest privacy guarantee available is preferred by default whenever the query classification allows it.
 

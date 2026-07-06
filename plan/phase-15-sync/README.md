@@ -6,10 +6,10 @@ AI Gateway (provider-agnostic interface) plus all must-have AI features: Assista
 
 ## Scope
 
-- **AI Gateway**: provider-agnostic `IAIProvider` interface with `complete()`, `embed()`, `classify()` methods; providers: LocalModelProvider (llama.cpp via Tauri sidecar), GroqProvider (llama-3.3-70b-versatile), GeminiFlashProvider, OpenAICompatibleProvider slot; routing policy (local-first when offline, cloud hybrid when online, full fallback chain)
+- **AI Gateway**: provider-agnostic `IAIProvider` interface with `complete()`, `embed()`, `classify()` methods; clients: `LocalModelProvider` (on-device, offline-first) and `NaraRouterProvider` integrating the NaraRouter endpoint (`https://router.bynara.id/v1`). Whitelisted models: `kimi-k2.7-code-free`, `mistral-large`, `mistral-medium-3-5` — no other model is permitted. Total cloud token budget: **5 million tokens**; routing policy (local-first when offline, NaraRouter when online, fallback among whitelisted models then graceful degradation)
 - **Query Classification**: routes queries to appropriate model tier based on complexity, privacy requirements, and latency budget
 - **Context Assembly**: builds structured context payloads from materialized read-models — never dumps raw DB collections; context size bounded per query type
-- **AI Features (11)**: Assistant (natural language Q&A over store data), Sales Prediction (deterministic baseline formula + LLM narrative), Inventory Prediction (same pattern), Fraud Detection (rule-based scoring + LLM explanation for flagged transactions), Store Health Score (deterministic composite score + LLM narrative), OCR — full implementation wiring Phase 06 stub, Dead Product Detection, Customer Segmentation (RFM model + LLM tier naming), Smart Alerts (anomaly threshold detection + LLM contextual message), Anomaly Detection, Cash Flow Prediction scaffold
+- **AI Features (11)**: Assistant (natural language Q&A over store data), Sales Prediction (deterministic baseline formula + LLM narrative), Inventory Prediction (same pattern), Fraud Detection (rule-based scoring + LLM explanation for flagged transactions), Store Health Score (deterministic composite score + LLM narrative), OCR — full implementation wiring Phase 06 stub via NaraRouter (`kimi-k2.7-code-free`), Dead Product Detection, Customer Segmentation (RFM model + LLM tier naming), Smart Alerts (anomaly threshold detection + LLM contextual message), Anomaly Detection, Cash Flow Prediction scaffold
 - **Feedback Loop**: ai_insight_feedback collection records user accept/reject/modify actions per insight; used for routing policy tuning
 - **Advisory-Only Enforcement**: enforced at the Application/domain command layer — no AI output can trigger a write command without an explicit human-approval step; this is tested by a mandatory unit test
 - **Provider Fallback Test**: all provider combinations tested with injected failures to verify fallback chain activates correctly
@@ -36,7 +36,7 @@ A working AI layer where:
 
 - `packages/domain/ai-insights` — full domain implementation
 - `packages/application/ai/src/gateway/ai-gateway.ts`
-- `packages/application/ai/src/gateway/providers/*` (4 providers)
+- `packages/infrastructure/ai-clients/src/providers/*` (2 providers: local-model, nara-router)
 - `packages/application/ai/src/features/*` (11 feature handlers)
 - `packages/application/ai/src/context-assembler.ts`
 - `packages/application/ai/src/query-classifier.ts`

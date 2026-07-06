@@ -1,5 +1,4 @@
-import { MongoClient, Binary } from 'mongodb';
-import { ClientEncryption } from 'mongodb-client-encryption';
+import { Binary, ClientEncryption, MongoClient } from 'mongodb';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -45,7 +44,7 @@ export async function initEncryption(client: MongoClient): Promise<void> {
   };
 
   const keyVaultDb = client.db('encryption');
-  const keyVaultColl = keyVaultDb.collection('__keyVault');
+  const keyVaultColl = keyVaultDb.collection<{ _id: Binary; keyAltNames?: string[] }>('__keyVault');
 
   // Verify and create unique collection index
   await keyVaultColl.createIndex({ keyAltNames: 1 }, { unique: true, sparse: true });
@@ -61,7 +60,7 @@ export async function initEncryption(client: MongoClient): Promise<void> {
       keyAltNames: ['primary-data-key'],
     });
   } else {
-    dataKeyId = existingKey._id as Binary;
+    dataKeyId = existingKey._id;
   }
 }
 

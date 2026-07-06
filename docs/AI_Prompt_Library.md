@@ -316,11 +316,11 @@ through the normal command, per AI.md's governing rule).
 ### 13.1 Provider-Fallback Retry (not a distinct prompt — a routing behavior)
 
 ```
-On primary provider (Groq) timeout/failure, the exact same prompt (system +
-user, unmodified) is retried against the fallback provider (Gemini Flash) per
-AI.md §1. The prompt content never changes between providers — only the
-provider endpoint changes, preserving deterministic, reproducible behavior
-across the fallback chain.
+On NaraRouter model timeout/failure (e.g. `mistral-large`), the exact same prompt (system +
+user, unmodified) is retried against the next whitelisted model (`kimi-k2.7-code-free` or
+`mistral-medium-3-5`) per AI.md §1. The prompt content never changes between model
+attempts — only the target model parameter changes, preserving deterministic, reproducible
+behavior across the fallback chain.
 ```
 
 ### 13.2 Final Graceful Degradation Message — see §3.3 above.

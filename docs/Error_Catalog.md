@@ -285,7 +285,7 @@ Each entry: **Code**, **Category**, **HTTP Mapping** (if applicable — some cod
 - **Category:** AI / Availability
 - **HTTP:** 503
 - **Message:** "All configured AI providers failed; feature degrades to offline mode."
-- **Cause:** Groq and Gemini Flash both failed/timed out, and local model either isn't applicable to the query complexity or also failed (AI.md §1).
+- **Cause:** NaraRouter or its whitelisted models failed/timed out, and local model either isn't applicable to the query complexity or also failed (AI.md §1).
 - **Recovery:** Automatic fallback chain exhausted; feature falls back to local-only or a graceful "unavailable" state.
 - **User Message:** "AI insights aren't available right now. Try again later, or continue without them — the rest of the app works normally."
 - **Developer Notes:** Never blocks any non-AI functionality — AI features are additive, and their unavailability must not cascade into POS/inventory failures (Vision.md §5, Architecture.md dependency isolation).

@@ -1,1 +1,1 @@
-// placeholder — catalog use cases (e.g. CreateProduct, RetireProduct, UpdateProduct)
+export type { ProductRepository, CategoryRepository, UnitOfMeasureRepository } from '../ports';

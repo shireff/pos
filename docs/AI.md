@@ -14,13 +14,19 @@ interface AIProvider {
 }
 ```
 
-Registered providers: `LocalModelProvider` (on-device quantized small model), `GroqProvider` (llama-3.3-70b-versatile, matching the founder's existing n8n stack experience), `GeminiFlashProvider` (fallback), and an `OpenAICompatibleProvider` slot for any future OpenAI-API-compatible endpoint. No feature ever calls a provider SDK directly — this guarantees the "never depend on a single AI provider" requirement.
+Registered clients/providers: `LocalModelProvider` (on-device quantized small model for offline/simple tasks) and `NaraRouterClient` which integrates directly with NaraRouter (`https://router.bynara.id/v1`). Under a strict 5 million token budget, cloud-based requests are directed to the whitelisted models:
+
+1. `kimi-k2.7-code-free` (primary for structured extraction, invoice OCR, and advanced logical workflows)
+2. `mistral-large` (primary for complex analytics, reasoning, and open-ended business advisory)
+3. `mistral-medium-3-5` (primary for fallback routing and general interactive queries)
+
+No feature calls external AI provider SDKs directly — all requests are strictly validated at the gateway to ensure they conform to this whitelist.
 
 **Routing policy (hybrid model, per PRD FR — AI Assistant):**
 
 1. If offline, or the query is classified as "simple" (lookup, basic report, known FAQ) → `LocalModelProvider`.
-2. If online and the query is classified as "complex" (forecasting, multi-factor analysis, open-ended business question) → cloud provider chain: Groq primary, Gemini Flash fallback on failure/timeout, per the existing fallback pattern the founder already runs in production for the LinkedIn engine.
-3. Every AI response tags `source: "local"|"groq"|"gemini"` so the UI can indicate depth/confidence to the owner.
+2. If online and the query is classified as "complex" (forecasting, multi-factor analysis, open-ended business question) → `NaraRouterClient` with fallback routing among the whitelisted models (e.g. `mistral-large` or `kimi-k2.7-code-free` falling back to `mistral-medium-3-5` if rate limits, token budget alerts, or errors occur) to strictly conserve the 5 million tokens limit.
+3. Every AI response tags `source: "local" | "nara_router:kimi-k2.7-code-free" | "nara_router:mistral-large" | "nara_router:mistral-medium-3-5"` so the UI can indicate depth/confidence and track usage auditing.
 
 ## 2. AI Assistant ("Chat with your business data")
 

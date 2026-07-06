@@ -267,19 +267,19 @@ Inbox:   [pending] --apply succeeds (no conflict)--> [applied]
 ```
 [classified] --routing policy (AI.md §1)--> [routed] --provider responds, schema valid--> [completed]
                                                   |
-                                                  └--provider fails/times out--> [failed_fallback] --next provider in chain--> [routed] (retry)
+                                                   └--provider fails/times out--> [failed_fallback] --next model in whitelist--> [routed] (retry)
                                                                                         |
-                                                                                        └--all providers exhausted--> [failed_final] (graceful degradation message)
+                                                                                        └--all models exhausted--> [failed_final] (graceful degradation message)
 ```
 
 | From               | To                | Trigger                         | Guard                                                      |
 | ------------------ | ----------------- | ------------------------------- | ---------------------------------------------------------- |
 | _(query received)_ | `classified`      | Local heuristic classification  | No cloud call needed (AI.md §2)                            |
-| `classified`       | `routed`          | Routing policy selects provider | Offline/simple → local; complex/online → Groq primary      |
+| `classified`       | `routed`          | Routing policy selects model    | Offline/simple → local; complex/online → NaraRouter        |
 | `routed`           | `completed`       | Response received, schema-valid | Tagged `source` field set (BR-AI-007)                      |
-| `routed`           | `failed_fallback` | Provider timeout/error          | Falls back Groq → Gemini Flash (BR-AI-007)                 |
-| `failed_fallback`  | `routed`          | Next provider attempted         | —                                                          |
-| `failed_fallback`  | `failed_final`    | All providers exhausted         | Graceful "couldn't compute that" message shown (BR-AI-006) |
+| `routed`           | `failed_fallback` | Model timeout/error             | Falls back within NaraRouter whitelist models (BR-AI-007)  |
+| `failed_fallback`  | `routed`          | Next model attempted            | —                                                          |
+| `failed_fallback`  | `failed_final`    | All models exhausted            | Graceful "couldn't compute that" message shown (BR-AI-006) |
 
 **Invalid transitions:** `completed` → `routed` (a completed response is not silently re-routed after the fact); a malformed response is never surfaced directly to the user in any state — it must pass through the one-retry-then-fallback path (BR-AI-006).
 

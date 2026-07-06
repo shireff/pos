@@ -1,5 +1,5 @@
 import { MongoClient, Db } from 'mongodb';
-import { initEncryption } from './encryption';
+import { initEncryption } from './encryption.js';
 
 const DEFAULT_LOCAL_URI = process.env.MONGODB_URI ?? 'mongodb://localhost:27017';
 const DEFAULT_DB_NAME = process.env.MONGODB_DB_NAME ?? 'smart_retail_os';

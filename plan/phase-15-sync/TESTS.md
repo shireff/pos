@@ -13,10 +13,10 @@
 ### ai/gateway.test.ts
 
 - Offline/simple query → routed to LocalModelProvider (never cloud)
-- Complex query + online → routed to GroqProvider
-- GroqProvider times out → falls back to GeminiFlashProvider
-- Both cloud providers fail → graceful degradation message shown (never raw error — BR-AI-006)
-- Every response tagged with source: "local" | "groq" | "gemini"
+- Complex query + online → routed to NaraRouterProvider (whitelisted models)
+- NaraRouter model `mistral-large` times out → falls back to `kimi-k2.7-code-free`
+- All NaraRouter whitelisted models fail → graceful degradation message shown (never raw error — BR-AI-006)
+- Every response tagged with source: `"local"` | `"nara_router:kimi-k2.7-code-free"` | `"nara_router:mistral-large"` | `"nara_router:mistral-medium-3-5"`
 - Malformed AI response → exactly ONE retry → then graceful fallback (not infinite retry)
 
 ### ai/context-assembler.test.ts
@@ -49,8 +49,8 @@
 
 ### ai/provider-fallback.integration.test.ts
 
-- Mock GroqProvider to return 503 → request falls back to GeminiFlash
-- Mock both cloud providers to fail → graceful degradation message returned
+- Mock NaraRouter model `mistral-large` to return 503 → request falls back to `kimi-k2.7-code-free`
+- Mock all NaraRouter whitelisted models to fail → graceful degradation message returned
 - Response includes correct source tag after each scenario
 
 ### ai/ocr.integration.test.ts (Critical Flow #4 — completes the OCR stub from Phase 06)

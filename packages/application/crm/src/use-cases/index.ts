@@ -1,1 +1,5 @@
-// placeholder — crm use cases (e.g. RegisterCustomer, UpdateLoyaltyPoints, MergeProfiles)
+export type {
+  CustomerRepository,
+  LoyaltyAccountRepository,
+  CreditLedgerRepository,
+} from '../ports';

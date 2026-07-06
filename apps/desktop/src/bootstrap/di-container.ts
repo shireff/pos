@@ -6,6 +6,8 @@ import {
   InMemoryBackupQueueStorage,
 } from '@packages/infrastructure-backup/src/backup-queue';
 import { BackupScheduler } from '@packages/infrastructure-backup/src/backup-scheduler';
+import { createSupabaseStorageAdapterFromEnv } from '@packages/infrastructure-backup/src/supabase-storage.config';
+import type { SupabaseStorageAdapter } from '@packages/infrastructure-backup/src/supabase-storage.adapter';
 import { logger } from '@packages/shared-kernel';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -20,6 +22,8 @@ export interface DesktopContainer {
   backupScheduler: BackupScheduler;
   localDiskAdapter: LocalDiskAdapter;
   backupQueue: BackupQueue;
+  supabaseStorageAdapter?: SupabaseStorageAdapter;
+  supabaseBackupConfigured: boolean;
   dbConnected: boolean;
   encryptionActive: boolean;
 }
@@ -57,8 +61,18 @@ export async function bootstrapDesktop(): Promise<DesktopContainer> {
   );
   const localDiskAdapter = new LocalDiskAdapter(backupDir, backupKey);
   const backupQueue = new BackupQueue(new InMemoryBackupQueueStorage());
+  const supabaseStorageAdapter = createSupabaseStorageAdapterFromEnv();
+  const supabaseBackupConfigured = supabaseStorageAdapter !== null;
+
   const backupScheduler = new BackupScheduler(async () => {
     // Phase 01: scheduler wired; actual backup body implemented in Phase 17 (Desktop Shell full)
+    // Supabase adapter is available when SUPABASE_URL and SUPABASE_KEY are configured.
+    if (!supabaseStorageAdapter) {
+      return;
+    }
+
+    // The backup queue and scheduler are configured. Actual upload support can be added in
+    // the desktop backup implementation once encrypted backup payload creation is available.
   });
 
   return {
@@ -66,6 +80,8 @@ export async function bootstrapDesktop(): Promise<DesktopContainer> {
     backupScheduler,
     localDiskAdapter,
     backupQueue,
+    supabaseStorageAdapter: supabaseStorageAdapter ?? undefined,
+    supabaseBackupConfigured,
     dbConnected,
     encryptionActive,
   };

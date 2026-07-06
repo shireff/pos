@@ -5,9 +5,10 @@ A phase is **NOT complete** until every item below is checked.
 ## AI Gateway
 
 - [ ] IAIProvider interface defined with correct method signatures
-- [ ] All 4 providers implemented (Local, Groq, Gemini Flash, OpenAI-compatible slot)
-- [ ] Routing policy: local-first offline, cloud hybrid online
-- [ ] Fallback chain: Groq → Gemini → Local on failure
+- [ ] `LocalModelProvider` implemented
+- [ ] `NaraRouterProvider` implemented: endpoint `https://router.bynara.id/v1`; model whitelist enforced at gateway level — only `kimi-k2.7-code-free`, `mistral-large`, `mistral-medium-3-5` are permitted; 5 million token budget respected
+- [ ] Routing policy: local-first offline, NaraRouter when online
+- [ ] Fallback chain among whitelisted models on failure, then graceful degradation
 
 ## **Advisory-Only Enforcement — MANDATORY EXIT GATE**
 

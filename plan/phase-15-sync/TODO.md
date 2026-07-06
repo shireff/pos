@@ -4,10 +4,8 @@
 
 - [ ] Implement `IAIProvider` interface (`packages/application/ai/src/gateway/providers/ai-provider.interface.ts`): `complete(request): Promise<CompletionResult>`, `embed(text): Promise<number[]>`, `classify(request): Promise<ClassificationResult>`, `isAvailable(): Promise<boolean>`
 - [ ] Implement `LocalModelProvider`: calls llama.cpp via Tauri sidecar (on Desktop) or embedded model file (on Android); always available offline; lowest latency for short prompts
-- [ ] Implement `GroqProvider`: calls Groq API with llama-3.3-70b-versatile model; requires network; highest quality for complex reasoning tasks
-- [ ] Implement `GeminiFlashProvider`: calls Gemini Flash API; requires network; good balance of speed and quality
-- [ ] Implement `OpenAICompatibleProvider`: slot for any OpenAI-compatible API endpoint; configured via company settings; disabled by default
-- [ ] Implement `AIGateway` (`packages/application/ai/src/gateway/ai-gateway.ts`): routing policy — local-first when offline or low-latency-required; cloud when online and quality-required; fallback chain: Groq → Gemini → Local on provider failure; log all routing decisions to ai_routing_log
+- [ ] Implement `NaraRouterProvider`: integrates NaraRouter REST API (`https://router.bynara.id/v1`); enforces model whitelist — only `kimi-k2.7-code-free`, `mistral-large`, `mistral-medium-3-5` are valid values for every request; tracks cumulative token usage against the 5 million token budget and refuses further cloud calls if budget is exhausted
+- [ ] Implement `AIGateway` (`packages/infrastructure/ai-clients/src/ai-gateway.ts`): routing policy — local-first when offline or low-latency-required; NaraRouter when online and quality-required; fallback chain within whitelisted models then graceful degradation on all models failing; log all routing decisions to ai_routing_log
 
 ## Query Classification
 
@@ -24,7 +22,7 @@
 - [ ] `InventoryPredictionFeature`: same pattern as sales prediction applied to stock movement trends; outputs suggested reorder quantities; advisory only
 - [ ] `FraudDetectionFeature`: rule-based scoring engine (high discount + unusual hour + new cashier = high score); LLM generates explanation for flagged transactions; no automatic blocking — advisory only
 - [ ] `StoreHealthScoreFeature`: deterministic composite score from multiple KPIs (weighted formula defined in docs); LLM generates narrative interpretation; score breakdown shown with score
-- [ ] `OcrFeature`: full implementation replacing Phase 06 stub; calls vision model (Gemini Flash or GroqVision) with invoice image; extracts structured data (supplier, date, lineItems, totals); returns structured JSON for human review before application
+- [ ] `OcrFeature`: full implementation replacing Phase 06 stub; calls NaraRouter with `kimi-k2.7-code-free` model for OCR field extraction; accepts invoice image; extracts structured data (supplier, date, lineItems, totals); returns structured JSON for human review before application
 - [ ] `DeadProductDetectionFeature`: queries products with zero sales in configurable period; LLM suggests action (markdown, bundle, discontinue); advisory only
 - [ ] `CustomerSegmentationFeature`: RFM model (Recency/Frequency/Monetary) computed deterministically; LLM generates tier names and communication suggestions; no automatic tier assignment
 - [ ] `SmartAlertsFeature`: monitors anomaly thresholds (sales drop >30% day-over-day, unusual payment method spikes); LLM generates contextual alert message; alerts are informational only
@@ -42,7 +40,7 @@
 
 ## Provider Fallback Test
 
-- [ ] `provider-fallback-chain.test.ts`: simulate GroqProvider failure; verify GeminiFlashProvider is tried next; simulate both failing; verify LocalModelProvider is used; simulate all failing; verify graceful error returned (never a crash)
+- [ ] `provider-fallback-chain.test.ts`: mock NaraRouter model `mistral-large` to return 503 → verify `kimi-k2.7-code-free` is tried next; mock all whitelisted models to fail → verify graceful degradation message is returned (never a crash); verify source tag is correctly set after each scenario
 
 ## API Endpoints
 

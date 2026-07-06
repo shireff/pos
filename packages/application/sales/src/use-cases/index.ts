@@ -1,1 +1,1 @@
-// placeholder — sales use cases (e.g. CreateOrder, ApplyDiscount, CompleteCheckout)
+export type { OrderRepository, ReturnRepository, ReceiptPrinter, CashDrawer } from '../ports';

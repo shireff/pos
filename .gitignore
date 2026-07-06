@@ -1,29 +1,37 @@
-# Dependency directories
+# ─── Dependencies ────────────────────────────────────────────────────────────
 node_modules/
 jspm_packages/
 web_packages/
 
-# Dist / outputs
+# ─── Build outputs ───────────────────────────────────────────────────────────
 dist/
 build/
 bin/
 obj/
 out/
+.next/
+.nuxt/
+.output/
 .tauri/
 src-tauri/target/
 
-# Logs
+# ─── TypeScript incremental build info ───────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+*.log
+npm-install-log.txt
 
-# OS Files
+# ─── OS Files ────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# IDE Files
+# ─── IDE Files ───────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.suo
@@ -32,19 +40,23 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Local env files
+# ─── Local env files ─────────────────────────────────────────────────────────
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
-# Databases and locks
+# ─── Databases and legacy lock files ─────────────────────────────────────────
 *.db
 *.sqlite
 *.local
 pnpm-lock.yaml
 pnpm-workspace.yaml
 
+# ─── Misc generated files ────────────────────────────────────────────────────
+plan/clean_node_modules.js
 
+# ─── Windows reserved device names (should never be tracked) ─────────────────
 nul

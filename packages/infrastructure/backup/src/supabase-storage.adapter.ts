@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { BackupPayload, BackupMetadata } from './backup-payload';
+import { BackupPayload, BackupMetadata } from './backup-payload.js';
 
 export interface SupabaseStorageConfig {
   supabaseUrl: string;

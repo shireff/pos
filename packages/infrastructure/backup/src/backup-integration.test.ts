@@ -57,6 +57,9 @@ describe('Backup Integration — full backup → restore lifecycle', () => {
 
     // Tamper with the encrypted file — flip random bytes in the middle
     const encPath = meta.filePath;
+    if (!encPath) {
+      throw new Error('Backup metadata is missing the encrypted file path.');
+    }
     const raw = fs.readFileSync(encPath);
     const tampered = Buffer.from(raw);
     // Corrupt bytes 30-40 (inside ciphertext, after IV+authTag)

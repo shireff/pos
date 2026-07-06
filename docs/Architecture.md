@@ -145,7 +145,7 @@ Event Sourcing is applied specifically to **Inventory** (StockMovement) and **Sy
 ## 8. Dependency Injection & SOLID
 
 - Constructor-based DI throughout; no service locators. Composition roots live in each app's `bootstrap/` folder.
-- Every Infrastructure implementation (MongoDB repo, HTTP client, AI provider client) implements an interface defined in `domain` or `application` — enabling test doubles and enabling the AI-provider-swap requirement (Gemini/Groq/local model) without touching application logic.
+- Every Infrastructure implementation (MongoDB repo, HTTP client, AI provider client) implements an interface defined in `domain` or `application` — enabling test doubles and enabling the AI-provider-swap requirement (NaraRouter whitelisted models / local model) without touching application logic.
 - SOLID is enforced structurally: Single Responsibility per use case class, Open/Closed via strategy interfaces for tax rules/discount rules/payment providers, Interface Segregation via narrow repository interfaces per aggregate (not one giant `IRepository`), Dependency Inversion via the layering rule in §2.
 
 ## 9. Scalability Path

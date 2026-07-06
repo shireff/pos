@@ -1,1 +1,19 @@
-// placeholder for audit value-objects
+export type AuditActionCode =
+  | 'user.login'
+  | 'user.logout'
+  | 'user.login_failed'
+  | 'user.password_changed'
+  | 'role.permission_changed'
+  | 'product.price_changed'
+  | 'product.archived'
+  | 'stock.adjusted'
+  | 'order.voided'
+  | 'return.approved'
+  | 'return.rejected'
+  | 'discount.rule_changed'
+  | 'device.registered'
+  | 'device.revoked'
+  | 'subscription.changed'
+  | 'backup.triggered'
+  | 'backup.restored'
+  | 'sync.conflict_resolved';

@@ -1,1 +1,6 @@
-// placeholder — sync use cases (e.g. PublishOutboxEvents, ResolveConflict, PullRemoteChanges)
+export type {
+  SyncOutboxRepository,
+  SyncInboxRepository,
+  SyncConflictRepository,
+  SyncCursorRepository,
+} from '../ports';

@@ -1,1 +1,1 @@
-// placeholder — purchasing use cases (e.g. CreatePurchaseOrder, ReceiveGoods, ReturnToSupplier)
+export type { PurchaseOrderRepository, SupplierRepository } from '../ports';

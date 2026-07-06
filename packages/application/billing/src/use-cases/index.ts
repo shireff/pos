@@ -1,1 +1,6 @@
-// placeholder — billing use cases (e.g. IssueInvoice, RecordPayment, ApplyTax)
+export type {
+  SubscriptionRepository,
+  SubscriptionPlanRepository,
+  LicenseKeyRepository,
+  TrialNotificationDispatcher,
+} from '../ports';
