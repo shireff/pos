@@ -1,9 +1,0 @@
-packages:
-  - 'apps/*'
-  - 'packages/*'
-  - 'packages/domain/*'
-  - 'packages/application/*'
-  - 'packages/infrastructure/*'
-allowBuilds:
-  esbuild: true
-  mongodb-client-encryption: true

@@ -44,3 +44,7 @@ Thumbs.db
 *.sqlite
 *.local
 pnpm-lock.yaml
+pnpm-workspace.yaml
+
+
+nul
