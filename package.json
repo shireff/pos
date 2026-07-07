@@ -26,11 +26,18 @@
     "typecheck:backend": "npm run typecheck --workspace @apps/backend",
     "typecheck:desktop": "npm run typecheck --workspace @apps/desktop",
     "typecheck:android": "npm run typecheck --workspace @apps/android",
+    "mongo:migrate": "npx dotenv -e .env -- npx ts-node --esm packages/infrastructure/mongodb/src/cli/run-migrations.ts up",
+    "mongo:seed": "npx dotenv -e .env -- npx ts-node --esm packages/infrastructure/mongodb/src/cli/run-seeds.ts",
+    "db:refresh": "npm run mongo:migrate && npm run mongo:seed",
+    "refresh": "npm run db:refresh",
+    "migrate": "npm run mongo:migrate",
+    "seed": "npm run mongo:seed",
     "prepare": "husky"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-react": "^7.34.1",
@@ -38,6 +45,7 @@
     "husky": "^9.0.11",
     "lint-staged": "^15.2.5",
     "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
   },
@@ -51,6 +59,7 @@
     ]
   },
   "dependencies": {
-    "mongodb-client-encryption": "^6.5.0"
+    "mongodb-client-encryption": "^6.5.0",
+    "zod": "^4.4.3"
   }
 }

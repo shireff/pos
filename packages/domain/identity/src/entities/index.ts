@@ -2,6 +2,7 @@ import { Identifier } from '@packages/shared-kernel';
 
 // ─── Permission ──────────────────────────────────────────────────────────────
 
+/** Input shape for a permission entity. */
 export interface PermissionProps {
   id: string;
   module: string;
@@ -9,6 +10,7 @@ export interface PermissionProps {
   code: string; // `${module}.${action}`
 }
 
+/** Permission entity representing a single capability code within the RBAC model. */
 export class Permission {
   public readonly id: string;
   public readonly module: string;
@@ -38,6 +40,7 @@ export class Permission {
 
 // ─── Role ────────────────────────────────────────────────────────────────────
 
+/** Input shape for a role entity. */
 export interface RoleProps {
   id: string;
   companyId: string | null; // null = system-predefined role
@@ -46,6 +49,7 @@ export interface RoleProps {
   permissionIds: string[];
 }
 
+/** Role entity that can be assigned to users for branch-scoped permissions. */
 export class Role {
   public readonly id: string;
   public readonly companyId: string | null;
@@ -90,12 +94,14 @@ export class Role {
 
 // ─── UserBranchRole ──────────────────────────────────────────────────────────
 
+/** Input shape for a user-branch-role assignment. */
 export interface UserBranchRoleProps {
   userId: string;
   branchId: string;
   roleId: string;
 }
 
+/** Assignment linking a user to a branch with a role for RBAC evaluation. */
 export class UserBranchRole {
   public readonly userId: string;
   public readonly branchId: string;
@@ -120,6 +126,7 @@ export class UserBranchRole {
 
 export type DeviceType = 'desktop' | 'android';
 
+/** Input shape for a device entity. */
 export interface DeviceProps {
   id: string;
   companyId: string;
@@ -130,6 +137,7 @@ export interface DeviceProps {
   isRevoked: boolean;
 }
 
+/** Device entity that tracks registration and revocation for licensing and sync. */
 export class Device {
   public readonly id: string;
   public readonly companyId: string;

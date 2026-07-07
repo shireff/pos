@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Db } from 'mongodb';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 
 const MIGRATIONS_COLLECTION = '_migrations';
 
@@ -32,9 +33,11 @@ export class MigrationRunner {
 
   public constructor(db: Db, migrationsDir?: string) {
     this.db = db;
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     this.migrationsDir = migrationsDir ?? path.resolve(__dirname, '..', 'migrations');
-    // createRequire with __filename resolves migrations relative to this file
-    this.requireModule = createRequire(__filename);
+    // createRequire with import.meta.url resolves migrations relative to this file
+    this.requireModule = createRequire(import.meta.url);
   }
 
   /**

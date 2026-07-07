@@ -1,0 +1,3 @@
+email : superadmin@pos.local
+password : SuperAdmin@2026
+MFA : JBSWY3DPEHPK3PXP

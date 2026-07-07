@@ -1,5 +1,5 @@
 export type SubscriptionStatus =
-  'trialing' | 'active' | 'past_due' | 'locked' | 'canceled' | 'suspended';
+  'trial' | 'trialing' | 'active' | 'past_due' | 'locked' | 'canceled' | 'suspended';
 
 export type LockReason =
   'trial_expired' | 'payment_failed' | 'platform_admin_manual' | 'policy_violation';

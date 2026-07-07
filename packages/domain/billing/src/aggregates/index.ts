@@ -2,21 +2,24 @@ import { Identifier } from '@packages/shared-kernel';
 import { SubscriptionStatus, LockReason, PlanFeatureFlags } from '../value-objects';
 import { SubscriptionPlan } from '../entities';
 
+/** Input shape for rebuilding or creating a subscription aggregate. */
 export interface SubscriptionProps {
   id: string;
   companyId: string;
   planId: string | null;
   status: SubscriptionStatus;
-  trialStartedAt: string;
-  trialEndsAt: string;
-  currentPeriodStart: string | null;
-  currentPeriodEnd: string | null;
-  lockedAt: string | null;
-  lockReason: LockReason | null;
-  isFullAccessOverride: boolean;
-  overrideExpiresAt: string | null;
-  overrideReason: string | null;
-  overrideGrantedByPlatformAdminId: string | null;
+  trialStartedAt?: string | null;
+  trialEndsAt?: string | null;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  lockedAt?: string | null;
+  lockReason?: LockReason | null;
+  isFullAccessOverride?: boolean;
+  overrideExpiresAt?: string | null;
+  overrideReason?: string | null;
+  overrideGrantedByPlatformAdminId?: string | null;
+  activatedAt?: string | null;
+  suspendedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,13 +28,14 @@ export interface SubscriptionProps {
  * Subscription aggregate — manages the trial-to-paid lifecycle.
  * Entitlement resolution follows the 5-step precedence in Database.md §2.16.1.
  */
+/** Subscription aggregate that governs trial, paid, and locked states. */
 export class Subscription {
   public readonly id: string;
   public readonly companyId: string;
   private _planId: string | null;
   private _status: SubscriptionStatus;
-  public readonly trialStartedAt: string;
-  public readonly trialEndsAt: string;
+  public readonly trialStartedAt: string | null;
+  private _trialEndsAt: string | null;
   private _currentPeriodStart: string | null;
   private _currentPeriodEnd: string | null;
   private _lockedAt: string | null;
@@ -43,21 +47,21 @@ export class Subscription {
   public readonly createdAt: string;
   private _updatedAt: string;
 
-  private constructor(props: SubscriptionProps) {
+  public constructor(props: SubscriptionProps) {
     this.id = props.id;
     this.companyId = props.companyId;
     this._planId = props.planId;
     this._status = props.status;
-    this.trialStartedAt = props.trialStartedAt;
-    this.trialEndsAt = props.trialEndsAt;
-    this._currentPeriodStart = props.currentPeriodStart;
-    this._currentPeriodEnd = props.currentPeriodEnd;
-    this._lockedAt = props.lockedAt;
-    this._lockReason = props.lockReason;
-    this._isFullAccessOverride = props.isFullAccessOverride;
-    this._overrideExpiresAt = props.overrideExpiresAt;
-    this._overrideReason = props.overrideReason;
-    this._overrideGrantedByPlatformAdminId = props.overrideGrantedByPlatformAdminId;
+    this.trialStartedAt = props.trialStartedAt ?? null;
+    this._trialEndsAt = props.trialEndsAt ?? null;
+    this._currentPeriodStart = props.currentPeriodStart ?? null;
+    this._currentPeriodEnd = props.currentPeriodEnd ?? null;
+    this._lockedAt = props.lockedAt ?? null;
+    this._lockReason = props.lockReason ?? null;
+    this._isFullAccessOverride = props.isFullAccessOverride ?? false;
+    this._overrideExpiresAt = props.overrideExpiresAt ?? null;
+    this._overrideReason = props.overrideReason ?? null;
+    this._overrideGrantedByPlatformAdminId = props.overrideGrantedByPlatformAdminId ?? null;
     this.createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
   }
@@ -97,6 +101,9 @@ export class Subscription {
   public get planId(): string | null {
     return this._planId;
   }
+  public get trialEndsAt(): string | null {
+    return this._trialEndsAt;
+  }
   public get lockedAt(): string | null {
     return this._lockedAt;
   }
@@ -118,12 +125,14 @@ export class Subscription {
     plan: SubscriptionPlan | null,
     asOf: Date = new Date(),
   ): 'full' | 'plan' | 'locked' {
+    const isTrialStatus = this._status === 'trial' || this._status === 'trialing';
+
     // Step 1: active full-access override
     if (this._isFullAccessOverride) {
       if (!this._overrideExpiresAt || new Date(this._overrideExpiresAt) > asOf) return 'full';
     }
     // Step 2: active trial
-    if (this._status === 'trialing' && new Date(this.trialEndsAt) > asOf) return 'full';
+    if (isTrialStatus && this.trialEndsAt && new Date(this.trialEndsAt) > asOf) return 'full';
     // Step 3: active paid plan
     if (this._status === 'active' && plan) return 'plan';
     // Step 4: past_due within grace period
@@ -134,15 +143,17 @@ export class Subscription {
 
   public isWriteLocked(asOf: Date = new Date()): boolean {
     if (this._status === 'locked' || this._status === 'suspended') return true;
-    if (this._status === 'trialing' && new Date(this.trialEndsAt) <= asOf) return true;
+    if ((this._status === 'trial' || this._status === 'trialing') && this.trialEndsAt) {
+      if (new Date(this.trialEndsAt) <= asOf) return true;
+    }
     return false;
   }
 
-  public activate(planId: string, periodStart: string, periodEnd: string): void {
+  public activate(planId: string, periodStart: string, periodEnd?: string): void {
     this._planId = planId;
     this._status = 'active';
     this._currentPeriodStart = periodStart;
-    this._currentPeriodEnd = periodEnd;
+    this._currentPeriodEnd = periodEnd ?? null;
     this._lockedAt = null;
     this._lockReason = null;
     this._updatedAt = new Date().toISOString();
@@ -181,6 +192,17 @@ export class Subscription {
     this._status = this._planId ? 'active' : 'trialing';
     this._lockedAt = null;
     this._lockReason = null;
+    this._updatedAt = new Date().toISOString();
+  }
+
+  public extendTrial(newTrialEndsAt: string): void {
+    const trialEndDate = new Date(newTrialEndsAt);
+    if (Number.isNaN(trialEndDate.getTime())) {
+      throw new Error('Invalid trial end date');
+    }
+
+    this._status = 'trialing';
+    this._trialEndsAt = trialEndDate.toISOString();
     this._updatedAt = new Date().toISOString();
   }
 

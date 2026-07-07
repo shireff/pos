@@ -79,6 +79,7 @@ export interface UnitOfMeasureProps {
   productId: string;
   unitName: string;
   conversionFactorToBase: number;
+  isBaseUnit?: boolean;
 }
 
 export class UnitOfMeasure {
@@ -86,17 +87,21 @@ export class UnitOfMeasure {
   public readonly productId: string;
   public readonly unitName: string;
   public readonly conversionFactorToBase: number;
+  public readonly isBaseUnit: boolean;
 
   private constructor(props: UnitOfMeasureProps) {
     this.id = props.id;
     this.productId = props.productId;
     this.unitName = props.unitName;
     this.conversionFactorToBase = props.conversionFactorToBase;
+    this.isBaseUnit = props.isBaseUnit ?? false;
   }
 
   public static create(props: Omit<UnitOfMeasureProps, 'id'>): UnitOfMeasure {
     if (props.conversionFactorToBase <= 0)
       throw new Error('UnitOfMeasure: conversionFactorToBase must be positive');
+    if (props.isBaseUnit && props.conversionFactorToBase !== 1)
+      throw new Error('Base units must use a conversion factor of 1');
     return new UnitOfMeasure({ id: Identifier.generate(), ...props });
   }
 

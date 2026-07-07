@@ -10,11 +10,11 @@ A phase is **NOT complete** until every item below is checked.
 
 ## Domain
 
-- [ ] Category aggregate with parent-child hierarchy implemented
-- [ ] Circular-parent guard rejects any attempt to create a circular reference
-- [ ] Subtree deactivation correctly soft-deletes all children
-- [ ] UnitOfMeasure entity with conversion factor validation implemented
-- [ ] Base unit conversion_factor_to_base = 1.0 enforced at domain layer
+- [x] Category aggregate with parent-child hierarchy implemented
+- [x] Circular-parent guard rejects any attempt to create a circular reference
+- [x] Subtree deactivation correctly soft-deletes all children
+- [x] UnitOfMeasure entity with conversion factor validation implemented
+- [x] Base unit conversion_factor_to_base = 1.0 enforced at domain layer
 
 ## Application
 

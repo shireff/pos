@@ -6,6 +6,7 @@ import { PlatformAdminRole } from '../value-objects';
  * NOT a row in the tenant `users` table — a completely separate entity
  * with its own authentication realm (Security.md §11.1, Architecture.md §3.1).
  */
+/** Input shape for a platform administrator aggregate. */
 export interface PlatformAdminUserProps {
   id: string;
   name: string;
@@ -21,6 +22,7 @@ export interface PlatformAdminUserProps {
   updatedAt: string;
 }
 
+/** Platform administrator aggregate that lives outside the tenant identity realm. */
 export class PlatformAdminUser {
   public readonly id: string;
   private _name: string;

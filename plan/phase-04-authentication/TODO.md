@@ -11,12 +11,12 @@
 
 ## Domain — Catalog
 
-- [ ] Implement `Category` aggregate: id (UUIDv7), companyId, name (ar/en), parentId (nullable), sortOrder, level, path (materialized path), isActive
-- [ ] Implement circular-parent guard in Category domain service: before setting parentId, verify no ancestor chain leads back to this category
-- [ ] Implement tree reorder logic: when sortOrder changes, update siblings' sortOrder atomically
-- [ ] Implement subtree deactivation: archiving a category soft-deletes all children recursively
-- [ ] Implement `UnitOfMeasure` entity: id, companyId, name (ar/en), abbreviation, isBaseUnit, conversionFactorToBase (must be 1.0 for base units)
-- [ ] Validate: each company has exactly one base unit per measurement dimension (length, weight, volume, count)
+- [x] Implement `Category` aggregate: id (UUIDv7), companyId, name (ar/en), parentId (nullable), sortOrder, level, path (materialized path), isActive
+- [x] Implement circular-parent guard in Category domain service: before setting parentId, verify no ancestor chain leads back to this category
+- [x] Implement tree reorder logic: when sortOrder changes, update siblings' sortOrder atomically
+- [x] Implement subtree deactivation: archiving a category soft-deletes all children recursively
+- [x] Implement `UnitOfMeasure` entity: id, companyId, name (ar/en), abbreviation, isBaseUnit, conversionFactorToBase (must be 1.0 for base units)
+- [x] Validate: each company has exactly one base unit per measurement dimension (length, weight, volume, count)
 
 ## Application — Use Cases
 

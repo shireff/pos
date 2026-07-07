@@ -4,6 +4,7 @@ import { SubscriptionPlan, LicenseKey } from '@packages/domain-billing';
 export interface SubscriptionRepository {
   findByCompany(companyId: string): Promise<Subscription | null>;
   save(subscription: Subscription): Promise<void>;
+  findTrialsEndingBefore(asOfIso: string): Promise<Subscription[]>;
 }
 
 export interface SubscriptionPlanRepository {

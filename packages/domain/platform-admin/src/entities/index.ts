@@ -5,6 +5,7 @@ import { PlatformAdminActionCode } from '../value-objects';
  * PlatformAdminAction — append-only cross-tenant audit record.
  * Never updated or deleted after creation (Security.md §11.4).
  */
+/** Input shape for a platform admin action record. */
 export interface PlatformAdminActionProps {
   id: string;
   platformAdminId: string;
@@ -16,6 +17,7 @@ export interface PlatformAdminActionProps {
   occurredAt: string;
 }
 
+/** Append-only audit entity for tenant-admin operations. */
 export class PlatformAdminAction {
   public readonly id: string;
   public readonly platformAdminId: string;

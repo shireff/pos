@@ -1,3 +1,4 @@
+import { Category } from '../entities';
 import { Barcode } from '../value-objects';
 
 /**
@@ -34,6 +35,47 @@ export class BarcodeGenerator {
 /**
  * UnitConversionService — converts prices and stock quantities across units of measure.
  */
+export class CategoryTreeService {
+  public static ensureNoCircularReference(
+    parentId: string,
+    categoryId: string,
+    categories: readonly Category[],
+  ): void {
+    if (parentId === categoryId) {
+      throw new Error('Circular parent reference is not allowed');
+    }
+
+    const byId = new Map(categories.map((category) => [category.id, category]));
+    let current = byId.get(parentId);
+    const seen = new Set<string>();
+
+    while (current) {
+      if (seen.has(current.id)) break;
+      seen.add(current.id);
+      if (current.id === categoryId) {
+        throw new Error('Circular parent reference is not allowed');
+      }
+      current = current.parentId ? byId.get(current.parentId) : undefined;
+    }
+  }
+
+  public static archiveSubtree(categories: readonly Category[], rootId: string): void {
+    const byId = new Map(categories.map((category) => [category.id, category]));
+    const stack = [rootId];
+
+    while (stack.length > 0) {
+      const currentId = stack.pop();
+      const current = currentId ? byId.get(currentId) : undefined;
+      if (!current || current.isDeleted) continue;
+
+      current.archive();
+      for (const child of categories.filter((category) => category.parentId === current.id)) {
+        stack.push(child.id);
+      }
+    }
+  }
+}
+
 export class UnitConversionService {
   /**
    * Converts a price per derived unit to price per base unit.

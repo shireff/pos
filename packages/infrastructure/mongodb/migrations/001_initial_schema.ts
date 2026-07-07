@@ -2,6 +2,180 @@ import { Db, Document } from 'mongodb';
 
 const COLLECTIONS: Array<{ name: string; schema: Document }> = [
   {
+    name: 'permissions',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'company_id', 'code', 'module', 'action', 'is_system'],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        code: { bsonType: 'string' },
+        module: { bsonType: 'string' },
+        action: { bsonType: 'string' },
+        description: { bsonType: 'string' },
+        is_system: { bsonType: 'bool' },
+        is_deleted: { bsonType: 'bool' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'roles',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'company_id', 'name', 'is_system_role'],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        name: { bsonType: 'string' },
+        is_system_role: { bsonType: 'bool' },
+        permission_ids: { bsonType: 'array' },
+        is_deleted: { bsonType: 'bool' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'user_branch_roles',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'user_id', 'branch_id', 'role_id'],
+      properties: {
+        _id: { bsonType: 'string' },
+        user_id: { bsonType: 'string' },
+        branch_id: { bsonType: 'string' },
+        role_id: { bsonType: 'string' },
+        created_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'subscriptions',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'company_id', 'status', 'created_at', 'updated_at'],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        plan_id: { bsonType: 'string' },
+        status: {
+          bsonType: 'string',
+          enum: ['trial', 'active', 'suspended', 'trial_expired', 'cancelled'],
+        },
+        trial_started_at: { bsonType: 'date' },
+        trial_ends_at: { bsonType: 'date' },
+        activated_at: { bsonType: 'date' },
+        suspended_at: { bsonType: 'date' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'subscription_plans',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'company_id', 'name', 'tier', 'is_active', 'created_at', 'updated_at'],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        name: { bsonType: 'string' },
+        tier: { bsonType: 'string', enum: ['trial', 'starter', 'growth', 'enterprise'] },
+        monthly_price_piasters: { bsonType: 'int', minimum: 0 },
+        annual_price_piasters: { bsonType: 'int', minimum: 0 },
+        max_users: { bsonType: 'int', minimum: 1 },
+        is_active: { bsonType: 'bool' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'license_keys',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'company_id', 'key', 'is_used', 'created_at'],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        key: { bsonType: 'string' },
+        plan_id: { bsonType: 'string' },
+        is_used: { bsonType: 'bool' },
+        expires_at: { bsonType: 'date' },
+        created_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'devices',
+    schema: {
+      bsonType: 'object',
+      required: [
+        '_id',
+        'company_id',
+        'device_type',
+        'device_fingerprint',
+        'registered_at',
+        'last_seen_at',
+        'is_revoked',
+      ],
+      properties: {
+        _id: { bsonType: 'string' },
+        company_id: { bsonType: 'string' },
+        device_type: { bsonType: 'string', enum: ['desktop', 'android'] },
+        device_fingerprint: { bsonType: 'string' },
+        registered_at: { bsonType: 'date' },
+        last_seen_at: { bsonType: 'date' },
+        is_revoked: { bsonType: 'bool' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'platform_admins',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'email', 'role', 'password_hash', 'is_active', 'created_at', 'updated_at'],
+      properties: {
+        _id: { bsonType: 'string' },
+        email: { bsonType: 'string' },
+        role: { bsonType: 'string', enum: ['super_admin', 'support'] },
+        password_hash: { bsonType: 'string' },
+        mfa_secret: { bsonType: 'string' },
+        is_active: { bsonType: 'bool' },
+        failed_login_attempts: { bsonType: 'int', minimum: 0 },
+        locked_until: { bsonType: 'date' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'platform_admin_actions',
+    schema: {
+      bsonType: 'object',
+      required: ['_id', 'admin_id', 'action', 'reason', 'created_at'],
+      properties: {
+        _id: { bsonType: 'string' },
+        admin_id: { bsonType: 'string' },
+        action: { bsonType: 'string' },
+        reason: { bsonType: 'string' },
+        metadata_json: { bsonType: 'string' },
+        created_at: { bsonType: 'date' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'companies',
     schema: {
       bsonType: 'object',
@@ -189,6 +363,20 @@ export const up = async (db: Db): Promise<void> => {
   // Create indexes per Database.md §6
   const companyId = await db.createCollection('companies').catch(() => db.collection('companies'));
   await db.collection('users').createIndex({ company_id: 1 });
+  await db.collection('permissions').createIndex({ company_id: 1, code: 1 }, { unique: true });
+  await db.collection('roles').createIndex({ company_id: 1, name: 1 });
+  await db.collection('user_branch_roles').createIndex({ user_id: 1, branch_id: 1 });
+  await db.collection('subscriptions').createIndex({ company_id: 1 }, { unique: true });
+  await db.collection('subscription_plans').createIndex({ company_id: 1, tier: 1 });
+  await db.collection('license_keys').createIndex({ company_id: 1, key: 1 }, { unique: true });
+  await db
+    .collection('devices')
+    .createIndex(
+      { company_id: 1, device_fingerprint: 1 },
+      { unique: true, name: 'company_device_fingerprint' },
+    );
+  await db.collection('platform_admins').createIndex({ email: 1 }, { unique: true });
+  await db.collection('platform_admin_actions').createIndex({ admin_id: 1, created_at: -1 });
   await db.collection('products').createIndex({ company_id: 1 });
   await db.collection('orders').createIndex({ branch_id: 1, created_at: -1 });
   await db

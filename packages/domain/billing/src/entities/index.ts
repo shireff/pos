@@ -3,6 +3,7 @@ import { PlanCode, PlanFeatureFlags } from '../value-objects';
 
 // ─── SubscriptionPlan ─────────────────────────────────────────────────────────
 
+/** Input shape for a subscription plan entity. */
 export interface SubscriptionPlanProps {
   id: string;
   code: PlanCode;
@@ -12,6 +13,7 @@ export interface SubscriptionPlanProps {
   isActive: boolean;
 }
 
+/** Subscription plan entity describing tier features and pricing. */
 export class SubscriptionPlan {
   public readonly id: string;
   public readonly code: PlanCode;
@@ -53,6 +55,7 @@ export class SubscriptionPlan {
 
 // ─── LicenseKey ───────────────────────────────────────────────────────────────
 
+/** Input shape for a license key entity. */
 export interface LicenseKeyProps {
   id: string;
   companyId: string;
@@ -62,6 +65,7 @@ export interface LicenseKeyProps {
   gracePeriodEndsAt: string | null;
 }
 
+/** License key entity used to validate enterprise or grace-period access. */
 export class LicenseKey {
   public readonly id: string;
   public readonly companyId: string;

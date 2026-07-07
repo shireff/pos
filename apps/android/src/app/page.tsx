@@ -1,29 +1,122 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { AuthShell, Paywall, getTrialCountdownState } from '@packages/ui-components';
 import { CapacitorHealthBridge } from '../bootstrap/capacitor-health.bridge';
 import type { AppHealth } from '../bootstrap/capacitor-health.bridge';
+import {
+  authReducer,
+  clearAuthSession,
+  setAuthSession,
+  setOfflineStatus,
+} from '../store/auth-store';
+import {
+  resetSubscriptionState,
+  setSubscriptionState,
+  subscriptionReducer,
+} from '../store/subscription-store';
 
 const bridge = new CapacitorHealthBridge();
+const TRIAL_ENDS_AT = new Date('2026-07-20T12:00:00.000Z');
 
-/**
- * Android Health Screen
- *
- * Reuses the same health-check concept as the Desktop shell.
- * Rendered via the shared HealthScreen component design from packages/ui-components.
- */
 export default function AndroidHealthPage() {
   const [health, setHealth] = useState<AppHealth | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [authState, setAuthState] = useState(() =>
+    authReducer(undefined, { type: 'auth/clear-session' }),
+  );
+  const [subscriptionState, setSubscriptionStoreState] = useState(() =>
+    subscriptionReducer(undefined, { type: 'subscription/reset' }),
+  );
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+  const [showPinSheet, setShowPinSheet] = useState(false);
 
   useEffect(() => {
     bridge
       .check()
-      .then(setHealth)
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Unknown error');
+      .then((result: AppHealth) => setHealth(result))
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Unknown error');
       });
   }, []);
+
+  useEffect(() => {
+    setAuthState((current) =>
+      authReducer(current, setOfflineStatus(Boolean(health && health.status !== 'ok'))),
+    );
+  }, [health]);
+
+  const countdownState = useMemo(() => getTrialCountdownState(TRIAL_ENDS_AT), []);
+
+  const handleContinue = () => {
+    setAuthState((current) =>
+      authReducer(
+        current,
+        setAuthSession({
+          currentUser: {
+            id: 'android-user',
+            name: 'Ahmed',
+            email: 'ahmed@example.com',
+            companyId: 'company-1',
+            defaultBranchId: 'branch-1',
+            isActive: true,
+          },
+          accessToken: 'demo-token',
+          branchRoles: ['Owner'],
+          isAuthenticated: true,
+        }),
+      ),
+    );
+    setSubscriptionStoreState((current) =>
+      subscriptionReducer(
+        current,
+        setSubscriptionState({
+          status: 'trialing',
+          trialEndsAt: TRIAL_ENDS_AT.toISOString(),
+          planId: 'basic',
+          isReadOnlyLocked: false,
+          isFullAccessOverride: false,
+        }),
+      ),
+    );
+    setShowPinSheet(true);
+  };
+
+  const handleLock = () => {
+    setSubscriptionStoreState((current) =>
+      subscriptionReducer(
+        current,
+        setSubscriptionState({
+          ...current,
+          status: 'locked',
+          isReadOnlyLocked: true,
+        }),
+      ),
+    );
+  };
+
+  const handleLogout = () => {
+    setAuthState((current) => authReducer(current, clearAuthSession()));
+    setSubscriptionStoreState((current) => subscriptionReducer(current, resetSubscriptionState()));
+    setShowPinSheet(false);
+  };
+
+  const shellTitle = isPlatformAdmin
+    ? language === 'ar'
+      ? 'وصول مدير النظام'
+      : 'Platform Admin Access'
+    : language === 'ar'
+      ? 'تسجيل الدخول إلى Smart Retail OS'
+      : 'Sign in to Smart Retail OS';
+
+  const shellSubtitle = isPlatformAdmin
+    ? language === 'ar'
+      ? 'أداة داخلية'
+      : 'Internal Tool'
+    : language === 'ar'
+      ? 'نظام متوافق مع الدخول دون اتصال، PIN، والاشتراك التجريبي.'
+      : 'Offline PIN, trial countdown, and subscription state are available.';
 
   return (
     <main
@@ -38,30 +131,139 @@ export default function AndroidHealthPage() {
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
       }}
     >
-      {/* Logo / Brand */}
-      <div style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 20,
-            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 1rem',
-            fontSize: 32,
-          }}
-        >
-          🛒
-        </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9' }}>Smart Retail OS</h1>
-        <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>
-          Android — نظام نقطة البيع الذكي
-        </p>
-      </div>
+      <AuthShell title={shellTitle} subtitle={shellSubtitle} isPlatformAdmin={isPlatformAdmin}>
+        <div style={{ display: 'grid', gap: '14px' }} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+            <button
+              style={secondaryButtonStyle}
+              onClick={() => setLanguage((value) => (value === 'en' ? 'ar' : 'en'))}
+            >
+              {language === 'en' ? 'العربية' : 'English'}
+            </button>
+            <button
+              style={secondaryButtonStyle}
+              onClick={() => setIsPlatformAdmin((value) => !value)}
+            >
+              {isPlatformAdmin
+                ? language === 'ar'
+                  ? 'تسجيل دخول العميل'
+                  : 'Tenant Login'
+                : language === 'ar'
+                  ? 'مدير النظام'
+                  : 'Platform Admin'}
+            </button>
+          </div>
 
-      {/* Health Status Card */}
+          {!authState.isAuthenticated ? (
+            <>
+              <label style={{ display: 'grid', gap: '6px' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  {language === 'ar' ? 'رمز الشركة' : 'Company code'}
+                </span>
+                <input style={inputStyle} placeholder="ACME" />
+              </label>
+              <label style={{ display: 'grid', gap: '6px' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  {language === 'ar' ? 'اسم المستخدم' : 'Username'}
+                </span>
+                <input style={inputStyle} placeholder="owner" />
+              </label>
+              <label style={{ display: 'grid', gap: '6px' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  {language === 'ar' ? 'كلمة المرور' : 'Password'}
+                </span>
+                <input style={inputStyle} type="password" placeholder="••••••••" />
+              </label>
+              <button style={buttonStyle} onClick={handleContinue}>
+                {language === 'ar' ? 'متابعة' : 'Continue'}
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
+                }}
+              >
+                {language === 'ar' ? 'تم تسجيل الدخول بنجاح.' : 'Signed in successfully.'}
+              </div>
+              <button
+                style={secondaryButtonStyle}
+                onClick={() => setShowPinSheet((value) => !value)}
+              >
+                {language === 'ar' ? 'PIN بدون اتصال' : 'Offline PIN'}
+              </button>
+              <button style={secondaryButtonStyle} onClick={handleLock}>
+                {language === 'ar' ? 'تفعيل القفل' : 'Trigger lock'}
+              </button>
+              <button style={secondaryButtonStyle} onClick={handleLogout}>
+                {language === 'ar' ? 'تسجيل الخروج' : 'Log out'}
+              </button>
+            </div>
+          )}
+
+          {countdownState.isVisible ? (
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: '12px',
+                background: countdownState.isCritical ? '#fef2f2' : '#fff7ed',
+                color: countdownState.isCritical ? '#b91c1c' : '#9a2c00',
+              }}
+            >
+              {language === 'ar'
+                ? `تنتهي الفترة التجريبية خلال ${countdownState.daysRemaining} يوم/أيام و${countdownState.hoursRemaining} ساعة.`
+                : `Trial ends in ${countdownState.daysRemaining} day(s) and ${countdownState.hoursRemaining} hour(s).`}
+            </div>
+          ) : null}
+
+          {authState.isOffline ? (
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: '12px',
+                background: '#fef3c7',
+                color: '#92400e',
+              }}
+            >
+              {language === 'ar' ? 'الوضع دون اتصال نشط.' : 'Offline mode is active.'}
+            </div>
+          ) : null}
+
+          {showPinSheet ? (
+            <div
+              style={{
+                display: 'grid',
+                gap: '8px',
+                padding: '12px',
+                borderRadius: '16px',
+                background: '#f8fafc',
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>{language === 'ar' ? 'أدخل PIN' : 'Enter PIN'}</div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                  gap: '8px',
+                }}
+              >
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((key) => (
+                  <button key={key} style={pinButtonStyle}>
+                    {key}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {subscriptionState.isReadOnlyLocked ? <Paywall mode="trial_expired" /> : null}
+        </div>
+      </AuthShell>
+
       <div
         style={{
           width: '100%',
@@ -83,33 +285,55 @@ export default function AndroidHealthPage() {
             marginBottom: '0.75rem',
           }}
         >
-          System Status
+          {language === 'ar' ? 'حالة النظام' : 'System Status'}
         </h2>
 
-        {error && <StatusRow label="Error" value={error} color="#ef4444" icon="❌" />}
+        {error ? (
+          <StatusRow
+            label={language === 'ar' ? 'خطأ' : 'Error'}
+            value={error}
+            color="#ef4444"
+            icon="❌"
+          />
+        ) : null}
 
-        {!health && !error && (
-          <StatusRow label="Loading" value="Checking system health…" color="#f59e0b" icon="⏳" />
-        )}
+        {!health && !error ? (
+          <StatusRow
+            label={language === 'ar' ? 'جارٍ التحميل' : 'Loading'}
+            value={language === 'ar' ? 'التحقق من صحة النظام…' : 'Checking system health…'}
+            color="#f59e0b"
+            icon="⏳"
+          />
+        ) : null}
 
-        {health && (
+        {health ? (
           <>
             <StatusRow
-              label="Status"
+              label={language === 'ar' ? 'الحالة' : 'Status'}
               value={health.status.toUpperCase()}
               color={health.status === 'ok' ? '#22c55e' : '#f59e0b'}
               icon={health.status === 'ok' ? '✅' : '⚠️'}
             />
-            <StatusRow label="Platform" value={health.platform} color="#94a3b8" icon="📱" />
-            <StatusRow label="Version" value={`v${health.version}`} color="#94a3b8" icon="🏷️" />
             <StatusRow
-              label="Time"
+              label={language === 'ar' ? 'المنصة' : 'Platform'}
+              value={health.platform}
+              color="#94a3b8"
+              icon="📱"
+            />
+            <StatusRow
+              label={language === 'ar' ? 'الإصدار' : 'Version'}
+              value={`v${health.version}`}
+              color="#94a3b8"
+              icon="🏷️"
+            />
+            <StatusRow
+              label={language === 'ar' ? 'الوقت' : 'Time'}
               value={new Date(health.timestamp).toLocaleTimeString('ar-EG')}
               color="#94a3b8"
               icon="🕐"
             />
           </>
-        )}
+        ) : null}
       </div>
     </main>
   );
@@ -144,3 +368,38 @@ function StatusRow({
     </div>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  border: '1px solid #cbd5e1',
+  borderRadius: '12px',
+  padding: '12px 14px',
+  fontSize: '0.95rem',
+};
+
+const buttonStyle: React.CSSProperties = {
+  border: 'none',
+  borderRadius: '999px',
+  padding: '10px 16px',
+  background: '#0f172a',
+  color: '#ffffff',
+  cursor: 'pointer',
+};
+
+const secondaryButtonStyle: React.CSSProperties = {
+  border: '1px solid #cbd5e1',
+  borderRadius: '999px',
+  padding: '10px 16px',
+  background: '#ffffff',
+  color: '#0f172a',
+  cursor: 'pointer',
+};
+
+const pinButtonStyle: React.CSSProperties = {
+  border: 'none',
+  borderRadius: '12px',
+  padding: '12px 8px',
+  background: '#e2e8f0',
+  color: '#0f172a',
+  cursor: 'pointer',
+  minHeight: '44px',
+};

@@ -16,6 +16,7 @@ export type BusinessType =
   | 'bookstore'
   | 'other';
 
+/** Input shape for creating or rehydrating a company aggregate. */
 export interface CompanyProps {
   id: string;
   name: string;
@@ -30,6 +31,7 @@ export interface CompanyProps {
   updatedAt: string;
 }
 
+/** Tenant company aggregate representing the root organization for licensing and access control. */
 export class Company {
   public readonly id: string;
   private _name: string;
@@ -137,6 +139,9 @@ export interface WorkingHours {
   daysOfWeek: number[];
 }
 
+export * from './auth-entities';
+
+/** Input shape for creating or rehydrating a branch aggregate. */
 export interface BranchProps {
   id: string;
   companyId: string;
@@ -150,6 +155,7 @@ export interface BranchProps {
   updatedAt: string;
 }
 
+/** Branch aggregate used to represent operational units under a company. */
 export class Branch {
   public readonly id: string;
   public readonly companyId: string;
@@ -240,6 +246,7 @@ export class Branch {
 
 // ─── User ────────────────────────────────────────────────────────────────────
 
+/** Input shape for creating or rehydrating a user aggregate. */
 export interface UserProps {
   id: string;
   companyId: string;
@@ -247,6 +254,7 @@ export interface UserProps {
   phone: string;
   email: string;
   passwordHash: string;
+  offlinePinHash: string | null;
   isActive: boolean;
   defaultBranchId: string | null;
   isDeleted: boolean;
@@ -254,6 +262,7 @@ export interface UserProps {
   updatedAt: string;
 }
 
+/** User aggregate that owns authentication state, profile data, and branch defaults. */
 export class User {
   public readonly id: string;
   public readonly companyId: string;
@@ -261,6 +270,7 @@ export class User {
   private _phone: string;
   private _email: string;
   private _passwordHash: string;
+  private _offlinePinHash: string | null;
   private _isActive: boolean;
   private _defaultBranchId: string | null;
   private _isDeleted: boolean;
@@ -274,6 +284,7 @@ export class User {
     this._phone = props.phone;
     this._email = props.email;
     this._passwordHash = props.passwordHash;
+    this._offlinePinHash = props.offlinePinHash;
     this._isActive = props.isActive;
     this._defaultBranchId = props.defaultBranchId;
     this._isDeleted = props.isDeleted;
@@ -282,7 +293,9 @@ export class User {
   }
 
   public static create(
-    props: Omit<UserProps, 'id' | 'isDeleted' | 'createdAt' | 'updatedAt'>,
+    props: Omit<UserProps, 'id' | 'isDeleted' | 'createdAt' | 'updatedAt' | 'offlinePinHash'> & {
+      offlinePinHash?: string | null;
+    },
   ): User {
     const now = new Date().toISOString();
     return new User({
@@ -290,6 +303,7 @@ export class User {
       isDeleted: false,
       createdAt: now,
       updatedAt: now,
+      offlinePinHash: props.offlinePinHash ?? null,
       ...props,
     });
   }

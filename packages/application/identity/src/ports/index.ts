@@ -1,6 +1,13 @@
 import { User } from '@packages/domain-identity';
 import { Role } from '@packages/domain-identity';
 import { Device } from '@packages/domain-identity';
+import { Subscription } from '@packages/domain-billing';
+
+/** Port: SubscriptionRepository — implemented in infrastructure/mongodb */
+export interface SubscriptionRepository {
+  findByCompany(companyId: string): Promise<Subscription | null>;
+  save(subscription: Subscription): Promise<void>;
+}
 
 /** Port: UserRepository — implemented in infrastructure/mongodb */
 export interface UserRepository {
@@ -38,6 +45,22 @@ export interface PermissionCodeRepository {
 export interface PasswordHasher {
   hash(plaintext: string): Promise<string>;
   verify(plaintext: string, hash: string): Promise<boolean>;
+}
+
+export interface RefreshTokenRecord {
+  tokenHash: string;
+  userId: string;
+  companyId: string;
+  branchRoles: string[];
+  issuedAt: string;
+  revokedAt: string | null;
+}
+
+/** Port: RefreshTokenRepository */
+export interface RefreshTokenRepository {
+  findByHash(tokenHash: string): Promise<RefreshTokenRecord | null>;
+  save(record: RefreshTokenRecord): Promise<void>;
+  revoke(tokenHash: string): Promise<void>;
 }
 
 /** Port: TokenIssuer */

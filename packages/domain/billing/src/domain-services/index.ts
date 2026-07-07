@@ -35,6 +35,14 @@ export class EntitlementResolver {
   }
 }
 
+export class SubscriptionWriteLockGuard {
+  public static ensureWritable(subscription: Subscription, asOf: Date = new Date()): void {
+    if (EntitlementResolver.isWriteLocked(subscription, asOf)) {
+      throw new Error('Subscription is write-locked and cannot be modified at this time');
+    }
+  }
+}
+
 /**
  * TrialReminder determines which reminder tier applies based on days remaining.
  * Fires at day 10, 13 (from end), and at expiry.

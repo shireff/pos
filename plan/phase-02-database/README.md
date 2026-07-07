@@ -18,7 +18,7 @@ All layers delivered together as one working vertical slice:
 - **Sync**: auth data syncs as Class B field-merge; subscription status syncs to all devices in real-time
 - **Desktop UI**: Login screen (Arabic RTL), offline PIN screen, trial countdown banner, paywall/lockout screen (trial_expired and suspended variants)
 - **Android UI**: Same screens, shared components, bottom-sheet PIN entry
-- **State Management**: auth store (Zustand), subscription store
+- **State Management**: auth store (Redux Toolkit), subscription store
 - **Tests**: unit, integration, E2E, security matrix tests
 
 ## Expected Output

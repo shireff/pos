@@ -13,6 +13,8 @@ export interface PermissionRepository {
  * Owners receive a cross-branch short-circuit (all permissions granted).
  * All other users have their roles resolved via user_branch_roles.
  */
+export * from './auth-services';
+
 export class PermissionResolver {
   public constructor(private readonly repo: PermissionRepository) {}
 

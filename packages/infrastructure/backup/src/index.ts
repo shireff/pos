@@ -1,4 +1,4 @@
-export { BackupPayload, BackupMetadata } from './backup-payload';
+export type { BackupPayload, BackupMetadata } from './backup-payload';
 export { LocalDiskAdapter } from './local-disk.adapter';
 export { SupabaseStorageAdapter } from './supabase-storage.adapter';
 export {

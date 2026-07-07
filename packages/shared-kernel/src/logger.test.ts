@@ -28,10 +28,9 @@ describe('logger', () => {
 
   it('suppresses debug logs in production', () => {
     const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-    const original = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
     logger.debug('debug message');
     expect(writeSpy).not.toHaveBeenCalled();
-    process.env.NODE_ENV = original;
+    vi.unstubAllEnvs();
   });
 });
