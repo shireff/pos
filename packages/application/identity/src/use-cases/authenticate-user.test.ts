@@ -27,17 +27,26 @@ describe('AuthenticateUser', () => {
 
     const users = {
       findByEmail: vi.fn().mockResolvedValue(user),
+      findById: vi.fn().mockResolvedValue(null),
+      findByPhone: vi.fn().mockResolvedValue(null),
+      save: vi.fn().mockResolvedValue(undefined),
+      findAll: vi.fn().mockResolvedValue([]),
     };
     const devicesRepo = {
       findByFingerprint: vi.fn().mockResolvedValue(null),
+      findById: vi.fn().mockResolvedValue(null),
+      findByCompany: vi.fn().mockResolvedValue([]),
       save: vi.fn().mockResolvedValue(undefined),
     };
     const passwordHasher = {
       verify: vi.fn().mockResolvedValue(true),
+      hash: vi.fn().mockResolvedValue('hashed'),
     };
     const tokenIssuer = {
       issueAccessToken: vi.fn().mockReturnValue('access-token'),
       issueRefreshToken: vi.fn().mockReturnValue('refresh-token'),
+      hashToken: vi.fn().mockReturnValue('hashed-token'),
+      verifyAccessToken: vi.fn().mockReturnValue(null),
     };
 
     const useCase = new AuthenticateUser(

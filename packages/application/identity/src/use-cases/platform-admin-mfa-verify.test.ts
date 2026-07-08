@@ -20,8 +20,8 @@ describe('PlatformAdminMfaVerify', () => {
 
     const useCase = new PlatformAdminMfaVerify(
       adminById as (id: string) => Promise<PlatformAdminUser | null>,
-      verifyTotp as (secret: string, code: string) => Promise<boolean>,
-      issueAdminAccessToken as (userId: string) => string,
+      verifyTotp as (secret: string | null, code: string) => Promise<boolean>,
+      issueAdminAccessToken as (payload: { adminId: string }) => string,
     );
     const result = await useCase.execute({
       mfaChallengeToken: `challenge_${admin.id}`,

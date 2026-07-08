@@ -14,105 +14,66 @@ packages/infrastructure/mongodb/seeds/default-units.seed.ts
 ## Domain — Catalog
 
 ```
-packages/domain/catalog/src/aggregates/product.aggregate.ts
-packages/domain/catalog/src/aggregates/product.aggregate.test.ts
-packages/domain/catalog/src/entities/variant.entity.ts
-packages/domain/catalog/src/entities/unit-of-measure.entity.ts
-packages/domain/catalog/src/entities/bundle.entity.ts
-packages/domain/catalog/src/value-objects/barcode.vo.ts
-packages/domain/catalog/src/value-objects/barcode.vo.test.ts
-packages/domain/catalog/src/domain-services/unit-conversion.service.ts
-packages/domain/catalog/src/domain-services/unit-conversion.service.test.ts
-packages/domain/catalog/src/domain-services/bundle-deduction.service.ts
-packages/domain/catalog/src/domain-services/bundle-deduction.service.test.ts
-packages/domain/catalog/src/domain-services/barcode-generator.service.ts
-packages/domain/catalog/src/domain-services/barcode-generator.service.test.ts
-packages/domain/catalog/src/domain-events/product-created.event.ts
-packages/domain/catalog/src/domain-events/product-updated.event.ts
-packages/domain/catalog/src/domain-events/product-archived.event.ts
-packages/domain/catalog/src/domain-events/barcode-generated.event.ts
-packages/domain/catalog/src/domain-events/variant-added.event.ts
+packages/domain/catalog/src/entities/index.ts
+packages/domain/catalog/src/domain-services/index.ts
+packages/domain/catalog/src/domain-services/index.test.ts
 packages/domain/catalog/README.md
-packages/domain/catalog/src/index.ts
 ```
 
 ## Application — Catalog Use Cases
 
 ```
-packages/application/catalog/src/create-product/create-product.command.ts
-packages/application/catalog/src/create-product/create-product.handler.ts
-packages/application/catalog/src/create-product/create-product.handler.test.ts
-packages/application/catalog/src/update-product/update-product.command.ts
-packages/application/catalog/src/update-product/update-product.handler.ts
-packages/application/catalog/src/archive-product/archive-product.command.ts
-packages/application/catalog/src/archive-product/archive-product.handler.ts
-packages/application/catalog/src/archive-product/archive-product.handler.test.ts
-packages/application/catalog/src/generate-barcode/generate-barcode.command.ts
-packages/application/catalog/src/generate-barcode/generate-barcode.handler.ts
-packages/application/catalog/src/configure-bundle/configure-bundle.command.ts
-packages/application/catalog/src/configure-bundle/configure-bundle.handler.ts
-packages/application/catalog/src/configure-bundle/configure-bundle.handler.test.ts
-packages/application/catalog/src/add-variant/add-variant.command.ts
-packages/application/catalog/src/add-variant/add-variant.handler.ts
-packages/application/catalog/src/get-product/get-product.query.ts
-packages/application/catalog/src/get-product/get-product.handler.ts
-packages/application/catalog/src/list-products/list-products.query.ts
-packages/application/catalog/src/list-products/list-products.handler.ts
-packages/application/catalog/src/index.ts
+packages/application/catalog/src/use-cases/create-product.ts
+packages/application/catalog/src/use-cases/update-product.ts
+packages/application/catalog/src/use-cases/archive-product.ts
+packages/application/catalog/src/use-cases/generate-barcode.ts
+packages/application/catalog/src/use-cases/configure-bundle.ts
+packages/application/catalog/src/use-cases/add-variant.ts
+packages/application/catalog/src/use-cases/list-products-query.ts
+packages/application/catalog/src/use-cases/get-product-query.ts
 ```
 
-## Infrastructure — Repositories
+## Backend API Routes
 
 ```
-packages/infrastructure/mongodb/repositories/product.repository.ts
-packages/infrastructure/mongodb/repositories/product.repository.test.ts
-packages/infrastructure/mongodb/repositories/variant.repository.ts
-packages/infrastructure/mongodb/repositories/bundle.repository.ts
+apps/backend/src/app/api/v1/products/route.ts
+apps/backend/src/app/api/v1/products/[id]/route.ts
+apps/backend/src/app/api/v1/products/[id]/stock/route.ts
+apps/backend/src/app/api/v1/products/[id]/barcode/route.ts
+apps/backend/src/app/api/v1/products/[id]/variants/route.ts
+apps/backend/src/app/api/v1/products/[id]/archive/route.ts
+apps/backend/src/lib/catalog-permissions.ts
+apps/backend/src/lib/errors.ts
+apps/backend/src/lib/sync-product.ts
 ```
 
-## API (Backend)
+## Shared Schemas & Contracts
 
 ```
-apps/backend/src/http/products/products.controller.ts
-apps/backend/src/http/products/products.controller.test.ts
-apps/backend/src/http/products/products.schemas.ts
+packages/shared-kernel/src/schemas/index.ts
 ```
 
 ## Shared UI Components
 
 ```
 packages/ui-components/src/catalog/ProductCard.tsx
-packages/ui-components/src/catalog/ProductCard.test.tsx
 packages/ui-components/src/catalog/VariantBadge.tsx
 packages/ui-components/src/catalog/UnitSelector.tsx
 packages/ui-components/src/catalog/BarcodeDisplay.tsx
 packages/ui-components/src/catalog/index.ts
+packages/ui-components/src/catalog/catalog-components.test.tsx
 ```
 
 ## Desktop UI
 
 ```
 apps/desktop/src/features/catalog/ProductListPage.tsx
-apps/desktop/src/features/catalog/ProductDetailPage.tsx
-apps/desktop/src/features/catalog/ProductFormPage.tsx
-apps/desktop/src/features/catalog/tabs/GeneralInfoTab.tsx
-apps/desktop/src/features/catalog/tabs/VariantsTab.tsx
-apps/desktop/src/features/catalog/tabs/UnitsConversionTab.tsx
-apps/desktop/src/features/catalog/tabs/BatchesExpiryTab.tsx
-apps/desktop/src/features/catalog/tabs/PricingHistoryTab.tsx
-apps/desktop/src/features/catalog/tabs/StockByWarehouseTab.tsx
+apps/desktop/src/features/catalog/CatalogPage.tsx
 ```
 
 ## Android UI
 
 ```
 apps/android/src/features/catalog/ProductListPage.tsx
-apps/android/src/features/catalog/ProductDetailPage.tsx
-apps/android/src/features/catalog/ProductFormPage.tsx
-```
-
-## State Management
-
-```
-packages/ui-components/src/stores/catalog.store.ts
+apps/android/src/features/catalog/CatalogScreen.tsx
 ```

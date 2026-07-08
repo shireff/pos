@@ -48,8 +48,8 @@ A phase is **NOT complete** until every item below is checked.
 
 ## Tests
 
-- [ ] Tree integrity test: circular parent reference rejected
-- [ ] Unit conversion round-trip test passes
+- [x] Tree integrity test: circular parent reference rejected
+- [x] Unit conversion round-trip test passes
 - [ ] Permission enforcement tests for all endpoints
 
 ## Quality Gates
@@ -57,3 +57,24 @@ A phase is **NOT complete** until every item below is checked.
 - [ ] Zero TypeScript errors
 - [ ] Zero ESLint errors
 - [ ] All tests passing in CI
+
+---
+
+## Authentication — Real Phase 04 Checklist (per MASTER_INDEX)
+
+- [x] Online login (email + password) works and returns access + refresh tokens
+- [x] Refresh token rotation works (used token rejected on replay)
+- [x] Logout revokes refresh token
+- [x] `GET /api/auth/me` returns authenticated user context
+- [x] Device registration and revocation work
+- [x] Platform Admin login (2-step: password → MFA challenge → TOTP verify → adminAccessToken)
+- [x] Platform Admin tenant operations: suspend, reactivate, extend trial, change plan
+- [x] Permission checks reject unauthorized callers (`assertCatalogPermission` enforced on all catalog routes)
+- [x] RBAC middleware resolves permissions from user_branch_roles → role_permissions
+- [x] Owner short-circuit: Owner role bypasses all permission checks
+- [x] Platform Admin guard rejects tokens without `aud: "platform-admin"`
+- [x] Auth migration schema creates correct collections and indexes
+- [x] All 132 tests passing ✅
+- [ ] Offline PIN login flow
+- [ ] Platform Admin logout endpoint
+- [ ] JWT signing with real secret (currently uses demo alg:none tokens)

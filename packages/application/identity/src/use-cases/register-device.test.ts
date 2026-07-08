@@ -8,6 +8,8 @@ describe('RegisterDevice', () => {
     const save = vi.fn().mockResolvedValue(undefined);
     const devicesRepo = {
       findByFingerprint: vi.fn().mockResolvedValue(null),
+      findById: vi.fn().mockResolvedValue(null),
+      findByCompany: vi.fn().mockResolvedValue([]),
       save,
     };
 
@@ -34,6 +36,8 @@ describe('RegisterDevice', () => {
     const save = vi.fn().mockResolvedValue(undefined);
     const devicesRepo = {
       findByFingerprint: vi.fn().mockResolvedValue(existing),
+      findById: vi.fn().mockResolvedValue(null),
+      findByCompany: vi.fn().mockResolvedValue([]),
       save,
     };
 

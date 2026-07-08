@@ -4,9 +4,23 @@ import { ValidationError, handleApiError } from '../../../../../../../lib/errors
 import { ExtendTrialSchema } from '@packages/shared-kernel';
 import { PlatformAdminUser } from '@packages/domain-platform-admin';
 import { Subscription } from '@packages/domain-billing';
+import { getMongoDb } from '../../../../../../../lib/cloud-db';
 
-const adminById = async (_id: string): Promise<PlatformAdminUser | null> =>
-  PlatformAdminUser.create({
+const adminById = async (_id: string): Promise<PlatformAdminUser | null> => {
+  const db = await getMongoDb();
+  const adminDoc = await db.collection('platform_admins').findOne({ is_active: true });
+  if (adminDoc) {
+    return PlatformAdminUser.create({
+      name: 'System Admin',
+      email: adminDoc.email,
+      passwordHash: adminDoc.password_hash,
+      role: adminDoc.role,
+      mfaSecret: adminDoc.mfa_secret,
+      isMfaEnrolled: Boolean(adminDoc.mfa_secret),
+      isActive: adminDoc.is_active,
+    });
+  }
+  return PlatformAdminUser.create({
     name: 'Demo Admin',
     email: 'admin@smartretail.local',
     passwordHash: 'hashed-password',
@@ -15,31 +29,75 @@ const adminById = async (_id: string): Promise<PlatformAdminUser | null> =>
     isMfaEnrolled: true,
     isActive: true,
   });
+};
 
-const subscriptionByCompanyId = async (): Promise<Subscription | null> => {
+const getSubscriptionByCompanyId = async (companyId: string): Promise<Subscription | null> => {
+  const db = await getMongoDb();
+  const doc = await db.collection('subscriptions').findOne({ company_id: companyId });
+  if (!doc) {
+    return Subscription.reconstitute({
+      id: `sub_${companyId}`,
+      companyId,
+      planId: null,
+      status: 'trialing',
+      trialStartedAt: new Date().toISOString(),
+      trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      lockedAt: null,
+      lockReason: null,
+      isFullAccessOverride: false,
+      overrideExpiresAt: null,
+      overrideReason: null,
+      overrideGrantedByPlatformAdminId: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
   return Subscription.reconstitute({
-    id: 'sub_demo',
-    companyId: 'company_demo',
-    planId: null,
-    status: 'trialing',
-    trialStartedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    trialEndsAt: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
-    currentPeriodStart: null,
-    currentPeriodEnd: null,
-    lockedAt: null,
-    lockReason: null,
+    id: doc._id.toString(),
+    companyId: doc.company_id.toString(),
+    planId: doc.plan_id || null,
+    status: (doc.status === 'trial' ? 'trialing' : doc.status) as any,
+    trialStartedAt: doc.trial_started_at?.toISOString() || new Date().toISOString(),
+    trialEndsAt:
+      doc.trial_ends_at?.toISOString() ||
+      new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    currentPeriodStart: doc.activated_at?.toISOString() || null,
+    currentPeriodEnd: doc.trial_ends_at?.toISOString() || null,
+    lockedAt: doc.status === 'suspended' ? new Date().toISOString() : null,
+    lockReason: doc.status === 'suspended' ? 'platform_admin_manual' : null,
     isFullAccessOverride: false,
     overrideExpiresAt: null,
     overrideReason: null,
     overrideGrantedByPlatformAdminId: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: doc.created_at?.toISOString() || new Date().toISOString(),
+    updatedAt: doc.updated_at?.toISOString() || new Date().toISOString(),
   });
 };
 
 const subscriptionRepo = {
-  findByCompany: subscriptionByCompanyId,
-  save: async (_subscription: Subscription) => {},
+  findByCompany: getSubscriptionByCompanyId,
+  save: async (subscription: Subscription) => {
+    const db = await getMongoDb();
+    const snap = subscription as any;
+    await db.collection('subscriptions').updateOne(
+      { company_id: snap.companyId },
+      {
+        $set: {
+          _id: snap.id,
+          plan_id: snap.planId,
+          status: snap.status === 'trialing' ? 'trial' : snap.status,
+          trial_started_at: snap.trialStartedAt ? new Date(snap.trialStartedAt) : null,
+          trial_ends_at: snap.trialEndsAt ? new Date(snap.trialEndsAt) : null,
+          activated_at: snap.currentPeriodStart ? new Date(snap.currentPeriodStart) : null,
+          suspended_at: snap.status === 'suspended' ? new Date() : null,
+          updated_at: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+  },
 };
 
 const useCase = new ExtendTrial(adminById, subscriptionRepo, async () => Promise.resolve());
@@ -57,11 +115,15 @@ export async function POST(
       throw new ValidationError(`Invalid request: ${parsed.error.message}`);
     }
 
+    const db = await getMongoDb();
+    const adminDoc = await db.collection('platform_admins').findOne({ is_active: true });
+    const adminId = adminDoc?._id?.toString() || 'admin_demo';
+
     const result = await useCase.execute({
       companyId,
       newTrialEndsAt: parsed.data.newTrialEndsAt,
       reason: parsed.data.reason,
-      adminId: 'admin_demo',
+      adminId,
     });
 
     return NextResponse.json(
@@ -70,7 +132,9 @@ export async function POST(
         data: {
           subscription: {
             id: result.subscription.id,
-            status: result.subscription.status,
+            status:
+              result.subscription.status === 'trial' ? 'trialing' : result.subscription.status,
+            planId: result.subscription.planId,
             trialEndsAt: result.subscription.trialEndsAt,
           },
         },

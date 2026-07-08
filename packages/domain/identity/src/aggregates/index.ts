@@ -342,6 +342,19 @@ export class User {
     this._updatedAt = new Date().toISOString();
   }
 
+  public setOfflinePinHash(pinHash: string): void {
+    this._offlinePinHash = pinHash;
+    this._updatedAt = new Date().toISOString();
+  }
+
+  public get offlinePinHash(): string | null {
+    return this._offlinePinHash;
+  }
+
+  public verifyOfflinePin(pinHash: string): boolean {
+    return this._offlinePinHash !== null && this._offlinePinHash === pinHash;
+  }
+
   public updateProfile(
     fields: Partial<Pick<UserProps, 'name' | 'phone' | 'email' | 'defaultBranchId'>>,
   ): void {

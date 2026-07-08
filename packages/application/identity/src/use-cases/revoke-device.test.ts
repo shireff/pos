@@ -16,6 +16,8 @@ describe('RevokeDevice', () => {
     const save = vi.fn().mockResolvedValue(undefined);
     const devicesRepo = {
       findById: vi.fn().mockResolvedValue(existing),
+      findByFingerprint: vi.fn().mockResolvedValue(null),
+      findByCompany: vi.fn().mockResolvedValue([]),
       save,
     };
 

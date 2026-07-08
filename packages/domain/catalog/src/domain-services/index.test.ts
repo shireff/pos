@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { Category, UnitOfMeasure } from '../entities';
-import { CategoryTreeService } from './index';
+import { Barcode } from '../value-objects';
+import { CategoryTreeService, UnitConversionService } from './index';
 
 describe('CategoryTreeService', () => {
   it('rejects circular parent assignments', () => {
-    const root = Category.create({ companyId: 'company-1', name: 'Root', parentId: null });
-    const child = Category.create({ companyId: 'company-1', name: 'Child', parentId: root.id });
+    const root = Category.create({ companyId: 'company-1', name: { ar: 'Root' }, parentId: null });
+    const child = Category.create({
+      companyId: 'company-1',
+      name: { ar: 'Child' },
+      parentId: root.id,
+    });
     const grandChild = Category.create({
       companyId: 'company-1',
-      name: 'Grandchild',
+      name: { ar: 'Grandchild' },
       parentId: child.id,
     });
 
@@ -22,11 +27,15 @@ describe('CategoryTreeService', () => {
   });
 
   it('archives an entire subtree recursively', () => {
-    const root = Category.create({ companyId: 'company-1', name: 'Root', parentId: null });
-    const child = Category.create({ companyId: 'company-1', name: 'Child', parentId: root.id });
+    const root = Category.create({ companyId: 'company-1', name: { ar: 'Root' }, parentId: null });
+    const child = Category.create({
+      companyId: 'company-1',
+      name: { ar: 'Child' },
+      parentId: root.id,
+    });
     const grandChild = Category.create({
       companyId: 'company-1',
-      name: 'Grandchild',
+      name: { ar: 'Grandchild' },
       parentId: child.id,
     });
 
@@ -59,5 +68,36 @@ describe('UnitOfMeasure', () => {
     });
 
     expect(unit.conversionFactorToBase).toBe(12);
+  });
+});
+
+describe('UnitConversionService', () => {
+  it('converts quantities using exact integer arithmetic', () => {
+    expect(UnitConversionService.convertQuantity(3, 12, 1)).toBe(36);
+    expect(UnitConversionService.convertQuantity(30, 1, 1000)).toBe(0);
+  });
+});
+
+describe('bundle deductions', () => {
+  it('rounds bundle deductions down and preserves proportional ratios', () => {
+    const deductions = UnitConversionService.calculateComponentDeductions(10, [
+      { deductionRatio: 0.5, quantity: 1 },
+      { deductionRatio: 0.25, quantity: 1 },
+      { deductionRatio: 0.25, quantity: 1 },
+    ]);
+
+    expect(deductions).toEqual([5, 2, 2]);
+  });
+});
+
+describe('Barcode', () => {
+  it('rejects invalid Code128 characters', () => {
+    expect(() => Barcode.code128('ABC\u0001DEF')).toThrow(
+      'CODE128 barcode contains invalid characters',
+    );
+  });
+
+  it('rejects invalid EAN-13 checksums', () => {
+    expect(() => Barcode.ean13('1234567890123')).toThrow('EAN-13 checksum failed');
   });
 });

@@ -7,6 +7,7 @@ describe('StartTrial', () => {
     const save = vi.fn().mockResolvedValue(undefined);
     const subscriptions = {
       save,
+      findByCompany: vi.fn().mockResolvedValue(null),
     };
 
     const useCase = new StartTrial(subscriptions as SubscriptionRepository);

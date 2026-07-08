@@ -3,11 +3,19 @@ import { AttributeMap } from '../value-objects';
 
 // ─── Category ────────────────────────────────────────────────────────────────
 
+export interface LocalizedName {
+  ar: string;
+  en?: string;
+}
+
 export interface CategoryProps {
   id: string;
   companyId: string;
-  name: string;
+  name: LocalizedName;
   parentId: string | null;
+  sortOrder: number;
+  level: number;
+  path: string;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -16,8 +24,11 @@ export interface CategoryProps {
 export class Category {
   public readonly id: string;
   public readonly companyId: string;
-  private _name: string;
+  private _name: LocalizedName;
   private _parentId: string | null;
+  private _sortOrder: number;
+  private _level: number;
+  private _path: string;
   private _isDeleted: boolean;
   public readonly createdAt: string;
   private _updatedAt: string;
@@ -27,21 +38,33 @@ export class Category {
     this.companyId = props.companyId;
     this._name = props.name;
     this._parentId = props.parentId;
+    this._sortOrder = props.sortOrder;
+    this._level = props.level;
+    this._path = props.path;
     this._isDeleted = props.isDeleted;
     this.createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
   }
 
   public static create(
-    props: Omit<CategoryProps, 'id' | 'isDeleted' | 'createdAt' | 'updatedAt'>,
+    props: Omit<
+      CategoryProps,
+      'id' | 'isDeleted' | 'createdAt' | 'updatedAt' | 'path' | 'sortOrder' | 'level'
+    > &
+      Partial<Pick<CategoryProps, 'path' | 'sortOrder' | 'level'>>,
   ): Category {
     const now = new Date().toISOString();
+    const id = Identifier.generate();
+    const { path, sortOrder, level, ...rest } = props;
     return new Category({
-      id: Identifier.generate(),
+      id,
       isDeleted: false,
       createdAt: now,
       updatedAt: now,
-      ...props,
+      path: path ?? id,
+      sortOrder: sortOrder ?? 0,
+      level: level ?? 0,
+      ...rest,
     });
   }
 
@@ -49,11 +72,20 @@ export class Category {
     return new Category(props);
   }
 
-  public get name(): string {
+  public get name(): Readonly<LocalizedName> {
     return this._name;
   }
   public get parentId(): string | null {
     return this._parentId;
+  }
+  public get sortOrder(): number {
+    return this._sortOrder;
+  }
+  public get level(): number {
+    return this._level;
+  }
+  public get path(): string {
+    return this._path;
   }
   public get isDeleted(): boolean {
     return this._isDeleted;
@@ -62,10 +94,24 @@ export class Category {
     return this._updatedAt;
   }
 
-  public rename(name: string): void {
+  public rename(name: LocalizedName): void {
     this._name = name;
     this._updatedAt = new Date().toISOString();
   }
+
+  public updateSortOrder(sortOrder: number): void {
+    this._sortOrder = sortOrder;
+    this._updatedAt = new Date().toISOString();
+  }
+
+  public moveTo(parentId: string | null, level: number, path: string, sortOrder: number): void {
+    this._parentId = parentId;
+    this._level = level;
+    this._path = path;
+    this._sortOrder = sortOrder;
+    this._updatedAt = new Date().toISOString();
+  }
+
   public archive(): void {
     this._isDeleted = true;
     this._updatedAt = new Date().toISOString();

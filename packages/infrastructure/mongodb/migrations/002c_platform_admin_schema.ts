@@ -1,8 +1,8 @@
-import { Db, Document } from 'mongodb';
+import { Db, Document, CreateIndexesOptions, IndexSpecification } from 'mongodb';
 
 type IndexDefinition = {
-  key: Record<string, number | string>;
-  options?: Record<string, unknown>;
+  key: IndexSpecification;
+  options?: CreateIndexesOptions;
 };
 
 const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefinition[] }> = [

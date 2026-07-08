@@ -31,6 +31,13 @@ export type {
 } from './platform-admin-reactivate-tenant';
 export { ExtendTrial } from './platform-admin-extend-trial';
 export type { ExtendTrialInput, ExtendTrialOutput } from './platform-admin-extend-trial';
+export { OfflinePinLogin, SetOfflinePin } from './offline-pin-login';
+export type {
+  OfflinePinLoginInput,
+  OfflinePinLoginOutput,
+  SetOfflinePinInput,
+  SetOfflinePinOutput,
+} from './offline-pin-login';
 export type {
   UserRepository,
   RoleRepository,

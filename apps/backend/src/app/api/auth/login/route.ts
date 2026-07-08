@@ -1,112 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthenticateUser } from '@packages/application-identity';
 import { handleApiError, ValidationError } from '../../../../lib/errors';
+import { JwtTokenIssuer } from '../../../../lib/token';
+import { ScryptPasswordHasher } from '../../../../lib/password';
 import { User } from '@packages/domain-identity';
 import { Device } from '@packages/domain-identity';
 
 class InMemoryUserRepository {
-  public async findByEmail(email: string, companyId: string): Promise<User | null> {
-    if (email === 'demo@smartretail.local' && companyId === 'company-demo') {
-      return User.create({
-        companyId,
+  private readonly _users: User[] = [];
+
+  public constructor() {
+    // Demo user — replace with MongoDB repository in production.
+    // Credentials: demo@smartretail.local / password123
+    // passwordHash must be generated via ScryptPasswordHasher.hash() at setup time.
+    this._users.push(
+      User.create({
+        companyId: 'company-demo',
         name: 'Demo User',
         phone: '0000000000',
-        email,
-        passwordHash: 'hashed-password',
+        email: 'demo@smartretail.local',
+        passwordHash: 'demo-placeholder',
         offlinePinHash: null,
         isActive: true,
         defaultBranchId: null,
-      });
-    }
-    return null;
+      }),
+    );
   }
 
-  public async findById(): Promise<User | null> {
-    return null;
+  public async findByEmail(email: string, companyId: string): Promise<User | null> {
+    return this._users.find((u) => u.email === email && u.companyId === companyId) ?? null;
+  }
+  public async findById(id: string, companyId: string): Promise<User | null> {
+    return this._users.find((u) => u.id === id && u.companyId === companyId) ?? null;
   }
   public async findByPhone(): Promise<User | null> {
     return null;
   }
-  public async save(): Promise<void> {}
+  public async save(user: User): Promise<void> {
+    const idx = this._users.findIndex((u) => u.id === user.id);
+    if (idx >= 0) this._users[idx] = user;
+  }
   public async findAll(): Promise<User[]> {
-    return [];
+    return [...this._users];
   }
 }
 
 class InMemoryDeviceRepository {
-  public async findByFingerprint(): Promise<Device | null> {
-    return null;
+  private readonly _devices: Device[] = [];
+  public async findByFingerprint(fp: string, companyId: string): Promise<Device | null> {
+    return (
+      this._devices.find((d) => d.deviceFingerprint === fp && d.companyId === companyId) ?? null
+    );
   }
-  public async findById(): Promise<Device | null> {
-    return null;
+  public async findById(id: string): Promise<Device | null> {
+    return this._devices.find((d) => d.id === id) ?? null;
   }
-  public async findByCompany(): Promise<Device[]> {
-    return [];
+  public async findByCompany(companyId: string): Promise<Device[]> {
+    return this._devices.filter((d) => d.companyId === companyId);
   }
-  public async save(): Promise<void> {}
-}
-
-class DemoPasswordHasher {
-  public async verify(plaintext: string, hash: string): Promise<boolean> {
-    return plaintext === 'password123' && hash === 'hashed-password';
-  }
-
-  public async hash(): Promise<string> {
-    return 'hashed-password';
-  }
-}
-
-class DemoTokenIssuer {
-  public issueAccessToken(payload: {
-    userId: string;
-    companyId: string;
-    branchRoles: string[];
-  }): string {
-    const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
-    const body = Buffer.from(
-      JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + 900 }),
-    ).toString('base64url');
-    return `${header}.${body}.signature`;
-  }
-
-  public issueRefreshToken(): string {
-    return 'refresh-token';
-  }
-
-  public hashToken(token: string): string {
-    return token;
-  }
-
-  public verifyAccessToken(
-    token: string,
-  ): { userId: string; companyId: string; branchRoles: string[] } | null {
-    if (!token.startsWith('ey')) {
-      return null;
-    }
-
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    try {
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as {
-        userId: string;
-        companyId: string;
-        branchRoles: string[];
-      };
-      return payload;
-    } catch {
-      return null;
-    }
+  public async save(device: Device): Promise<void> {
+    const idx = this._devices.findIndex((d) => d.id === device.id);
+    if (idx >= 0) this._devices[idx] = device;
+    else this._devices.push(device);
   }
 }
 
 const useCase = new AuthenticateUser(
   new InMemoryUserRepository(),
   new InMemoryDeviceRepository(),
-  new DemoPasswordHasher(),
-  new DemoTokenIssuer(),
+  new ScryptPasswordHasher(),
+  new JwtTokenIssuer(),
 );
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

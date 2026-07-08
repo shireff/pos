@@ -28,6 +28,7 @@ describe('UpgradeSubscription', () => {
     const repo = {
       findByCompany: vi.fn().mockResolvedValue(subscription),
       save,
+      findTrialsEndingBefore: vi.fn().mockResolvedValue([]),
     };
 
     const useCase = new UpgradeSubscription(repo as SubscriptionRepository);

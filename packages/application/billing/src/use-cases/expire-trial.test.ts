@@ -28,7 +28,11 @@ describe('ExpireTrialJob', () => {
 
     const findTrialsEndingBefore = vi.fn().mockResolvedValue([sub]);
     const save = vi.fn().mockResolvedValue(undefined);
-    const notifier = { dispatchTrialExpired: vi.fn().mockResolvedValue(undefined) };
+    const notifier = {
+      dispatchTrialExpired: vi.fn().mockResolvedValue(undefined),
+      dispatchTrialCountdown: vi.fn().mockResolvedValue(undefined),
+      dispatchSubscriptionActivated: vi.fn().mockResolvedValue(undefined),
+    };
 
     const repo: Pick<SubscriptionRepository, 'findTrialsEndingBefore' | 'save'> = {
       findTrialsEndingBefore,

@@ -18,6 +18,9 @@ export class Barcode {
 
   public static code128(value: string): Barcode {
     if (!value || value.length < 1) throw new Error('CODE128 barcode cannot be empty');
+    if (!/^[\x20-\x7E]+$/.test(value)) {
+      throw new Error('CODE128 barcode contains invalid characters');
+    }
     return new Barcode(value, 'CODE128');
   }
 

@@ -1,20 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleApiError, ValidationError } from '../../../lib/errors';
+import { getAuthContext } from '../../../lib/auth';
+import { getMongoDb } from '../../../lib/cloud-db';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // Demo response — reads from companies/subscriptions collection
+    const authContext = getAuthContext(request);
+    const companyId = authContext.companyId;
+
+    const db = await getMongoDb();
+    const doc = await db.collection<any>('subscriptions').findOne({ company_id: companyId });
+
+    if (!doc) {
+      // Create a default trial subscription on-the-fly
+      const defaultSub = {
+        _id: `sub_${companyId}`,
+        company_id: companyId,
+        status: 'trial',
+        plan_id: null,
+        trial_started_at: new Date(),
+        trial_ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      await db.collection<any>('subscriptions').insertOne(defaultSub);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          subscription: {
+            id: defaultSub._id,
+            status: 'trialing',
+            planId: null,
+            trialEndsAt: defaultSub.trial_ends_at.toISOString(),
+            trialStartedAt: defaultSub.trial_started_at.toISOString(),
+            isWriteLocked: false,
+            isFullAccessOverride: false,
+          },
+        },
+      });
+    }
+
     return NextResponse.json(
       {
         success: true,
         data: {
           subscription: {
-            id: 'sub_demo',
-            status: 'trialing',
-            planId: null,
-            trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-            trialStartedAt: new Date().toISOString(),
-            isWriteLocked: false,
+            id: doc._id.toString(),
+            status: doc.status === 'trial' ? 'trialing' : doc.status,
+            planId: doc.plan_id || null,
+            trialEndsAt:
+              doc.trial_ends_at?.toISOString() ||
+              new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+            trialStartedAt: doc.trial_started_at?.toISOString() || new Date().toISOString(),
+            isWriteLocked: doc.status === 'suspended',
             isFullAccessOverride: false,
           },
         },
@@ -28,27 +67,50 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const { planId, billingCycle } = body as { planId?: string; billingCycle?: string };
+    const authContext = getAuthContext(request);
+    const companyId = authContext.companyId;
 
-    if (!planId || !billingCycle) {
-      throw new ValidationError('planId and billingCycle are required');
+    const body = await request.json();
+    const { planId } = body as { planId?: string };
+
+    if (!planId) {
+      throw new ValidationError('planId is required');
     }
 
     if (!['basic', 'pro', 'enterprise'].includes(planId)) {
       throw new ValidationError('planId must be one of: basic, pro, enterprise');
     }
 
-    // Demo response — activate subscription
+    const db = await getMongoDb();
+
+    // Check if the plan is active in subscription plans seed or database
+    const newStatus = 'active';
+    const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await db.collection<any>('subscriptions').updateOne(
+      { company_id: companyId },
+      {
+        $set: {
+          plan_id: planId,
+          status: newStatus,
+          trial_ends_at: trialEndsAt,
+          updated_at: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+
+    const doc = await db.collection<any>('subscriptions').findOne({ company_id: companyId });
+
     return NextResponse.json(
       {
         success: true,
         data: {
           subscription: {
-            id: 'sub_demo',
+            id: doc?._id?.toString() || `sub_${companyId}`,
             status: 'active',
-            planId,
-            trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            planId: planId,
+            trialEndsAt: trialEndsAt.toISOString(),
             isWriteLocked: false,
             isFullAccessOverride: false,
           },

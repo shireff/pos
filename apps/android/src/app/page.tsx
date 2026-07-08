@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AuthShell, Paywall, getTrialCountdownState } from '@packages/ui-components';
+import { CatalogScreen } from '../features/catalog/CatalogScreen';
 import { CapacitorHealthBridge } from '../bootstrap/capacitor-health.bridge';
 import type { AppHealth } from '../bootstrap/capacitor-health.bridge';
 import {
@@ -10,6 +11,11 @@ import {
   setAuthSession,
   setOfflineStatus,
 } from '../store/auth-store';
+import {
+  getAuthSession,
+  removeAuthSession,
+  setAuthSessionInStorage,
+} from '../lib/storage/secureStorage';
 import {
   resetSubscriptionState,
   setSubscriptionState,
@@ -32,6 +38,25 @@ export default function AndroidHealthPage() {
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   const [showPinSheet, setShowPinSheet] = useState(false);
 
+  // Restore persisted session on mount
+  useEffect(() => {
+    getAuthSession().then((stored) => {
+      if (stored) {
+        setAuthState((current) =>
+          authReducer(
+            current,
+            setAuthSession({
+              currentUser: stored.currentUser,
+              accessToken: stored.accessToken,
+              branchRoles: stored.branchRoles,
+              isAuthenticated: stored.isAuthenticated,
+            }),
+          ),
+        );
+      }
+    });
+  }, []);
+
   useEffect(() => {
     bridge
       .check()
@@ -50,24 +75,25 @@ export default function AndroidHealthPage() {
   const countdownState = useMemo(() => getTrialCountdownState(TRIAL_ENDS_AT), []);
 
   const handleContinue = () => {
-    setAuthState((current) =>
-      authReducer(
-        current,
-        setAuthSession({
-          currentUser: {
-            id: 'android-user',
-            name: 'Ahmed',
-            email: 'ahmed@example.com',
-            companyId: 'company-1',
-            defaultBranchId: 'branch-1',
-            isActive: true,
-          },
-          accessToken: 'demo-token',
-          branchRoles: ['Owner'],
-          isAuthenticated: true,
-        }),
-      ),
-    );
+    const session = {
+      currentUser: {
+        id: 'android-user',
+        name: 'Ahmed',
+        email: 'ahmed@example.com',
+        companyId: 'company-1',
+        defaultBranchId: 'branch-1',
+        isActive: true,
+      },
+      accessToken: 'demo-token',
+      branchRoles: ['Owner'],
+      isAuthenticated: true,
+    };
+
+    setAuthState((current) => authReducer(current, setAuthSession(session)));
+
+    // Persist session to secure storage (Capacitor Preferences → localStorage fallback)
+    setAuthSessionInStorage(session);
+
     setSubscriptionStoreState((current) =>
       subscriptionReducer(
         current,
@@ -100,6 +126,8 @@ export default function AndroidHealthPage() {
     setAuthState((current) => authReducer(current, clearAuthSession()));
     setSubscriptionStoreState((current) => subscriptionReducer(current, resetSubscriptionState()));
     setShowPinSheet(false);
+    // Clear persisted session from secure storage
+    removeAuthSession();
   };
 
   const shellTitle = isPlatformAdmin
@@ -180,16 +208,9 @@ export default function AndroidHealthPage() {
             </>
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
-              <div
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  background: '#eff6ff',
-                  color: '#1d4ed8',
-                }}
-              >
-                {language === 'ar' ? 'تم تسجيل الدخول بنجاح.' : 'Signed in successfully.'}
-              </div>
+              {/* Catalog shown after successful login */}
+              <CatalogScreen />
+
               <button
                 style={secondaryButtonStyle}
                 onClick={() => setShowPinSheet((value) => !value)}

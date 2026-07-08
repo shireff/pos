@@ -58,6 +58,8 @@ export class UnauthorizedError extends DomainError {
 }
 
 export class ForbiddenError extends DomainError {
+  public permissionCode?: string;
+
   public constructor(message = 'You do not have permission to perform this action.') {
     super('FORBIDDEN', message, 403);
     this.name = 'ForbiddenError';
@@ -79,6 +81,9 @@ export function handleApiError(error: unknown, request: NextRequest): NextRespon
           code: error.code,
           message: error.message,
           requestId,
+          ...(error instanceof ForbiddenError && error.permissionCode
+            ? { permissionCode: error.permissionCode }
+            : {}),
           ...(isDev ? { stack: error.stack } : {}),
         },
       },

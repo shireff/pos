@@ -76,7 +76,31 @@ export class CategoryTreeService {
   }
 }
 
+export interface BundleDeductionComponent {
+  quantity: number;
+  deductionRatio: number;
+}
+
 export class UnitConversionService {
+  /**
+   * Converts a quantity between units using exact integer arithmetic.
+   * Example: 3 cartons @ 12 pieces/carton => 36 pieces.
+   */
+  public static convertQuantity(qty: number, fromUnitFactor: number, toUnitFactor: number): number {
+    if (!Number.isInteger(qty) || qty < 0)
+      throw new Error('Quantity must be a non-negative integer');
+    if (!Number.isInteger(fromUnitFactor) || fromUnitFactor <= 0) {
+      throw new Error('fromUnitFactor must be a positive integer');
+    }
+    if (!Number.isInteger(toUnitFactor) || toUnitFactor <= 0) {
+      throw new Error('toUnitFactor must be a positive integer');
+    }
+
+    const numerator = BigInt(qty) * BigInt(fromUnitFactor);
+    const denominator = BigInt(toUnitFactor);
+    return Number(numerator / denominator);
+  }
+
   /**
    * Converts a price per derived unit to price per base unit.
    * e.g. carton price 12000 piasters ÷ 12 pieces = 1000 piasters per piece
@@ -93,5 +117,26 @@ export class UnitConversionService {
   public static baseQtyToDerived(baseQty: number, conversionFactor: number): number {
     if (conversionFactor <= 0) throw new Error('conversionFactor must be positive');
     return baseQty / conversionFactor;
+  }
+
+  public static calculateComponentDeductions(
+    bundleQty: number,
+    components: readonly BundleDeductionComponent[],
+  ): number[] {
+    if (!Number.isInteger(bundleQty) || bundleQty < 0) {
+      throw new Error('bundleQty must be a non-negative integer');
+    }
+
+    const totalRatio = components.reduce((sum, component) => sum + component.deductionRatio, 0);
+    if (totalRatio > 1) throw new Error('Bundle deduction ratios cannot exceed 1.0');
+
+    return components.map((component) => {
+      if (component.quantity <= 0) throw new Error('Component quantity must be positive');
+      if (component.deductionRatio < 0 || component.deductionRatio > 1) {
+        throw new Error('Component deduction ratio must be between 0 and 1');
+      }
+
+      return Math.floor(bundleQty * component.quantity * component.deductionRatio);
+    });
   }
 }

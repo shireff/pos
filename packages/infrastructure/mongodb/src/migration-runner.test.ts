@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoClient, Db } from 'mongodb';
 import { MigrationRunner } from './migration-runner';
 import * as path from 'path';
+import { up as upProductsMigration } from '../migrations/003_products_schema';
 
 /**
  * Integration tests for MigrationRunner.
@@ -47,6 +48,10 @@ describe('MigrationRunner Integration Tests', () => {
     } catch {
       // ignore
     }
+  });
+
+  it('exports the products migration entrypoint', () => {
+    expect(typeof upProductsMigration).toBe('function');
   });
 
   it('applies 001_initial_schema.ts cleanly on fresh DB', async () => {

@@ -37,6 +37,11 @@ export {
   SuspendSchema,
   ReactivateSchema,
   ExtendTrialSchema,
+  CreateProductSchema,
+  UpdateProductSchema,
+  AddVariantSchema,
+  ConfigureBundleSchema,
+  GenerateBarcodeSchema,
 } from './schemas';
 export type {
   LoginInput,
@@ -51,4 +56,9 @@ export type {
   SuspendInput,
   ReactivateInput,
   ExtendTrialInput,
+  CreateProductInput,
+  UpdateProductInput,
+  AddVariantInput,
+  ConfigureBundleInput,
+  GenerateBarcodeInput,
 } from './schemas';

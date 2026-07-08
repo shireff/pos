@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleApiError, ValidationError } from '../../../../../lib/errors';
+import { getMongoDb } from '../../../../../lib/cloud-db';
 
 export async function GET(
   request: NextRequest,
@@ -12,21 +13,31 @@ export async function GET(
       throw new ValidationError('companyId is required');
     }
 
-    // Demo response — reads company account details
+    const db = await getMongoDb();
+    const company = await db.collection<any>('companies').findOne({ _id: companyId });
+
+    if (!company) {
+      throw new ValidationError(`Company with ID "${companyId}" not found`);
+    }
+
+    const sub = await db.collection<any>('subscriptions').findOne({ company_id: companyId });
+
     return NextResponse.json(
       {
         success: true,
         data: {
           account: {
-            companyId,
-            name: 'Demo Company',
-            businessType: 'retail',
+            companyId: company._id.toString(),
+            name: company.name,
+            businessType: company.business_type || 'retail',
             subscription: {
-              status: 'active',
-              planId: 'pro',
-              trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+              status: sub?.status === 'trial' ? 'trialing' : sub?.status || 'trialing',
+              planId: sub?.plan_id || null,
+              trialEndsAt:
+                sub?.trial_ends_at?.toISOString() ||
+                new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
             },
-            createdAt: new Date().toISOString(),
+            createdAt: company.created_at?.toISOString() || new Date().toISOString(),
           },
         },
       },
