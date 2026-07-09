@@ -1,11 +1,9 @@
-import { Db, Document, CreateIndexesOptions, IndexSpecification } from 'mongodb';
+import { Db } from 'mongodb';
 
-type IndexDefinition = {
-  key: IndexSpecification;
-  options?: CreateIndexesOptions;
-};
+type Schema = Record<string, unknown>;
+type IndexDefinition = { key: Record<string, number>; options?: Record<string, unknown> };
 
-const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefinition[] }> = [
+const COLLECTIONS: Array<{ name: string; schema: Schema; indexes?: IndexDefinition[] }> = [
   {
     name: 'subscriptions',
     schema: {
@@ -31,7 +29,10 @@ const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefini
       },
       additionalProperties: false,
     },
-    indexes: [{ key: { company_id: 1 }, options: { unique: true } }, { key: { trial_ends_at: 1 } }],
+    indexes: [
+      { key: { company_id: 1 }, options: { unique: true } },
+      { key: { trial_ends_at: 1 } },
+    ],
   },
   {
     name: 'subscription_plans',
@@ -77,15 +78,7 @@ const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefini
     name: 'devices',
     schema: {
       bsonType: 'object',
-      required: [
-        '_id',
-        'company_id',
-        'device_type',
-        'device_fingerprint',
-        'registered_at',
-        'last_seen_at',
-        'is_revoked',
-      ],
+      required: ['_id', 'company_id', 'device_type', 'device_fingerprint', 'registered_at', 'last_seen_at', 'is_revoked'],
       properties: {
         _id: { bsonType: 'string' },
         company_id: { bsonType: 'string' },
@@ -99,10 +92,7 @@ const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefini
       additionalProperties: false,
     },
     indexes: [
-      {
-        key: { company_id: 1, device_fingerprint: 1 },
-        options: { unique: true, name: 'company_device_fingerprint' },
-      },
+      { key: { company_id: 1, device_fingerprint: 1 }, options: { unique: true, name: 'company_device_fingerprint' } },
     ],
   },
 ];
@@ -111,42 +101,18 @@ export const up = async (db: Db): Promise<void> => {
   for (const { name, schema, indexes } of COLLECTIONS) {
     const existing = await db.listCollections({ name }).toArray();
     if (existing.length === 0) {
-      await db.createCollection(name, {
-        validator: { $jsonSchema: schema },
-        validationLevel: 'moderate',
-        validationAction: 'error',
-      });
+      await db.createCollection(name, { validator: { $jsonSchema: schema }, validationLevel: 'moderate', validationAction: 'error' });
     } else {
-      try {
-        await db.command({
-          collMod: name,
-          validator: { $jsonSchema: schema },
-          validationLevel: 'moderate',
-          validationAction: 'error',
-        });
-      } catch (err) {
-        // ignore
-      }
+      try { await db.command({ collMod: name, validator: { $jsonSchema: schema }, validationLevel: 'moderate', validationAction: 'error' }); } catch { /* ignore */ }
     }
-
-    if (indexes && indexes.length) {
-      for (const idx of indexes) {
-        try {
-          await db.collection(name).createIndex(idx.key, idx.options || undefined);
-        } catch (err) {
-          // ignore index errors
-        }
-      }
+    for (const idx of indexes ?? []) {
+      try { await db.collection(name).createIndex(idx.key, idx.options); } catch { /* ignore */ }
     }
   }
 };
 
 export const down = async (db: Db): Promise<void> => {
   for (const { name } of COLLECTIONS) {
-    try {
-      await db.command({ collMod: name, validator: {}, validationLevel: 'off' });
-    } catch (err) {
-      // ignore
-    }
+    try { await db.command({ collMod: name, validator: {}, validationLevel: 'off' }); } catch { /* ignore */ }
   }
 };

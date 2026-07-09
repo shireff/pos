@@ -1,36 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UpdateUnitUseCase } from '@packages/application-catalog';
-import { UnitOfMeasure } from '@packages/domain-catalog';
 import { assertCatalogPermission } from '../../../../../lib/catalog-permissions';
-import { handleApiError } from '../../../../../lib/errors';
+import { handleApiError, ValidationError } from '../../../../../lib/errors';
+import { MongoUnitRepository } from '../../../../../lib/mongo-catalog-repository';
+import { z } from 'zod';
 
-const store: UnitOfMeasure[] = [];
-
-class InMemoryUnitRepository {
-  async findById(id: string, companyId: string): Promise<UnitOfMeasure | null> {
-    return store.find((u) => u.id === id && u.productId === companyId) ?? null;
-  }
-  async findAll(companyId: string): Promise<UnitOfMeasure[]> {
-    return store.filter((u) => u.productId === companyId);
-  }
-  async existsByAbbreviation(
-    abbreviation: string,
-    companyId: string,
-    excludeId?: string,
-  ): Promise<boolean> {
-    return store.some(
-      (u) => u.productId === companyId && u.unitName === abbreviation && u.id !== excludeId,
-    );
-  }
-  async hasActiveProductReferences(_unitId: string, _companyId: string): Promise<boolean> {
-    return false;
-  }
-  async save(unit: UnitOfMeasure): Promise<void> {
-    const idx = store.findIndex((u) => u.id === unit.id);
-    if (idx >= 0) store[idx] = unit;
-    else store.push(unit);
-  }
-}
+const UpdateUnitSchema = z
+  .object({
+    companyId: z.string().min(1).optional(),
+    name: z.object({ ar: z.string().min(1), en: z.string().optional() }).optional(),
+    abbreviation: z.string().min(1).max(10).optional(),
+    conversionFactorToBase: z.number().positive().optional(),
+  })
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.abbreviation !== undefined ||
+      data.conversionFactorToBase !== undefined,
+    { message: 'At least one of name, abbreviation, or conversionFactorToBase is required' },
+  );
 
 export async function PATCH(
   request: NextRequest,
@@ -40,21 +28,23 @@ export async function PATCH(
     await assertCatalogPermission(request, 'catalog.edit');
 
     const { id } = await context.params;
-    const body = (await request.json()) as {
-      companyId?: string;
-      name?: { ar: string; en?: string };
-      abbreviation?: string;
-      conversionFactorToBase?: number;
-    };
+    const body: unknown = await request.json();
 
-    const repo = new InMemoryUnitRepository();
+    const parsed = UpdateUnitSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ValidationError(
+        parsed.error.issues.map((e: { message: string }) => e.message).join('; '),
+      );
+    }
+
+    const repo = new MongoUnitRepository();
     const useCase = new UpdateUnitUseCase(repo);
     const { unit } = await useCase.execute({
-      companyId: body.companyId ?? 'company-1',
+      companyId: parsed.data.companyId ?? 'company-1',
       unitId: id,
-      name: body.name,
-      abbreviation: body.abbreviation,
-      conversionFactorToBase: body.conversionFactorToBase,
+      name: parsed.data.name,
+      abbreviation: parsed.data.abbreviation,
+      conversionFactorToBase: parsed.data.conversionFactorToBase,
     });
 
     return NextResponse.json({ success: true, data: unit });

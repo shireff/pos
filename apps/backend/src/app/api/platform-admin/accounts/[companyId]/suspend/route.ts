@@ -6,28 +6,26 @@ import { PlatformAdminUser } from '@packages/domain-platform-admin';
 import { Subscription } from '@packages/domain-billing';
 import { getMongoDb } from '../../../../../../lib/cloud-db';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Doc = Record<string, any>;
+
 const adminById = async (_id: string): Promise<PlatformAdminUser | null> => {
   const db = await getMongoDb();
-  const adminDoc = await db.collection('platform_admins').findOne({ is_active: true });
-  if (adminDoc) {
-    return PlatformAdminUser.create({
-      name: 'System Admin',
-      email: adminDoc.email,
-      passwordHash: adminDoc.password_hash,
-      role: adminDoc.role,
-      mfaSecret: adminDoc.mfa_secret,
-      isMfaEnrolled: Boolean(adminDoc.mfa_secret),
-      isActive: adminDoc.is_active,
-    });
-  }
-  return PlatformAdminUser.create({
-    name: 'Demo Admin',
-    email: 'admin@smartretail.local',
-    passwordHash: 'hashed-password',
-    role: 'super_admin',
-    mfaSecret: 'JBSWY3DPEBLW64TMMQ======',
-    isMfaEnrolled: true,
-    isActive: true,
+  const adminDoc = await db.collection<Doc>('platform_admins').findOne({ is_active: true });
+  if (!adminDoc) return null;
+  return PlatformAdminUser.reconstitute({
+    id: String(adminDoc._id),
+    name: String(adminDoc.name ?? String(adminDoc.email).split('@')[0]),
+    email: String(adminDoc.email),
+    passwordHash: String(adminDoc.password_hash),
+    role: adminDoc.role as import('@packages/domain-platform-admin').PlatformAdminRole,
+    mfaSecret: adminDoc.mfa_secret ? String(adminDoc.mfa_secret) : null,
+    isMfaEnrolled: Boolean(adminDoc.mfa_secret),
+    isActive: Boolean(adminDoc.is_active),
+    failedLoginAttempts: Number(adminDoc.failed_login_attempts ?? 0),
+    lockedUntil: adminDoc.locked_until ? (adminDoc.locked_until as Date).toISOString() : null,
+    createdAt: adminDoc.created_at instanceof Date ? adminDoc.created_at.toISOString() : new Date().toISOString(),
+    updatedAt: adminDoc.updated_at instanceof Date ? adminDoc.updated_at.toISOString() : new Date().toISOString(),
   });
 };
 

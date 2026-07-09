@@ -20,6 +20,16 @@ export type {
   PlatformAdminMfaVerifyInput,
   PlatformAdminMfaVerifyOutput,
 } from './platform-admin-mfa-verify';
+export { PlatformAdminMfaSetup } from './platform-admin-mfa-setup';
+export type {
+  PlatformAdminMfaSetupInput,
+  PlatformAdminMfaSetupResult,
+} from './platform-admin-mfa-setup';
+export { PlatformAdminMfaSetupVerify } from './platform-admin-mfa-setup-verify';
+export type {
+  PlatformAdminMfaSetupVerifyInput,
+  PlatformAdminMfaSetupVerifyResult,
+} from './platform-admin-mfa-setup-verify';
 export { ChangeTenantPlan } from './platform-admin-change-plan';
 export type { ChangeTenantPlanInput, ChangeTenantPlanOutput } from './platform-admin-change-plan';
 export { SuspendTenant } from './platform-admin-suspend-tenant';

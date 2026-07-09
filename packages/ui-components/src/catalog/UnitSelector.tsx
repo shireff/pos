@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface UnitOption {
   id: string;
   label: string;
@@ -14,24 +12,18 @@ export interface UnitSelectorProps {
 
 export function UnitSelector({ units, selectedUnit, onSelect }: UnitSelectorProps) {
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+    <div className="row" style={{ gap: 'var(--space-2)' }}>
       {units.map((unit) => (
         <button
           key={unit.id}
           type="button"
+          className={`chip${selectedUnit === unit.id ? ' is-selected is-interactive' : ' is-interactive'}`}
+          aria-pressed={selectedUnit === unit.id}
           onClick={() => onSelect(unit.id)}
-          style={{
-            borderRadius: 999,
-            border: selectedUnit === unit.id ? '1px solid #0969da' : '1px solid #d0d7de',
-            background: selectedUnit === unit.id ? '#eaf4ff' : '#fff',
-            color: selectedUnit === unit.id ? '#0969da' : '#24292f',
-            padding: '6px 10px',
-            cursor: 'pointer',
-          }}
         >
-          <div style={{ fontWeight: 600 }}>{unit.label}</div>
+          <span style={{ fontWeight: 600 }}>{unit.label}</span>
           {unit.conversionLabel ? (
-            <div style={{ fontSize: 11, opacity: 0.8 }}>{unit.conversionLabel}</div>
+            <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>{unit.conversionLabel}</span>
           ) : null}
         </button>
       ))}

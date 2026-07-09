@@ -23,6 +23,10 @@ export type {
 export { checkSelfLock, isActionBlocked, getLockMessage } from './commands/self-lock.command';
 export type { CachedSubscriptionState, SelfLockResult } from './commands/self-lock.command';
 
+// API error i18n
+export { getApiErrorMessage } from './api-error-messages';
+export type { SupportedLocale } from './api-error-messages';
+
 // Validation schemas
 export {
   LoginSchema,
@@ -33,6 +37,8 @@ export {
   UpgradeSubscriptionSchema,
   PlatformAdminLoginSchema,
   MfaVerifySchema,
+  MfaSetupSchema,
+  MfaSetupVerifySchema,
   ChangePlanSchema,
   SuspendSchema,
   ReactivateSchema,
@@ -42,6 +48,11 @@ export {
   AddVariantSchema,
   ConfigureBundleSchema,
   GenerateBarcodeSchema,
+  CreateCategorySchema,
+  UpdateCategorySchema,
+  MoveCategorySchema,
+  CreateUnitSchema,
+  UpdateUnitSchema,
 } from './schemas';
 export type {
   LoginInput,
@@ -52,6 +63,8 @@ export type {
   UpgradeSubscriptionInput,
   PlatformAdminLoginInput,
   MfaVerifyInput,
+  MfaSetupInput,
+  MfaSetupVerifyInput,
   ChangePlanInput,
   SuspendInput,
   ReactivateInput,
@@ -61,4 +74,9 @@ export type {
   AddVariantInput,
   ConfigureBundleInput,
   GenerateBarcodeInput,
+  CreateCategorySchemaInput,
+  UpdateCategorySchemaInput,
+  MoveCategorySchemaInput,
+  CreateUnitSchemaInput,
+  UpdateUnitSchemaInput,
 } from './schemas';

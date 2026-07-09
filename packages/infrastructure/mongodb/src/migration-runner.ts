@@ -1,8 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Db } from 'mongodb';
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const MIGRATIONS_COLLECTION = '_migrations';
 
@@ -25,19 +24,19 @@ interface Migration extends MigrationModule {
  * Tracks applied migrations in the `_migrations` collection.
  *
  * Migration files must export `up(db: Db)` and `down(db: Db)` functions.
+ *
+ * Uses dynamic import() instead of require() so it works correctly in ESM
+ * packages ("type": "module") where require() of .ts/.js ES modules fails.
  */
 export class MigrationRunner {
   private readonly db: Db;
   private readonly migrationsDir: string;
-  private readonly requireModule: NodeRequire;
 
   public constructor(db: Db, migrationsDir?: string) {
     this.db = db;
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     this.migrationsDir = migrationsDir ?? path.resolve(__dirname, '..', 'migrations');
-    // createRequire with import.meta.url resolves migrations relative to this file
-    this.requireModule = createRequire(import.meta.url);
   }
 
   /**
@@ -46,12 +45,16 @@ export class MigrationRunner {
    */
   public async up(): Promise<void> {
     const applied = await this.getAppliedMigrations();
-    const available = this.loadAvailableMigrations();
+    const available = await this.loadAvailableMigrations();
 
     for (const migration of available) {
       if (!applied.includes(migration.name)) {
+        console.log(`  applying migration: ${migration.name}`);
         await migration.up(this.db);
         await this.recordMigration(migration.name);
+        console.log(`  ✓ ${migration.name}`);
+      } else {
+        console.log(`  skipping (already applied): ${migration.name}`);
       }
     }
   }
@@ -61,18 +64,23 @@ export class MigrationRunner {
    */
   public async down(): Promise<void> {
     const applied = await this.getAppliedMigrations();
-    if (applied.length === 0) return;
+    if (applied.length === 0) {
+      console.log('  nothing to roll back');
+      return;
+    }
 
     const lastMigrationName = applied[applied.length - 1];
-    const available = this.loadAvailableMigrations();
+    const available = await this.loadAvailableMigrations();
     const migration = available.find((m) => m.name === lastMigrationName);
 
     if (!migration) {
       throw new Error(`Migration not found for rollback: ${lastMigrationName}`);
     }
 
+    console.log(`  rolling back: ${lastMigrationName}`);
     await migration.down(this.db);
     await this.removeMigrationRecord(lastMigrationName);
+    console.log(`  ✓ rolled back ${lastMigrationName}`);
   }
 
   private async getAppliedMigrations(): Promise<string[]> {
@@ -91,7 +99,12 @@ export class MigrationRunner {
     await coll.deleteOne({ name });
   }
 
-  private loadAvailableMigrations(): Migration[] {
+  /**
+   * Loads all migration files from migrationsDir using dynamic import() so
+   * ES module files (in a "type":"module" package) load correctly.
+   * Files are sorted alphabetically to guarantee execution order.
+   */
+  private async loadAvailableMigrations(): Promise<Migration[]> {
     if (!fs.existsSync(this.migrationsDir)) return [];
 
     const files = fs
@@ -99,14 +112,21 @@ export class MigrationRunner {
       .filter((f) => f.endsWith('.js') || f.endsWith('.ts'))
       .sort();
 
-    return files.map((file) => {
+    const migrations: Migration[] = [];
+
+    for (const file of files) {
       const filePath = path.join(this.migrationsDir, file);
-      const mod = this.requireModule(filePath) as MigrationModule;
-      return {
+      // pathToFileURL ensures the path is a valid file:// URL on Windows
+      // (backslashes in require() paths cause issues in ESM loaders).
+      const fileUrl = pathToFileURL(filePath).href;
+      const mod = (await import(fileUrl)) as MigrationModule;
+      migrations.push({
         name: file.replace(/\.[jt]s$/, ''),
         up: mod.up,
         down: mod.down,
-      };
-    });
+      });
+    }
+
+    return migrations;
   }
 }

@@ -121,8 +121,8 @@
 - [x] `GET /api/auth/me`
 - [x] `POST /api/platform-admin/auth/login`
 - [x] `POST /api/platform-admin/auth/mfa-verify`
-- [ ] `POST /api/platform-admin/auth/logout`
-- [ ] Offline PIN login flow
+- [x] `POST /api/platform-admin/auth/logout`
+- [x] Offline PIN login flow
 
 ### Infrastructure
 

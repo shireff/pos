@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useT } from '../i18n';
+import { Icon } from '../components/Icon';
 
 export interface CategoryTreeNodeData {
   id: string;
@@ -25,7 +27,8 @@ export function CategoryTreeNode({
   onAddChild,
   onDelete,
   depth = 0,
-}: CategoryTreeNodeProps): React.ReactElement {
+}: CategoryTreeNodeProps): JSX.Element {
+  const t = useT();
   const [expanded, setExpanded] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.name.ar);
@@ -49,35 +52,16 @@ export function CategoryTreeNode({
   }
 
   return (
-    <li
-      style={{ listStyle: 'none', paddingLeft: depth > 0 ? 20 : 0 }}
-      aria-expanded={hasChildren ? expanded : undefined}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '4px 0',
-          opacity: node.isDeleted ? 0.45 : 1,
-        }}
-      >
+    <li className="accordion-item" style={{ marginInlineStart: depth > 0 ? 'var(--space-4)' : 0 }} aria-expanded={hasChildren ? expanded : undefined}>
+      <div className="accordion-btn" style={{ opacity: node.isDeleted ? 0.55 : 1 }}>
         <button
           type="button"
-          aria-label={expanded ? 'Collapse' : 'Expand'}
+          aria-label={expanded ? t('nav.collapse') : t('nav.expand')}
           onClick={() => setExpanded((prev) => !prev)}
-          style={{
-            width: 18,
-            height: 18,
-            border: 'none',
-            background: 'none',
-            cursor: hasChildren ? 'pointer' : 'default',
-            color: hasChildren ? '#555' : 'transparent',
-            flexShrink: 0,
-            fontSize: 12,
-          }}
+          className="btn btn-ghost btn-icon btn-sm"
+          style={{ color: hasChildren ? 'var(--color-text-secondary)' : 'transparent', cursor: hasChildren ? 'pointer' : 'default' }}
         >
-          {hasChildren ? (expanded ? '▾' : '▸') : ''}
+          {hasChildren && <Icon name="chevron-left" size={16} />}
         </button>
 
         {editing ? (
@@ -87,58 +71,39 @@ export function CategoryTreeNode({
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleRenameCommit}
             onKeyDown={handleKeyDown}
-            aria-label="Rename category"
-            style={{ fontSize: 14, padding: '2px 4px', borderRadius: 4, border: '1px solid #aaa' }}
+            aria-label={t('categories.rename')}
+            className="form-input"
+            style={{ height: 32 }}
           />
         ) : (
           <span
             onDoubleClick={() => !node.isDeleted && setEditing(true)}
             title={node.name.en}
-            style={{ fontSize: 14, cursor: node.isDeleted ? 'default' : 'text', flexGrow: 1 }}
+            style={{ fontSize: 'var(--font-size-sm)', cursor: node.isDeleted ? 'default' : 'text', flexGrow: 1 }}
           >
             {node.name.ar}
             {node.name.en && (
-              <span style={{ color: '#888', marginLeft: 6, fontSize: 12 }}>({node.name.en})</span>
+              <span style={{ color: 'var(--color-text-tertiary)', marginInlineStart: 'var(--space-2)', fontSize: 'var(--font-size-xs)' }}>
+                ({node.name.en})
+              </span>
             )}
           </span>
         )}
 
         {!node.isDeleted && (
-          <span style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
-            <button
-              type="button"
-              aria-label="Add child category"
-              onClick={() => onAddChild?.(node.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 14,
-                color: '#2563eb',
-              }}
-            >
-              +
+          <span className="row" style={{ marginInlineStart: 'auto', gap: 'var(--space-1)' }}>
+            <button type="button" aria-label={t('categories.addChild')} className="btn btn-ghost btn-icon btn-sm" onClick={() => onAddChild?.(node.id)}>
+              <Icon name="plus" size={16} />
             </button>
-            <button
-              type="button"
-              aria-label="Delete category"
-              onClick={() => onDelete?.(node.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 14,
-                color: '#dc2626',
-              }}
-            >
-              ✕
+            <button type="button" aria-label={t('categories.delete')} className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => onDelete?.(node.id)}>
+              <Icon name="trash" size={16} />
             </button>
           </span>
         )}
       </div>
 
       {hasChildren && expanded && (
-        <ul style={{ margin: 0, padding: 0 }} role="group">
+        <ul role="group" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {node.children.map((child) => (
             <CategoryTreeNode
               key={child.id}

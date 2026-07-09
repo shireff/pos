@@ -18,27 +18,6 @@ interface AuthUser {
   branchRoles?: string[];
 }
 
-interface AuthResponse {
-  [x: string]: any;
-  data: {
-    accessToken?: string;
-    refreshToken?: string;
-    challengeToken?: string;
-    user?: {
-      id: string;
-      companyId: string;
-      email: string;
-      name: string;
-    };
-    admin?: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-    };
-  };
-}
-
 interface LoginPayload {
   email: string;
   password: string;
@@ -51,13 +30,28 @@ interface RestoreSessionResult {
   user: AuthUser | null;
 }
 
+/** Structured reject value so the UI can translate by code. */
+interface AuthRejectValue {
+  message: string;
+  code: string;
+}
+
 export interface AuthState {
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   token: string | null;
   user: AuthUser | null;
+  /** Raw English message from the server (fallback). */
   error: string | null;
+  /** Machine-readable code for client-side i18n lookup. */
+  errorCode: string | null;
   challengeToken: string | null;
   mfaRequired: boolean;
+  mfaSetup: {
+    secret: string;
+    otpauthUri: string;
+    qrCode: string;
+    setupToken: string;
+  } | null;
   branchRoles: string[];
 }
 
@@ -68,17 +62,36 @@ const initialState: AuthState = {
   token: persistedSession?.token ?? null,
   user: persistedSession?.user ?? null,
   error: null,
+  errorCode: null,
   challengeToken: null,
   mfaRequired: false,
+  mfaSetup: null,
   branchRoles: [],
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function extractAxiosError(error: unknown): AuthRejectValue {
+  if (axios.isAxiosError(error)) {
+    const errData = (error.response?.data as { error?: { message?: string; code?: string } })
+      ?.error;
+    return {
+      message: errData?.message ?? error.message,
+      code: errData?.code ?? 'NETWORK_ERROR',
+    };
+  }
+  return {
+    message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+    code: 'INTERNAL_SERVER_ERROR',
+  };
+}
+
+// ─── Thunks ───────────────────────────────────────────────────────────────────
 
 export const login = createAsyncThunk<
   RestoreSessionResult,
   LoginPayload,
-  {
-    rejectValue: string;
-  }
+  { rejectValue: AuthRejectValue }
 >('auth/login', async (payload, thunkAPI) => {
   try {
     const endpoint = payload.isPlatformAdmin
@@ -86,31 +99,36 @@ export const login = createAsyncThunk<
       : ApiEndpoints.AuthLogin;
 
     const body = payload.isPlatformAdmin
-      ? {
-          email: payload.email,
-          password: payload.password,
-        }
+      ? { email: payload.email, password: payload.password }
       : {
-          email: payload.email,
-          password: payload.password,
-          companyId: payload.companyId,
-          deviceFingerprint: 'desktop-client',
-          deviceType: 'desktop',
-        };
+        email: payload.email,
+        password: payload.password,
+        companyId: payload.companyId,
+        deviceFingerprint: 'desktop-client',
+        deviceType: 'desktop',
+      };
 
-    const response = await client.post<AuthResponse>(endpoint, body);
+    type LoginResponseData = {
+      accessToken?: string;
+      refreshToken?: string;
+      challengeToken?: string;
+      user?: { id: string; companyId: string; email: string; name: string };
+      admin?: { id: string; email: string; name: string; role: string };
+    };
 
-    // For Platform Admin login: response.data.data could have challengeToken
-    const resData = (response.data as any).data || response.data;
-    const token = resData.accessToken ?? resData.challengeToken ?? null;
+    const response = await client.post<{ data?: LoginResponseData } & LoginResponseData>(endpoint, body);
+    const raw = response.data;
+    const resData: LoginResponseData = raw.data ?? raw;
+
+    const token: string | null = resData.accessToken ?? resData.challengeToken ?? null;
     const userData = resData.user ?? resData.admin;
-    const user = userData
+    const user: AuthUser | null = userData
       ? {
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          companyId: (userData as { companyId?: string }).companyId,
-        }
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        companyId: (userData as { companyId?: string }).companyId,
+      }
       : null;
 
     if (token && !resData.challengeToken) {
@@ -119,36 +137,65 @@ export const login = createAsyncThunk<
 
     return { token, user };
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const message = (error.response as any)?.data?.error?.message || error.message;
-      return thunkAPI.rejectWithValue(message);
-    }
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
+  }
+});
 
-    return thunkAPI.rejectWithValue(
-      error instanceof Error ? error.message : 'Unable to connect to the authentication server.',
-    );
+interface MfaSetupResult {
+  secret: string;
+  otpauthUri: string;
+  qrCode: string;
+  setupToken: string;
+}
+
+export const setupMfa = createAsyncThunk<
+  MfaSetupResult,
+  { email: string; password: string },
+  { rejectValue: AuthRejectValue }
+>('auth/setupMfa', async (payload, thunkAPI) => {
+  try {
+    const response = await client.post(ApiEndpoints.PlatformAdminMfaSetup, {
+      email: payload.email,
+      password: payload.password,
+    });
+    const data = (response.data as { data: MfaSetupResult }).data;
+    return { secret: data.secret, otpauthUri: data.otpauthUri, qrCode: data.qrCode, setupToken: data.setupToken };
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
+  }
+});
+
+export const confirmMfaSetup = createAsyncThunk<
+  { adminId: string; enrolled: boolean },
+  { setupToken: string; code: string },
+  { rejectValue: AuthRejectValue }
+>('auth/confirmMfaSetup', async (payload, thunkAPI) => {
+  try {
+    const response = await client.post(ApiEndpoints.PlatformAdminMfaSetupVerify, {
+      setupToken: payload.setupToken,
+      code: payload.code,
+    });
+    return (response.data as { data: { adminId: string; enrolled: boolean } }).data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
   }
 });
 
 export const verifyMfa = createAsyncThunk<
   RestoreSessionResult,
   { challengeToken: string; code: string },
-  { rejectValue: string }
+  { rejectValue: AuthRejectValue }
 >('auth/verifyMfa', async (payload, thunkAPI) => {
   try {
     const response = await client.post(ApiEndpoints.PlatformAdminMfaVerify, {
       mfaChallengeToken: payload.challengeToken,
       code: payload.code,
     });
-    const resData = (response.data as any).data;
-    const token = resData.accessToken;
-    const admin = resData.admin;
-    const user = admin
-      ? {
-          id: admin.id,
-          email: admin.email,
-          name: admin.name,
-        }
+    const resData = (response.data as { data?: { accessToken?: string; admin?: AuthUser } }).data;
+    const token = resData?.accessToken ?? null;
+    const admin = resData?.admin;
+    const user: AuthUser | null = admin
+      ? { id: admin.id, email: admin.email, name: admin.name }
       : null;
 
     if (token) {
@@ -157,30 +204,20 @@ export const verifyMfa = createAsyncThunk<
 
     return { token, user };
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const message = (error.response as any)?.data?.error?.message || error.message;
-      return thunkAPI.rejectWithValue(message);
-    }
-    return thunkAPI.rejectWithValue(
-      error instanceof Error ? error.message : 'MFA verification failed',
-    );
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
   }
 });
 
 export const fetchMe = createAsyncThunk<
   { userId: string; companyId: string; branchRoles: string[] },
   void,
-  { rejectValue: string }
+  { rejectValue: AuthRejectValue }
 >('auth/fetchMe', async (_, thunkAPI) => {
   try {
     const response = await client.get(ApiEndpoints.AuthMe);
-    return (response.data as any).data;
+    return (response.data as { data: { userId: string; companyId: string; branchRoles: string[] } }).data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const message = (error.response as any)?.data?.error?.message || error.message;
-      return thunkAPI.rejectWithValue(message);
-    }
-    return thunkAPI.rejectWithValue('Failed to fetch profile settings');
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
   }
 });
 
@@ -188,14 +225,8 @@ export const restoreSession = createAsyncThunk<RestoreSessionResult | null>(
   'auth/restoreSession',
   async () => {
     const session = await getAuthSession();
-    if (!session) {
-      return null;
-    }
-
-    return {
-      token: session.token,
-      user: session.user,
-    };
+    if (!session) return null;
+    return { token: session.token, user: session.user };
   },
 );
 
@@ -206,23 +237,28 @@ export const logout = createAsyncThunk('auth/logout', async () => {
 export const refreshToken = createAsyncThunk<
   { token: string },
   void,
-  { rejectValue: string; state: RootState }
+  { rejectValue: AuthRejectValue; state: RootState }
 >('auth/refreshToken', async (_, thunkAPI) => {
   try {
-    const state = thunkAPI.getState();
-    const currentToken = state.auth.token;
-    if (!currentToken) return thunkAPI.rejectWithValue('No session to refresh');
+    const currentToken = thunkAPI.getState().auth.token;
+    if (!currentToken) {
+      return thunkAPI.rejectWithValue({ message: 'No session to refresh', code: 'UNAUTHORIZED' });
+    }
 
     const response = await client.post(
       ApiEndpoints.AuthRefresh,
       {},
-      {
-        headers: { Authorization: `Bearer ${currentToken}` },
-      },
+      { headers: { Authorization: `Bearer ${currentToken}` } },
     );
     const newToken: string =
-      (response.data as any).data?.accessToken ?? (response.data as any).accessToken;
-    if (!newToken) return thunkAPI.rejectWithValue('No token in refresh response');
+      (response.data as { data?: { accessToken?: string }; accessToken?: string }).data
+        ?.accessToken ??
+      (response.data as { accessToken?: string }).accessToken ??
+      '';
+
+    if (!newToken) {
+      return thunkAPI.rejectWithValue({ message: 'No token in refresh response', code: 'UNAUTHORIZED' });
+    }
 
     const session = await import('../storage/secureStorage').then((m) => m.getAuthSession());
     await import('../storage/secureStorage').then((m) =>
@@ -230,14 +266,11 @@ export const refreshToken = createAsyncThunk<
     );
     return { token: newToken };
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      return thunkAPI.rejectWithValue(
-        (error.response as any)?.data?.error?.message || error.message,
-      );
-    }
-    return thunkAPI.rejectWithValue('Failed to refresh session token');
+    return thunkAPI.rejectWithValue(extractAxiosError(error));
   }
 });
+
+// ─── Slice ────────────────────────────────────────────────────────────────────
 
 const authSlice = createSlice({
   name: 'auth',
@@ -246,18 +279,23 @@ const authSlice = createSlice({
     clearMfaState(state) {
       state.challengeToken = null;
       state.mfaRequired = false;
+      state.mfaSetup = null;
       state.error = null;
+      state.errorCode = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      // login
       .addCase(login.pending, (state) => {
         state.status = 'loading';
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.error = null;
+        state.errorCode = null;
 
         const isChallenge = Boolean(
           action.payload.token &&
@@ -279,11 +317,15 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload ?? action.error.message ?? 'Login failed';
+        state.error = action.payload?.message ?? action.error.message ?? 'Login failed';
+        state.errorCode = action.payload?.code ?? 'INTERNAL_SERVER_ERROR';
       })
+
+      // verifyMfa
       .addCase(verifyMfa.pending, (state) => {
         state.status = 'loading';
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(verifyMfa.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -292,17 +334,57 @@ const authSlice = createSlice({
         state.challengeToken = null;
         state.mfaRequired = false;
         state.error = null;
+        state.errorCode = null;
       })
       .addCase(verifyMfa.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload ?? action.error.message ?? 'MFA verification failed';
+        state.error = action.payload?.message ?? action.error.message ?? 'MFA verification failed';
+        state.errorCode = action.payload?.code ?? 'MFA_INVALID';
       })
+
+      // setupMfa
+      .addCase(setupMfa.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.errorCode = null;
+      })
+      .addCase(setupMfa.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.mfaSetup = action.payload;
+        state.error = null;
+        state.errorCode = null;
+      })
+      .addCase(setupMfa.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.message ?? action.error.message ?? 'MFA setup failed';
+        state.errorCode = action.payload?.code ?? 'MFA_SETUP_FAILED';
+      })
+
+      // confirmMfaSetup
+      .addCase(confirmMfaSetup.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.errorCode = null;
+      })
+      .addCase(confirmMfaSetup.fulfilled, (state) => {
+        state.status = 'succeeded';
+        state.mfaSetup = null;
+        state.error = null;
+        state.errorCode = null;
+      })
+      .addCase(confirmMfaSetup.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.message ?? action.error.message ?? 'MFA enrollment failed';
+        state.errorCode = action.payload?.code ?? 'MFA_INVALID';
+      })
+
+      // fetchMe
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.branchRoles = action.payload.branchRoles;
-        if (state.user) {
-          state.user.branchRoles = action.payload.branchRoles;
-        }
+        if (state.user) state.user.branchRoles = action.payload.branchRoles;
       })
+
+      // restoreSession
       .addCase(restoreSession.fulfilled, (state, action) => {
         if (action.payload) {
           state.status = 'succeeded';
@@ -314,21 +396,27 @@ const authSlice = createSlice({
           state.user = null;
         }
         state.error = null;
+        state.errorCode = null;
       })
+
+      // logout
       .addCase(logout.fulfilled, (state) => {
         state.status = 'idle';
         state.token = null;
         state.user = null;
         state.error = null;
+        state.errorCode = null;
         state.challengeToken = null;
         state.mfaRequired = false;
         state.branchRoles = [];
       })
+
+      // refreshToken
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.token = action.payload.token;
       })
       .addCase(refreshToken.rejected, (state) => {
-        // Silent fail — expired refresh means full logout
+        // Silent fail — expired refresh means full re-login
         state.token = null;
         state.user = null;
         state.status = 'idle';

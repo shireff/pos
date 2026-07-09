@@ -1,6 +1,13 @@
-import { AuthUserSnapshot } from '../../store/auth-store';
-
 const STORAGE_KEY = 'smart_retail_os_auth_session';
+
+export interface AuthUserSnapshot {
+  id: string;
+  name: string;
+  email: string;
+  companyId: string;
+  defaultBranchId: string | null;
+  isActive: boolean;
+}
 
 export interface AuthSessionStorageEntry {
   accessToken: string;

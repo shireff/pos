@@ -1,6 +1,7 @@
-import { SupabaseStorageAdapter, SupabaseStorageConfig } from './supabase-storage.adapter.js';
+import { SupabaseStorageAdapter, SupabaseStorageConfig } from './supabase-storage.adapter';
 
-export interface SupabaseStorageConfigEnv extends SupabaseStorageConfig {}
+// type alias is used instead of empty interface — no eslint disable needed
+export type SupabaseStorageConfigEnv = SupabaseStorageConfig;
 
 /**
  * Loads Supabase Storage configuration from environment variables.

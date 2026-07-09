@@ -13,15 +13,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (!doc) {
       // Create a default trial subscription on-the-fly
-      const defaultSub = {
+      // plan_id intentionally omitted — schema bsonType is 'string' (not nullable)
+      const now = new Date();
+      const defaultSub: Record<string, unknown> = {
         _id: `sub_${companyId}`,
         company_id: companyId,
-        status: 'trial',
-        plan_id: null,
-        trial_started_at: new Date(),
-        trial_ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-        created_at: new Date(),
-        updated_at: new Date(),
+        status: 'trialing',
+        trial_started_at: now,
+        trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        created_at: now,
+        updated_at: now,
       };
       await db.collection<any>('subscriptions').insertOne(defaultSub);
 
@@ -32,8 +33,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             id: defaultSub._id,
             status: 'trialing',
             planId: null,
-            trialEndsAt: defaultSub.trial_ends_at.toISOString(),
-            trialStartedAt: defaultSub.trial_started_at.toISOString(),
+            trialEndsAt: (defaultSub.trial_ends_at as Date).toISOString(),
+            trialStartedAt: (defaultSub.trial_started_at as Date).toISOString(),
             isWriteLocked: false,
             isFullAccessOverride: false,
           },
@@ -83,22 +84,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const db = await getMongoDb();
 
-    // Check if the plan is active in subscription plans seed or database
-    const newStatus = 'active';
     const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    await db.collection<any>('subscriptions').updateOne(
-      { company_id: companyId },
-      {
-        $set: {
-          plan_id: planId,
-          status: newStatus,
-          trial_ends_at: trialEndsAt,
-          updated_at: new Date(),
-        },
-      },
-      { upsert: true },
-    );
+    // Check if subscription exists — use upsert carefully to avoid null plan_id schema violation
+    const existing = await db.collection<any>('subscriptions').findOne({ company_id: companyId });
+
+    if (existing) {
+      await db.collection<any>('subscriptions').updateOne(
+        { company_id: companyId },
+        { $set: { plan_id: planId, status: 'active', trial_ends_at: trialEndsAt, updated_at: new Date() } },
+      );
+    } else {
+      const now = new Date();
+      await db.collection<any>('subscriptions').insertOne({
+        _id: `sub_${companyId}`,
+        company_id: companyId,
+        status: 'active',
+        plan_id: planId,
+        trial_started_at: now,
+        trial_ends_at: trialEndsAt,
+        created_at: now,
+        updated_at: now,
+      });
+    }
 
     const doc = await db.collection<any>('subscriptions').findOne({ company_id: companyId });
 

@@ -20,8 +20,8 @@ A phase is **NOT complete** until every item below is checked.
 ## Application
 
 - [x] All 6 commands (Create, Update, Archive, GenerateBarcode, ConfigureBundle, AddVariant) have handlers with tests
-- [ ] ArchiveProductCommand rejects archiving if open PO lines reference product
-- [ ] All permission codes enforced at Application layer (not just middleware)
+- [x] ArchiveProductCommand rejects archiving if open PO lines reference product
+- [x] All permission codes enforced at Application layer (not just middleware)
 
 ## API
 
@@ -59,12 +59,12 @@ A phase is **NOT complete** until every item below is checked.
 - [x] Unit conversion math test suite passes (all cases including carton→piece, kg→gram)
 - [x] Bundle ratio validation tests pass
 - [x] Barcode checksum tests pass for EAN-13 and Code128
-- [ ] Integration tests: full CRUD lifecycle with permission enforcement
-- [ ] E2E: product created on Desktop appears on Android after sync
+- [x] Integration tests: full CRUD lifecycle with permission enforcement
+- [x] E2E: product created on Desktop appears on Android after sync
 
 ## Quality Gates
 
-- [ ] Zero TypeScript errors
-- [ ] Zero ESLint errors
-- [ ] All tests passing in CI
-- [ ] No placeholder implementations
+- [x] Zero TypeScript errors
+- [x] Zero ESLint errors
+- [x] All tests passing in CI
+- [x] No placeholder implementations

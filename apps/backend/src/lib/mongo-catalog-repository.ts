@@ -1,5 +1,11 @@
 import { Category, Product, UnitOfMeasure } from '@packages/domain-catalog';
+import { HybridLogicalClock } from '@packages/shared-kernel';
 import { getMongoDb } from './cloud-db';
+import {
+  writeOutboxEvent,
+  categoryOutboxEvent,
+  unitOutboxEvent,
+} from './outbox';
 
 export class MongoCategoryRepository {
   async findById(id: string, companyId: string): Promise<Category | null> {
@@ -99,6 +105,8 @@ export class MongoCategoryRepository {
   async save(category: Category): Promise<void> {
     const db = await getMongoDb();
     const snap = category as any;
+    const hlc = HybridLogicalClock.generateInitial('server').advance();
+
     await db.collection<any>('categories').updateOne(
       { _id: snap.id },
       {
@@ -110,6 +118,7 @@ export class MongoCategoryRepository {
           level: snap.level,
           path: snap.path,
           is_deleted: snap.isDeleted ?? false,
+          hlc_timestamp: hlc.toString(),
           updated_at: new Date(),
         },
         $setOnInsert: {
@@ -117,6 +126,27 @@ export class MongoCategoryRepository {
         },
       },
       { upsert: true },
+    );
+
+    // Determine event type from document state.
+    const isNew = snap.createdAt === snap.updatedAt;
+    const eventType = snap.isDeleted
+      ? 'CategoryDeleted'
+      : isNew
+        ? 'CategoryCreated'
+        : 'CategoryUpdated';
+
+    await writeOutboxEvent(
+      categoryOutboxEvent(eventType as any, snap.id, {
+        companyId: snap.companyId,
+        name: snap.name,
+        parentId: snap.parentId,
+        sortOrder: snap.sortOrder,
+        level: snap.level,
+        path: snap.path,
+        isDeleted: snap.isDeleted ?? false,
+      }),
+      db,
     );
   }
 
@@ -132,6 +162,38 @@ export class MongoProductRepository {
     const db = await getMongoDb();
     const doc = await db.collection<any>('products').findOne({ _id: id, company_id: companyId });
     if (!doc) return null;
+
+    const [variantDocs, unitDocs, bundleDocs] = await Promise.all([
+      db.collection<any>('product_variants').find({ product_id: id, is_deleted: { $ne: true } }).toArray(),
+      db.collection<any>('product_units').find({ product_id: id }).toArray(),
+      db.collection<any>('bundle_components').find({ bundle_product_id: id }).toArray(),
+    ]);
+
+    const variants = variantDocs.map((v: any) => ({
+      id: v._id.toString(),
+      productId: id,
+      sku: v.sku,
+      barcode: v.barcode ?? null,
+      attributesJson: v.attributes_json ?? {},
+      pricePiasters: v.price_piasters ?? 0,
+      costPiasters: v.cost_piasters ?? 0,
+      isDeleted: v.is_deleted ?? false,
+    }));
+
+    const units = unitDocs.map((u: any) => ({
+      id: u._id.toString(),
+      productId: id,
+      unitName: u.unit_name,
+      conversionFactorToBase: u.conversion_factor_to_base ?? 1,
+      isBaseUnit: u.is_base_unit ?? false,
+    }));
+
+    const bundleComponents = bundleDocs.map((b: any) => ({
+      bundleVariantId: id,
+      componentVariantId: b.component_variant_id?.toString() ?? '',
+      quantity: b.quantity ?? 0,
+    }));
+
     return Product.reconstitute(
       {
         id: doc._id.toString(),
@@ -148,9 +210,9 @@ export class MongoProductRepository {
         createdAt: doc.created_at?.toISOString() || new Date().toISOString(),
         updatedAt: doc.updated_at?.toISOString() || new Date().toISOString(),
       },
-      [],
-      [],
-      [],
+      variants,
+      units,
+      bundleComponents,
     );
   }
 
@@ -190,27 +252,54 @@ export class MongoProductRepository {
     if (filter?.isDeleted !== undefined) query.is_deleted = filter.isDeleted;
 
     const docs = await db.collection<any>('products').find(query).toArray();
-    return docs.map((doc) =>
-      Product.reconstitute(
-        {
-          id: doc._id.toString(),
-          companyId: doc.company_id.toString(),
-          categoryId: doc.category_id ? doc.category_id.toString() : null,
-          name: doc.name,
-          description: doc.description || '',
-          baseUnitId: doc.base_unit_id ? doc.base_unit_id.toString() : null,
-          productType: (doc.product_type || 'simple') as any,
-          isBundle: doc.is_bundle ?? false,
-          isSerialized: doc.is_serialized ?? false,
-          requiresBatchTracking: doc.requires_batch_tracking ?? false,
-          isDeleted: doc.is_deleted ?? false,
-          createdAt: doc.created_at?.toISOString() || new Date().toISOString(),
-          updatedAt: doc.updated_at?.toISOString() || new Date().toISOString(),
-        },
-        [],
-        [],
-        [],
-      ),
+    return Promise.all(
+      docs.map(async (doc) => {
+        const id = doc._id.toString();
+        const [variantDocs, unitDocs] = await Promise.all([
+          db.collection<any>('product_variants').find({ product_id: id, is_deleted: { $ne: true } }).toArray(),
+          db.collection<any>('product_units').find({ product_id: id }).toArray(),
+        ]);
+
+        const variants = variantDocs.map((v: any) => ({
+          id: v._id.toString(),
+          productId: id,
+          sku: v.sku,
+          barcode: v.barcode ?? null,
+          attributesJson: v.attributes_json ?? {},
+          pricePiasters: v.price_piasters ?? 0,
+          costPiasters: v.cost_piasters ?? 0,
+          isDeleted: v.is_deleted ?? false,
+        }));
+
+        const units = unitDocs.map((u: any) => ({
+          id: u._id.toString(),
+          productId: id,
+          unitName: u.unit_name,
+          conversionFactorToBase: u.conversion_factor_to_base ?? 1,
+          isBaseUnit: u.is_base_unit ?? false,
+        }));
+
+        return Product.reconstitute(
+          {
+            id,
+            companyId: doc.company_id.toString(),
+            categoryId: doc.category_id ? doc.category_id.toString() : null,
+            name: doc.name,
+            description: doc.description || '',
+            baseUnitId: doc.base_unit_id ? doc.base_unit_id.toString() : null,
+            productType: (doc.product_type || 'simple') as any,
+            isBundle: doc.is_bundle ?? false,
+            isSerialized: doc.is_serialized ?? false,
+            requiresBatchTracking: doc.requires_batch_tracking ?? false,
+            isDeleted: doc.is_deleted ?? false,
+            createdAt: doc.created_at?.toISOString() || new Date().toISOString(),
+            updatedAt: doc.updated_at?.toISOString() || new Date().toISOString(),
+          },
+          variants,
+          units,
+          [],
+        );
+      }),
     );
   }
 
@@ -239,6 +328,80 @@ export class MongoProductRepository {
       },
       { upsert: true },
     );
+
+    for (const variant of snap.variants) {
+      await db.collection<any>('product_variants').updateOne(
+        { _id: variant.id },
+        {
+          $set: {
+            product_id: snap.id,
+            sku: variant.sku,
+            barcode: variant.barcode,
+            attributes_json: variant.attributesJson,
+            price_piasters: variant.pricePiasters,
+            cost_piasters: variant.costPiasters,
+            is_deleted: variant.isDeleted ?? false,
+            updated_at: new Date(),
+          },
+          $setOnInsert: {
+            created_at: new Date(),
+          },
+        },
+        { upsert: true },
+      );
+    }
+
+    for (const unit of snap.units) {
+      await db.collection<any>('product_units').updateOne(
+        { _id: unit.id },
+        {
+          $set: {
+            product_id: snap.id,
+            unit_name: unit.unitName,
+            conversion_factor_to_base: unit.conversionFactorToBase,
+            is_base_unit: unit.isBaseUnit,
+            updated_at: new Date(),
+          },
+          $setOnInsert: {
+            created_at: new Date(),
+          },
+        },
+        { upsert: true },
+      );
+    }
+
+    const existingBundleIds = new Set(
+      (await db.collection<any>('bundle_components').find({ bundle_product_id: snap.id }).toArray()).map(
+        (b: any) => b._id.toString(),
+      ),
+    );
+    const savedIds = new Set<string>();
+
+    for (const component of snap.bundleComponents) {
+      const componentId = component.bundleVariantId + '-' + component.componentVariantId;
+      savedIds.add(componentId);
+      await db.collection<any>('bundle_components').updateOne(
+        { _id: componentId },
+        {
+          $set: {
+            bundle_product_id: snap.id,
+            component_variant_id: component.componentVariantId,
+            quantity: component.quantity,
+            updated_at: new Date(),
+          },
+          $setOnInsert: {
+            created_at: new Date(),
+          },
+        },
+        { upsert: true },
+      );
+    }
+
+    for (const oldId of existingBundleIds) {
+      if (!savedIds.has(oldId)) {
+        await db.collection<any>('bundle_components').deleteOne({ _id: oldId });
+      }
+    }
   }
 
   async isBarcodeUnique(
@@ -253,6 +416,30 @@ export class MongoProductRepository {
     }
     const count = await db.collection<any>('products').countDocuments(query);
     return count === 0;
+  }
+
+  async hasOpenPurchaseOrderLines(productId: string, companyId: string): Promise<boolean> {
+    const db = await getMongoDb();
+    const product = await db.collection<any>('products').findOne({ _id: productId, company_id: companyId });
+    if (!product) return false;
+
+    const variants = await db.collection<any>('product_variants').find({ product_id: productId }).toArray();
+    const variantIds = variants.map((v: any) => v._id.toString());
+    if (variantIds.length === 0) return false;
+
+    const lines = await db.collection<any>('purchase_order_lines').find({
+      product_variant_id: { $in: variantIds },
+    }).toArray();
+
+    if (lines.length === 0) return false;
+
+    const poIds = lines.map((l: any) => l.purchase_order_id).filter(Boolean);
+    const pos = await db.collection<any>('purchase_orders').find({
+      _id: { $in: poIds },
+      status: { $nin: ['received', 'cancelled'] },
+    }).toArray();
+
+    return pos.length > 0;
   }
 }
 
@@ -314,7 +501,9 @@ export class MongoUnitRepository {
   async save(unit: UnitOfMeasure): Promise<void> {
     const db = await getMongoDb();
     const snap = unit as any;
-    await db.collection<any>('units').updateOne(
+    const hlc = HybridLogicalClock.generateInitial('server').advance();
+
+    const result = await db.collection<any>('units').updateOne(
       { _id: snap.id },
       {
         $set: {
@@ -324,6 +513,7 @@ export class MongoUnitRepository {
           is_base_unit: snap.isBaseUnit,
           conversion_factor_to_base: snap.conversionFactorToBase,
           is_deleted: false,
+          hlc_timestamp: hlc.toString(),
           updated_at: new Date(),
         },
         $setOnInsert: {
@@ -331,6 +521,18 @@ export class MongoUnitRepository {
         },
       },
       { upsert: true },
+    );
+
+    const eventType = result.upsertedCount > 0 ? 'UnitCreated' : 'UnitUpdated';
+
+    await writeOutboxEvent(
+      unitOutboxEvent(eventType, snap.id, {
+        companyId: snap.productId,
+        abbreviation: snap.unitName,
+        isBaseUnit: snap.isBaseUnit,
+        conversionFactorToBase: snap.conversionFactorToBase,
+      }),
+      db,
     );
   }
 }

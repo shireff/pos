@@ -8,14 +8,31 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 2022,
-    sourceType: 'module'
+    sourceType: 'module',
+    warnOnUnsupportedTypeScriptVersion: false,
   },
+  ignorePatterns: [
+    '**/dist/**',
+    '**/node_modules/**',
+    '**/.next/**',
+    '**/out/**',
+    '**/build/**',
+  ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { "argsIgnorePattern": "^_" }],
     'no-console': 'off'
   },
   overrides: [
+    {
+      // Node build/config scripts and explicit CommonJS files — allow require/__dirname/module.
+      files: ['**/*.config.js', '**/.eslintrc.js', '**/*.cjs'],
+      env: { node: true },
+      parserOptions: { sourceType: 'commonjs' },
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+      },
+    },
     {
       files: ['packages/domain/**/*.ts', 'packages/domain/**/*.tsx'],
       rules: {

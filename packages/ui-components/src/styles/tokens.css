@@ -1,0 +1,207 @@
+/* =========================================================================
+   Smart Retail OS — Design System Tokens
+   Single source of truth for color, typography, spacing, elevation, motion.
+   All components reference these custom properties. No hardcoded colors in
+   component code. Dark mode is a token swap only ([data-theme='dark']).
+   ========================================================================= */
+
+:root {
+  /* ── Brand & semantic colors ─────────────────────────────────────── */
+  --color-primary: #0f7b6c;
+  --color-primary-hover: #0c6358;
+  --color-primary-active: #0a564c;
+  --color-primary-soft: #e6f4f1;
+  --color-on-primary: #ffffff;
+
+  --color-success: #16a34a;
+  --color-success-soft: #e7f6ec;
+  --color-success-on: #14532d;
+
+  --color-warning: #d97706;
+  --color-warning-soft: #fdf2e3;
+  --color-warning-on: #7c2d12;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fdeaea;
+  --color-danger-on: #7f1d1d;
+
+  --color-info: #2563eb;
+  --color-info-soft: #e8f0fe;
+  --color-info-on: #1e3a8a;
+
+  --color-ai-accent: #6366f1;
+  --color-ai-soft: #eef0ff;
+  --color-ai-on: #3730a3;
+
+  /* ── Neutrals / surfaces (light) ─────────────────────────────────── */
+  --color-bg-base: #f6f7f9;
+  --color-bg-subtle: #f1f3f5;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-2: #fbfcfd;
+  --color-bg-elevated: #ffffff;
+  --color-bg-inset: #f1f3f5;
+
+  --color-text-primary: #18181b;
+  --color-text-secondary: #52525b;
+  --color-text-tertiary: #8b8b94;
+  --color-text-disabled: #b4b4bd;
+  --color-text-on-primary: #ffffff;
+
+  --color-border: #e4e4e7;
+  --color-border-strong: #d1d1d6;
+  --color-divider: #eef0f2;
+
+  --color-focus-ring: rgba(15, 123, 108, 0.35);
+  --color-overlay: rgba(9, 12, 18, 0.45);
+  --color-scrim: rgba(9, 12, 18, 0.28);
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --font-family-base: 'IBM Plex Sans Arabic', 'Cairo', 'Inter', 'Segoe UI',
+    Tahoma, system-ui, -apple-system, sans-serif;
+  --font-family-numeric: 'IBM Plex Sans Arabic', 'Inter', 'SF Mono',
+    ui-monospace, 'Cascadia Code', monospace;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 38px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.7;
+
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide: 0.02em;
+
+  /* ── Spacing scale (4px base) ────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ── Radius ─────────────────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /* ── Elevation ──────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.10), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.14), 0 4px 8px rgba(16, 24, 40, 0.06);
+  --shadow-xl: 0 24px 48px rgba(16, 24, 40, 0.20);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
+
+  /* ── Control heights / touch targets ────────────────────────────── */
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --touch-target: 44px;
+
+  /* ── Layout ─────────────────────────────────────────────────────── */
+  --sidebar-width: 256px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 60px;
+  --content-max: 1440px;
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-drawer: 200;
+  --z-overlay: 900;
+  --z-modal: 1000;
+  --z-toast: 1100;
+  --z-tooltip: 1200;
+
+  /* ── Motion ─────────────────────────────────────────────────────── */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='dark'] {
+  --color-primary: #2dd4bf;
+  --color-primary-hover: #14b8a6;
+  --color-primary-active: #0fb9a4;
+  --color-primary-soft: #11312c;
+  --color-on-primary: #05201c;
+
+  --color-success: #4ade80;
+  --color-success-soft: #0f2e1a;
+  --color-success-on: #bbf7d0;
+
+  --color-warning: #fbbf24;
+  --color-warning-soft: #332406;
+  --color-warning-on: #fde68a;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+  --color-danger-soft: #341417;
+  --color-danger-on: #fecaca;
+
+  --color-info: #60a5fa;
+  --color-info-soft: #0f1f3a;
+  --color-info-on: #bfdbfe;
+
+  --color-ai-accent: #818cf8;
+  --color-ai-soft: #1a1b3a;
+  --color-ai-on: #c7d2fe;
+
+  --color-bg-base: #0e1014;
+  --color-bg-subtle: #14171c;
+  --color-bg-surface: #171a20;
+  --color-bg-surface-2: #1c2027;
+  --color-bg-elevated: #1c2027;
+  --color-bg-inset: #101319;
+
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
+  --color-text-disabled: #52525b;
+  --color-text-on-primary: #05201c;
+
+  --color-border: #2a2e37;
+  --color-border-strong: #383d49;
+  --color-divider: #21252d;
+
+  --color-focus-ring: rgba(45, 212, 191, 0.4);
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-scrim: rgba(0, 0, 0, 0.4);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

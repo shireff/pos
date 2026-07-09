@@ -98,12 +98,22 @@ export interface ArchiveProductInput {
 }
 
 export class ArchiveProductUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(
+    private readonly productRepository: ProductRepository,
+  ) {}
 
   public async execute(input: ArchiveProductInput): Promise<Product> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
     if (!product) {
       throw new Error('Product not found');
+    }
+
+    const hasOpenPurchaseOrderLines = await this.productRepository.hasOpenPurchaseOrderLines(
+      input.productId,
+      input.companyId,
+    );
+    if (hasOpenPurchaseOrderLines) {
+      throw new Error('Cannot archive a product that has open purchase order lines');
     }
 
     product.archive();

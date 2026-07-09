@@ -139,4 +139,19 @@ export class UnitConversionService {
       return Math.floor(bundleQty * component.quantity * component.deductionRatio);
     });
   }
+
+  public static canFulfillBundleSale(
+    bundleQty: number,
+    stockByVariant: Record<string, number>,
+    components: readonly { componentVariantId: string; quantity: number; deductionRatio: number }[],
+  ): boolean {
+    for (const component of components) {
+      const available = stockByVariant[component.componentVariantId] ?? 0;
+      const required = Math.floor(bundleQty * component.quantity * component.deductionRatio);
+      if (available < required) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

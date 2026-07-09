@@ -1,32 +1,94 @@
-import React from 'react';
+import { useT } from '../i18n';
+import { encodeBarcode } from './barcode';
 
 export interface BarcodeDisplayProps {
   value: string;
+  /** Show copy / print actions (default true) */
+  showActions?: boolean;
+  onCopy?: (value: string) => void;
+  onPrint?: (value: string) => void;
 }
 
-export function BarcodeDisplay({ value }: BarcodeDisplayProps) {
+export function BarcodeDisplay({
+  value,
+  showActions = true,
+  onCopy,
+  onPrint,
+}: BarcodeDisplayProps) {
+  const t = useT();
+  const { bits, code, valid } = encodeBarcode(value);
+  const moduleWidth = 2;
+  const height = 72;
+  const width = bits.length * moduleWidth;
+
+  const rects: { x: number; w: number }[] = [];
+  let x = 0;
+  for (const bit of bits) {
+    if (bit === '1') rects.push({ x, w: moduleWidth });
+    x += moduleWidth;
+  }
+
+  const handleCopy = () => {
+    if (onCopy) return onCopy(code);
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(code);
+    }
+  };
+
   return (
-    <div
-      style={{ border: '1px dashed #d0d7de', borderRadius: 12, padding: 16, textAlign: 'center' }}
-    >
-      <svg viewBox="0 0 220 72" style={{ width: '100%', maxWidth: 220, height: 72 }}>
-        <rect x="0" y="0" width="220" height="72" fill="#fff" />
-        {[
-          8, 18, 28, 38, 48, 58, 68, 78, 88, 98, 108, 118, 128, 138, 148, 158, 168, 178, 188, 198,
-          208,
-        ].map((x, index) => (
-          <rect
-            key={`${x}-${index}`}
-            x={x}
-            y="8"
-            width={index % 2 === 0 ? 4 : 2}
-            height="56"
-            fill="#0f172a"
-          />
-        ))}
-      </svg>
-      <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: 2 }}>{value}</div>
-      <div style={{ marginTop: 8, color: '#57606a', fontSize: 13 }}>Barcode • Copy / Print</div>
+    <div className="card" style={{ padding: 'var(--space-4)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--space-2)',
+          marginBlockEnd: 'var(--space-3)',
+        }}
+      >
+        <span className="section-label" style={{ marginBlockEnd: 0 }}>
+          {t('qr.barcode')}
+        </span>
+        {!valid && (
+          <span className="badge badge-warning" title={t('qr.notAvailable')}>
+            {t('qr.notAvailable')}
+          </span>
+        )}
+      </div>
+
+      <div style={{ background: '#fff', borderRadius: 'var(--radius-sm)', padding: 'var(--space-3)', textAlign: 'center' }}>
+        {valid && (
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            width="100%"
+            height={height}
+            role="img"
+            aria-label={`${t('qr.barcode')}: ${code}`}
+            style={{ maxWidth: 320, margin: '0 auto', display: 'block' }}
+          >
+            <rect x="0" y="0" width={width} height={height} fill="#fff" />
+            {rects.map((r, i) => (
+              <rect key={i} x={r.x} y="4" width={r.w} height={height - 12} fill="#0b0f17" />
+            ))}
+          </svg>
+        )}
+        <div className="num" style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, letterSpacing: '0.15em', marginTop: 'var(--space-2)' }}>
+          {code}
+        </div>
+      </div>
+
+      {showActions && (
+        <div className="row" style={{ marginTop: 'var(--space-3)' }}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={handleCopy}>
+            {t('common.copy')}
+          </button>
+          {onPrint && (
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => onPrint(code)}>
+              {t('common.print')}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

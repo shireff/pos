@@ -22,8 +22,9 @@
     "build:android": "npm run build --workspace @apps/android",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint \"{apps,packages}/**/*.{ts,tsx}\"",
     "typecheck": "npm run --workspaces typecheck --if-present",
+    "lint": "eslint \"{apps,packages}/**/*.{ts,tsx}\"",
+    "check": "npm run typecheck && npm run lint",
     "typecheck:backend": "npm run typecheck --workspace @apps/backend",
     "typecheck:desktop": "npm run typecheck --workspace @apps/desktop",
     "typecheck:android": "npm run typecheck --workspace @apps/android",
@@ -37,8 +38,8 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@typescript-eslint/eslint-plugin": "^7.10.0",
-    "@typescript-eslint/parser": "^7.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.63.0",
+    "@typescript-eslint/parser": "^8.63.0",
     "dotenv-cli": "^11.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
@@ -55,7 +56,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
+      "eslint --fix --max-warnings=0",
       "prettier --write"
     ],
     "*.{json,md,css}": [

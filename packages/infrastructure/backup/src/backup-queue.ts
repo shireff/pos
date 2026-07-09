@@ -1,4 +1,4 @@
-import { BackupMetadata } from './backup-payload.js';
+import { BackupMetadata } from './backup-payload';
 
 export interface QueuedBackupItem {
   id: string;

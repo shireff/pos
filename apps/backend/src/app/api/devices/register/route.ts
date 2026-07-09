@@ -68,6 +68,7 @@ class MongoDeviceRepository {
           last_seen_at: new Date(snap.lastSeenAt),
           is_revoked: snap.isRevoked,
         },
+        $setOnInsert: { _id: snap.id },
       },
       { upsert: true },
     );

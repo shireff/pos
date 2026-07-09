@@ -1,11 +1,9 @@
-import { Db, Document, CreateIndexesOptions, IndexSpecification } from 'mongodb';
+import { Db } from 'mongodb';
 
-type IndexDefinition = {
-  key: IndexSpecification;
-  options?: CreateIndexesOptions;
-};
+type Schema = Record<string, unknown>;
+type IndexDefinition = { key: Record<string, number>; options?: Record<string, unknown> };
 
-const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefinition[] }> = [
+const COLLECTIONS: Array<{ name: string; schema: Schema; indexes?: IndexDefinition[] }> = [
   {
     name: 'products',
     schema: {
@@ -103,7 +101,10 @@ const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefini
       },
       additionalProperties: false,
     },
-    indexes: [{ key: { bundle_product_id: 1 } }, { key: { component_product_id: 1 } }],
+    indexes: [
+      { key: { bundle_product_id: 1 } },
+      { key: { component_product_id: 1 } },
+    ],
   },
 ];
 
@@ -111,42 +112,18 @@ export const up = async (db: Db): Promise<void> => {
   for (const { name, schema, indexes } of COLLECTIONS) {
     const existing = await db.listCollections({ name }).toArray();
     if (existing.length === 0) {
-      await db.createCollection(name, {
-        validator: { $jsonSchema: schema },
-        validationLevel: 'moderate',
-        validationAction: 'error',
-      });
+      await db.createCollection(name, { validator: { $jsonSchema: schema }, validationLevel: 'moderate', validationAction: 'error' });
     } else {
-      try {
-        await db.command({
-          collMod: name,
-          validator: { $jsonSchema: schema },
-          validationLevel: 'moderate',
-          validationAction: 'error',
-        });
-      } catch {
-        // ignore collMod failures on older servers
-      }
+      try { await db.command({ collMod: name, validator: { $jsonSchema: schema }, validationLevel: 'moderate', validationAction: 'error' }); } catch { /* ignore */ }
     }
-
-    if (indexes && indexes.length) {
-      for (const idx of indexes) {
-        try {
-          await db.collection(name).createIndex(idx.key, idx.options || undefined);
-        } catch {
-          // ignore duplicate or incompatible indexes
-        }
-      }
+    for (const idx of indexes ?? []) {
+      try { await db.collection(name).createIndex(idx.key, idx.options); } catch { /* ignore */ }
     }
   }
 };
 
 export const down = async (db: Db): Promise<void> => {
   for (const { name } of COLLECTIONS) {
-    try {
-      await db.command({ collMod: name, validator: {}, validationLevel: 'off' });
-    } catch {
-      // ignore
-    }
+    try { await db.command({ collMod: name, validator: {}, validationLevel: 'off' }); } catch { /* ignore */ }
   }
 };

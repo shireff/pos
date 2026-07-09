@@ -53,12 +53,70 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
   };
 }
 
+// ─── CORS ──────────────────────────────────────────────────────────────────
+
+const DEFAULT_ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:1420',
+  'http://localhost:3000',
+  'tauri://localhost',
+  'https://localhost',
+];
+
+function getAllowedOrigins(): string[] {
+  const fromEnv = process.env.CORS_ALLOWED_ORIGINS;
+  if (fromEnv) {
+    return fromEnv
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean);
+  }
+  return DEFAULT_ALLOWED_ORIGINS;
+}
+
+function resolveCorsOrigin(request: NextRequest, allowed: string[]): string | null {
+  const origin = request.headers.get('origin');
+  if (!origin) return null;
+  if (allowed.includes('*')) return '*';
+  // Reflect the requesting origin when it is in the allow-list (handles
+  // dynamic Tauri/device origins that cannot be enumerated ahead of time).
+  return allowed.includes(origin) ? origin : null;
+}
+
+function setCorsHeaders(headers: Headers, origin: string | null): Headers {
+  if (origin) {
+    headers.set('Access-Control-Allow-Origin', origin);
+  }
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  headers.set(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  );
+  headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Requested-With, X-Request-Id',
+  );
+  headers.set('Access-Control-Max-Age', '86400');
+  headers.set('Vary', 'Origin');
+  return headers;
+}
+
 // ─── Middleware ────────────────────────────────────────────────────────────────
 
 export function middleware(request: NextRequest): NextResponse {
   // Web Crypto API — available in Edge Runtime (no Node.js import needed)
   const requestId = crypto.randomUUID();
   const ip = getClientIp(request);
+
+  const allowedOrigins = getAllowedOrigins();
+  const corsOrigin = resolveCorsOrigin(request, allowedOrigins);
+
+  // Handle CORS preflight (OPTIONS) for API routes.
+  if (request.method === 'OPTIONS' && request.nextUrl.pathname.startsWith('/api/')) {
+    const headers = setCorsHeaders(new Headers(), corsOrigin);
+    headers.set('X-Request-Id', requestId);
+    return new NextResponse(null, { status: 204, headers });
+  }
 
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const rl = checkRateLimit(ip);
@@ -98,11 +156,14 @@ export function middleware(request: NextRequest): NextResponse {
     response.headers.set('X-RateLimit-Remaining', String(rl.remaining));
     response.headers.set('X-RateLimit-Reset', String(Math.ceil(rl.resetAt / 1000)));
 
+    setCorsHeaders(response.headers, corsOrigin);
+
     return response;
   }
 
   const response = NextResponse.next();
   response.headers.set('X-Request-Id', requestId);
+  setCorsHeaders(response.headers, corsOrigin);
   return response;
 }
 

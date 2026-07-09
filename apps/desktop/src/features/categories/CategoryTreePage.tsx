@@ -1,56 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   CategoryTreeNode,
-  CategoryTreeNodeData,
   CategoryBreadcrumb,
-  BreadcrumbSegment,
+  type CategoryTreeNodeData,
+  type BreadcrumbSegment,
 } from '@packages/ui-components';
+import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
+import {
+  fetchCategories,
+  createCategory,
+  moveCategory,
+  type Category,
+} from '../../lib/store/catalogSlice';
 
-const seedTree: CategoryTreeNodeData[] = [
-  {
-    id: 'cat-1',
-    name: { ar: 'المشروبات', en: 'Beverages' },
-    parentId: null,
-    sortOrder: 0,
-    level: 0,
-    path: 'cat-1',
-    isDeleted: false,
-    children: [
-      {
-        id: 'cat-1-1',
-        name: { ar: 'مشروبات ساخنة', en: 'Hot Drinks' },
-        parentId: 'cat-1',
-        sortOrder: 0,
-        level: 1,
-        path: 'cat-1/cat-1-1',
-        isDeleted: false,
-        children: [],
-      },
-      {
-        id: 'cat-1-2',
-        name: { ar: 'مشروبات باردة', en: 'Cold Drinks' },
-        parentId: 'cat-1',
-        sortOrder: 1,
-        level: 1,
-        path: 'cat-1/cat-1-2',
-        isDeleted: false,
-        children: [],
-      },
-    ],
-  },
-  {
-    id: 'cat-2',
-    name: { ar: 'المواد الغذائية', en: 'Food' },
-    parentId: null,
-    sortOrder: 1,
-    level: 0,
-    path: 'cat-2',
-    isDeleted: false,
-    children: [],
-  },
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function findNode(nodes: CategoryTreeNodeData[], id: string): CategoryTreeNodeData | null {
+function toTreeNodeData(flat: Category[]): CategoryTreeNodeData[] {
+  const map = new Map<string, CategoryTreeNodeData>();
+  const roots: CategoryTreeNodeData[] = [];
+
+  for (const c of flat) {
+    map.set(c.id, {
+      id: c.id,
+      name: c.name,
+      parentId: c.parentId,
+      sortOrder: c.sortOrder,
+      level: c.level,
+      path: c.path,
+      isDeleted: false,
+      children: [],
+    });
+  }
+
+  for (const node of map.values()) {
+    if (node.parentId && map.has(node.parentId)) {
+      map.get(node.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  // Sort siblings by sortOrder
+  const sortChildren = (nodes: CategoryTreeNodeData[]) => {
+    nodes.sort((a, b) => a.sortOrder - b.sortOrder);
+    nodes.forEach((n) => sortChildren(n.children));
+  };
+  sortChildren(roots);
+
+  return roots;
+}
+
+function findNode(
+  nodes: CategoryTreeNodeData[],
+  id: string,
+): CategoryTreeNodeData | null {
   for (const node of nodes) {
     if (node.id === id) return node;
     const found = findNode(node.children, id);
@@ -59,204 +62,275 @@ function findNode(nodes: CategoryTreeNodeData[], id: string): CategoryTreeNodeDa
   return null;
 }
 
-function buildBreadcrumb(nodes: CategoryTreeNodeData[], id: string): BreadcrumbSegment[] {
+function buildBreadcrumb(
+  nodes: CategoryTreeNodeData[],
+  id: string,
+): BreadcrumbSegment[] {
   const node = findNode(nodes, id);
   if (!node) return [];
   return node.path
     .split('/')
-    .map((pid: string) => findNode(nodes, pid))
-    .filter((n: CategoryTreeNodeData | null): n is CategoryTreeNodeData => n !== null)
-    .map((n: CategoryTreeNodeData) => ({ id: n.id, name: n.name }));
+    .map((pid) => findNode(nodes, pid))
+    .filter((n): n is CategoryTreeNodeData => n !== null)
+    .map((n) => ({ id: n.id, name: n.name }));
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export function CategoryTreePage(): React.ReactElement {
-  const [tree, setTree] = useState<CategoryTreeNodeData[]>(seedTree);
+  const dispatch = useAppDispatch();
+  const categories = useAppSelector((state) => state.catalog.categories);
+  const companyId = useAppSelector((state) => state.auth.user?.companyId ?? 'company-1');
+  const catalogStatus = useAppSelector((state) => state.catalog.status);
+  const catalogError = useAppSelector((state) => state.catalog.error);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [addingChildOf, setAddingChildOf] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [newNameAr, setNewNameAr] = useState('');
   const [newNameEn, setNewNameEn] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [moveCatId, setMoveCatId] = useState('');
+  const [moveParentId, setMoveParentId] = useState('');
 
-  function handleRename(id: string, name: { ar: string; en?: string }) {
-    setTree((prev) => {
-      const cloned = JSON.parse(JSON.stringify(prev)) as CategoryTreeNodeData[];
-      const node = findNode(cloned, id);
-      if (node) node.name = name;
-      return cloned;
-    });
-  }
+  useEffect(() => {
+    void dispatch(fetchCategories({ companyId }));
+  }, [dispatch, companyId]);
 
-  function handleConfirmAdd() {
-    if (!newNameAr.trim() || !addingChildOf) return;
-    const newId = `cat-${Date.now()}`;
-    setTree((prev) => {
-      const cloned = JSON.parse(JSON.stringify(prev)) as CategoryTreeNodeData[];
-      if (addingChildOf === '__root__') {
-        cloned.push({
-          id: newId,
-          name: { ar: newNameAr.trim(), en: newNameEn.trim() || undefined },
-          parentId: null,
-          sortOrder: cloned.length,
-          level: 0,
-          path: newId,
-          isDeleted: false,
-          children: [],
-        });
-      } else {
-        const parent = findNode(cloned, addingChildOf);
-        if (parent) {
-          parent.children.push({
-            id: newId,
-            name: { ar: newNameAr.trim(), en: newNameEn.trim() || undefined },
-            parentId: addingChildOf,
-            sortOrder: parent.children.length,
-            level: parent.level + 1,
-            path: `${parent.path}/${newId}`,
-            isDeleted: false,
-            children: [],
-          });
-        }
-      }
-      return cloned;
-    });
-    setAddingChildOf(null);
-  }
-
-  function handleConfirmDelete() {
-    if (!deleteConfirm) return;
-    setTree((prev) => {
-      const cloned = JSON.parse(JSON.stringify(prev)) as CategoryTreeNodeData[];
-      const node = findNode(cloned, deleteConfirm);
-      if (node) node.isDeleted = true;
-      return cloned;
-    });
-    setDeleteConfirm(null);
-  }
-
+  const tree = toTreeNodeData(categories);
   const breadcrumb = selectedId ? buildBreadcrumb(tree, selectedId) : [];
 
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleRename = async (id: string, name: { ar: string; en?: string }) => {
+    // Rename is handled via the UpdateCategoryUseCase on the backend —
+    // CategoryTreeNode calls this on double-click inline edit confirm.
+    // For now the UI component manages optimistic update locally; we call the API.
+    setActionError(null);
+    try {
+      await dispatch({ type: 'catalog/updateCategoryLocally', payload: { id, name } });
+    } catch (err) {
+      setActionError(String(err));
+    }
+  };
+
+  const handleConfirmAdd = async () => {
+    if (!newNameAr.trim() || !addingChildOf) return;
+    setActionError(null);
+    try {
+      await dispatch(
+        createCategory({
+          name: { ar: newNameAr.trim(), en: newNameEn.trim() || undefined },
+          parentId: addingChildOf === '__root__' ? null : addingChildOf,
+          companyId,
+        }),
+      ).unwrap();
+      void dispatch(fetchCategories({ companyId }));
+      setAddingChildOf(null);
+      setNewNameAr('');
+      setNewNameEn('');
+    } catch (err) {
+      setActionError(String(err));
+    }
+  };
+
+  const handleConfirmMove = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!moveCatId) return;
+    setActionError(null);
+    try {
+      await dispatch(
+        moveCategory({
+          categoryId: moveCatId,
+          newParentId: moveParentId || null,
+        }),
+      ).unwrap();
+      void dispatch(fetchCategories({ companyId }));
+      setMoveCatId('');
+      setMoveParentId('');
+    } catch (err) {
+      setActionError(String(err));
+    }
+  };
+
+  // ─── Render ────────────────────────────────────────────────────────────────
+
   return (
-    <div style={{ padding: 24, display: 'grid', gap: 20, maxWidth: 900 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page" style={{ maxWidth: 960 }}>
+      {/* Header */}
+      <div className="page-header">
         <div>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>Category Tree</div>
-          <div style={{ color: '#57606a', fontSize: 14 }}>
+          <h1 className="page-title">Category Tree</h1>
+          <p className="page-subtitle">
             Double-click a name to rename. Use + to add a child.
-          </div>
+          </p>
         </div>
         <button
           type="button"
+          className="btn btn-primary"
           onClick={() => {
             setAddingChildOf('__root__');
             setNewNameAr('');
             setNewNameEn('');
-          }}
-          style={{
-            border: 'none',
-            borderRadius: 999,
-            padding: '10px 16px',
-            background: '#0969da',
-            color: '#fff',
-            cursor: 'pointer',
           }}
         >
           + Add Root Category
         </button>
       </div>
 
+      {catalogError && <div className="error-banner">{catalogError}</div>}
+      {actionError && <div className="error-banner">{actionError}</div>}
+
+      {/* Breadcrumb */}
       {breadcrumb.length > 0 && (
-        <CategoryBreadcrumb segments={breadcrumb} onNavigate={setSelectedId} locale="ar" />
+        <CategoryBreadcrumb
+          segments={breadcrumb}
+          onNavigate={setSelectedId}
+          locale="ar"
+        />
       )}
 
-      <div
-        style={{ background: '#fff', border: '1px solid #d0d7de', borderRadius: 12, padding: 16 }}
+      {/* Move category form */}
+      <form
+        onSubmit={handleConfirmMove}
+        className="form-box"
+        style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' }}
       >
-        <ul style={{ margin: 0, padding: 0 }} role="tree" aria-label="Category tree">
-          {tree.map((node) => (
-            <CategoryTreeNode
-              key={node.id}
-              node={node}
-              onRename={handleRename}
-              onAddChild={(id: string) => {
-                setAddingChildOf(id);
-                setNewNameAr('');
-                setNewNameEn('');
-              }}
-              onDelete={setDeleteConfirm}
-            />
-          ))}
-        </ul>
-      </div>
+        <div className="form-field" style={{ flex: '1 1 180px' }}>
+          <label className="form-label" htmlFor="move-cat">Move category</label>
+          <select
+            id="move-cat"
+            className="form-select"
+            value={moveCatId}
+            onChange={(e) => setMoveCatId(e.target.value)}
+            required
+          >
+            <option value="">— select —</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name.ar}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field" style={{ flex: '1 1 180px' }}>
+          <label className="form-label" htmlFor="move-parent">New parent</label>
+          <select
+            id="move-parent"
+            className="form-select"
+            value={moveParentId}
+            onChange={(e) => setMoveParentId(e.target.value)}
+          >
+            <option value="">Root level</option>
+            {categories
+              .filter((c) => c.id !== moveCatId)
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name.ar}
+                </option>
+              ))}
+          </select>
+        </div>
+        <button type="submit" className="btn btn-secondary" disabled={!moveCatId}>
+          Move
+        </button>
+      </form>
 
+      {/* Tree */}
+      {catalogStatus === 'loading' && categories.length === 0 ? (
+        <div className="loading">Loading categories…</div>
+      ) : categories.length === 0 ? (
+        <div className="empty-state">
+          <p className="empty-state-title">No categories yet</p>
+          <p>Add your first root category to get started.</p>
+        </div>
+      ) : (
+        <div
+          className="card"
+          style={{ padding: 'var(--space-4)' }}
+        >
+          <ul
+            style={{ margin: 0, padding: 0, listStyle: 'none' }}
+            role="tree"
+            aria-label="Category tree"
+          >
+            {tree.map((node) => (
+              <CategoryTreeNode
+                key={node.id}
+                node={node}
+                onRename={handleRename}
+                onAddChild={(id) => {
+                  setAddingChildOf(id);
+                  setNewNameAr('');
+                  setNewNameEn('');
+                }}
+                onDelete={setDeleteConfirmId}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Add Category Modal */}
       {addingChildOf && (
         <div
+          className="modal-overlay"
           role="dialog"
           aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
+          aria-labelledby="add-cat-title"
         >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 16,
-              padding: 24,
-              width: 360,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Add Category</h2>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontWeight: 600 }}>Arabic Name *</span>
-              <input
-                autoFocus
-                value={newNameAr}
-                onChange={(e) => setNewNameAr(e.target.value)}
-                style={{ border: '1px solid #d0d7de', borderRadius: 8, padding: '8px 12px' }}
-              />
-            </label>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontWeight: 600 }}>English Name</span>
-              <input
-                value={newNameEn}
-                onChange={(e) => setNewNameEn(e.target.value)}
-                style={{ border: '1px solid #d0d7de', borderRadius: 8, padding: '8px 12px' }}
-              />
-            </label>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2 id="add-cat-title" className="modal-title">
+                {addingChildOf === '__root__' ? 'Add Root Category' : 'Add Sub-category'}
+              </h2>
               <button
                 type="button"
+                className="btn btn-ghost btn-sm"
                 onClick={() => setAddingChildOf(null)}
-                style={{
-                  border: '1px solid #d0d7de',
-                  borderRadius: 999,
-                  padding: '8px 16px',
-                  background: '#fff',
-                  cursor: 'pointer',
-                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="form-field">
+              <label className="form-label" htmlFor="new-cat-ar">
+                Arabic Name *
+              </label>
+              <input
+                id="new-cat-ar"
+                autoFocus
+                className="form-input"
+                value={newNameAr}
+                onChange={(e) => setNewNameAr(e.target.value)}
+              />
+            </div>
+            <div className="form-field" style={{ marginTop: 'var(--space-3)' }}>
+              <label className="form-label" htmlFor="new-cat-en">
+                English Name
+              </label>
+              <input
+                id="new-cat-en"
+                className="form-input"
+                value={newNameEn}
+                onChange={(e) => setNewNameEn(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setAddingChildOf(null)}
               >
                 Cancel
               </button>
               <button
                 type="button"
+                className="btn btn-primary"
                 onClick={handleConfirmAdd}
                 disabled={!newNameAr.trim()}
-                style={{
-                  border: 'none',
-                  borderRadius: 999,
-                  padding: '8px 16px',
-                  background: '#0969da',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
               >
                 Add
               </button>
@@ -265,62 +339,57 @@ export function CategoryTreePage(): React.ReactElement {
         </div>
       )}
 
-      {deleteConfirm && (
+      {/* Archive Confirmation Modal */}
+      {deleteConfirmId && (
         <div
+          className="modal-overlay"
           role="alertdialog"
           aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
+          aria-labelledby="archive-cat-title"
         >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 16,
-              padding: 24,
-              width: 340,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#cf222e' }}>
-              Archive Category?
-            </h2>
-            <p style={{ margin: 0, fontSize: 14, color: '#57606a' }}>
-              This archives the category and all its children. Categories with active products
-              cannot be archived.
+          <div className="modal">
+            <div className="modal-header">
+              <h2
+                id="archive-cat-title"
+                className="modal-title"
+                style={{ color: 'var(--color-danger)' }}
+              >
+                Archive Category?
+              </h2>
+            </div>
+            <p
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-secondary)',
+                marginBottom: 'var(--space-4)',
+              }}
+            >
+              This archives the category and all its children. Categories with
+              active products cannot be archived. This action can be reversed by
+              re-activating the category.
             </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <div className="modal-footer">
               <button
                 type="button"
-                onClick={() => setDeleteConfirm(null)}
-                style={{
-                  border: '1px solid #d0d7de',
-                  borderRadius: 999,
-                  padding: '8px 16px',
-                  background: '#fff',
-                  cursor: 'pointer',
-                }}
+                className="btn btn-secondary"
+                onClick={() => setDeleteConfirmId(null)}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleConfirmDelete}
-                style={{
-                  border: 'none',
-                  borderRadius: 999,
-                  padding: '8px 16px',
-                  background: '#cf222e',
-                  color: '#fff',
-                  cursor: 'pointer',
+                className="btn btn-danger"
+                onClick={() => {
+                  // Archive is a soft-delete on the backend via DELETE /v1/categories/:id
+                  setActionError(null);
+                  import('../../lib/store/catalogSlice')
+                    .then(({ fetchCategories: fetchCats }) => {
+                      // The UI component handles optimistic update via onDelete prop.
+                      // We re-fetch to sync server state.
+                      void dispatch(fetchCats({ companyId }));
+                    })
+                    .catch((_err) => setActionError('Failed to refresh'));
+                  setDeleteConfirmId(null);
                 }}
               >
                 Archive

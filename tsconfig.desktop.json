@@ -4,7 +4,16 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "types": [
+      "vite/client"
+    ]
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }

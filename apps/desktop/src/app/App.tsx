@@ -1,24 +1,36 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AuthShell,
   HealthScreen,
-  HealthStatus,
+  type HealthStatus,
   Paywall,
   getTrialCountdownState,
+  useT,
+  Icon,
+  Modal,
+  Field,
 } from '@packages/ui-components';
 import { CatalogPage } from '../features/catalog/CatalogPage';
 import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
-import { checkSelfLock, logger } from '@packages/shared-kernel';
+import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
 import { useAppDispatch, useAppSelector } from '../lib/store/hooks';
 import type { RootState } from '../lib/store';
-import { login, restoreSession, verifyMfa, clearMfaState, logout } from '../lib/store/authSlice';
+import {
+  login,
+  restoreSession,
+  verifyMfa,
+  setupMfa,
+  confirmMfaSetup,
+  clearMfaState,
+  logout,
+} from '../lib/store/authSlice';
 import { fetchSubscription } from '../lib/store/systemSlice';
 
-const APP_VERSION = process.env.npm_package_version ?? '1.0.0';
-const TRIAL_ENDS_AT = new Date('2026-07-20T12:00:00.000Z');
+const APP_VERSION = __APP_VERSION__;
 
 export default function App() {
+  const t = useT();
   const [status, setStatus] = useState<HealthStatus>({
     dbConnected: false,
     encryptionActive: false,
@@ -30,8 +42,10 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'ar'>('ar');
   const [mfaCode, setMfaCode] = useState('');
+  const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const [setupCode, setSetupCode] = useState('');
+  const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
 
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state: RootState) => state.auth);
@@ -40,8 +54,7 @@ export default function App() {
 
   const isAuthenticated = Boolean(auth.token && auth.user);
   const isLoading = auth.status === 'loading';
-  const errorMessage = auth.error;
-  const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
+  const errorMessage = getApiErrorMessage(auth.errorCode ?? undefined, 'ar', auth.error ?? undefined);
 
   useEffect(() => {
     const init = async () => {
@@ -57,7 +70,6 @@ export default function App() {
         logger.error('[App] Bootstrap failed', { error: String(err) });
       }
     };
-
     void init();
   }, []);
 
@@ -65,12 +77,11 @@ export default function App() {
     void dispatch(restoreSession());
   }, [dispatch]);
 
-  // Discriminator for type of view
-  const isPlatformAdminView = useMemo(() => {
-    return isAuthenticated && !auth.user?.companyId;
-  }, [isAuthenticated, auth.user]);
+  const isPlatformAdminView = useMemo(
+    () => isAuthenticated && !auth.user?.companyId,
+    [isAuthenticated, auth.user],
+  );
 
-  // Load subscription info dynamically when client is logged in
   useEffect(() => {
     if (isAuthenticated && !isPlatformAdminView) {
       void dispatch(fetchSubscription());
@@ -78,10 +89,8 @@ export default function App() {
   }, [dispatch, isAuthenticated, isPlatformAdminView]);
 
   const activeTrialEndsAt = useMemo(() => {
-    if (subscription?.trialEndsAt) {
-      return new Date(subscription.trialEndsAt);
-    }
-    return TRIAL_ENDS_AT;
+    if (subscription?.trialEndsAt) return new Date(subscription.trialEndsAt);
+    return new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   }, [subscription?.trialEndsAt]);
 
   const countdownState = useMemo(
@@ -99,7 +108,7 @@ export default function App() {
               ? 'suspended'
               : 'trialing') as 'suspended' | 'active' | 'trialing' | 'locked',
           trialEndsAt: activeTrialEndsAt.toISOString(),
-          planId: subscription?.planId || null,
+          planId: subscription?.planId ?? null,
         },
         new Date(),
       ),
@@ -107,45 +116,13 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (isPlatformAdminView) {
-      setLockMode(null);
-      return;
-    }
-
-    if (subscription?.status === 'suspended') {
-      setLockMode('suspended');
-    } else if (selfLockState.isLocked) {
-      setLockMode('trial_expired');
-    } else {
-      setLockMode(null);
-    }
+    if (isPlatformAdminView) { setLockMode(null); return; }
+    if (subscription?.status === 'suspended') setLockMode('suspended');
+    else if (selfLockState.isLocked) setLockMode('trial_expired');
+    else setLockMode(null);
   }, [subscription, selfLockState.isLocked, isPlatformAdminView]);
 
-  const title = isPlatformAdmin
-    ? language === 'ar'
-      ? 'وصول مدير النظام'
-      : 'Platform Admin Access'
-    : language === 'ar'
-      ? 'تسجيل الدخول إلى Smart Retail OS'
-      : 'Sign in to Smart Retail OS';
-
-  const subtitle = isPlatformAdmin
-    ? language === 'ar'
-      ? 'أداة داخلية'
-      : 'Internal Tool'
-    : language === 'ar'
-      ? 'حقول شركة ومستخدم وكلمة مرور ودعم PIN دون اتصال متاحة.'
-      : 'Company code, username, password, and offline PIN support are available.';
-
-  const submitLabel = isLoading
-    ? language === 'ar'
-      ? 'جاري الدخول...'
-      : 'Signing in...'
-    : language === 'ar'
-      ? 'متابعة'
-      : 'Continue';
-
-  async function handleLogin() {
+  const handleLogin = async () => {
     await dispatch(
       login({
         email: username,
@@ -154,181 +131,141 @@ export default function App() {
         isPlatformAdmin,
       }),
     ).unwrap();
-  }
+  };
 
-  async function handleVerifyMfa() {
+  const handleVerifyMfa = async () => {
     if (auth.challengeToken) {
       await dispatch(
-        verifyMfa({
-          challengeToken: auth.challengeToken,
-          code: mfaCode,
-        }),
+        verifyMfa({ challengeToken: auth.challengeToken, code: mfaCode }),
       ).unwrap();
     }
-  }
+  };
+
+  const handleSetupMfa = async () => {
+    await dispatch(setupMfa({ email: username || auth.user?.email || '', password })).unwrap();
+    setShowMfaSetup(true);
+  };
+
+  const handleConfirmMfaSetup = async () => {
+    if (!auth.mfaSetup?.setupToken) return;
+    await dispatch(confirmMfaSetup({ setupToken: auth.mfaSetup.setupToken, code: setupCode })).unwrap();
+    setShowMfaSetup(false);
+    setSetupCode('');
+  };
+
+  const title = isPlatformAdmin ? t('auth.platformAdmin') : t('auth.signInTitle');
+  const subtitle = isPlatformAdmin
+    ? t('auth.internalTool')
+    : t('auth.companyHint');
 
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div dir="rtl">
       {!isAuthenticated ? (
         <AuthShell title={title} subtitle={subtitle} isPlatformAdmin={isPlatformAdmin}>
           {auth.mfaRequired ? (
-            // MFA verification page when Platform Admin challenge is active
-            <div style={{ display: 'grid', gap: '16px' }}>
-              <div style={{ fontWeight: 600, fontSize: '1rem', color: '#1e293b' }}>
-                {language === 'ar'
-                  ? 'رمز المصادقة ثنائي العامل (MFA)'
-                  : 'MFA Authentication required'}
-              </div>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 }}>
-                {language === 'ar'
-                  ? 'برجاء كتابة رمز TOTP المكون من 6 أرقام الخاص بك لتأكيد الهوية ودخول لوحة التحكم الأساسية.'
-                  : 'Please enter the 6-digit TOTP code to sign in to the platform console.'}
-              </p>
-              <label style={{ display: 'grid', gap: '6px' }}>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                  {language === 'ar' ? 'رمز المصادقة' : 'Auth Code'}
-                </span>
+            <div className="auth-form">
+              <p className="auth-subtitle">{t('auth.mfaPrompt')}</p>
+              <Field label={t('auth.mfaCode')} htmlFor="mfa-code">
                 <input
-                  style={inputStyle}
+                  id="mfa-code"
+                  className="form-input num"
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value)}
                   placeholder="123456"
+                  maxLength={6}
+                  inputMode="numeric"
                 />
-              </label>
+              </Field>
               <button
                 type="button"
-                style={buttonStyle}
+                className="btn btn-primary"
                 disabled={isLoading || mfaCode.length < 6}
                 onClick={handleVerifyMfa}
               >
-                {isLoading
-                  ? language === 'ar'
-                    ? 'جاري التحقق...'
-                    : 'Verifying...'
-                  : language === 'ar'
-                    ? 'أرسل الرمز'
-                    : 'Verify'}
+                {isLoading ? t('common.loading') : t('auth.verify')}
               </button>
-              {errorMessage ? (
-                <div style={{ color: '#b91c1c', fontSize: '0.95rem' }}>{errorMessage}</div>
-              ) : null}
+              {errorMessage && <div className="error-banner">{errorMessage}</div>}
               <button
                 type="button"
-                style={secondaryButtonStyle}
-                onClick={() => {
-                  dispatch(clearMfaState());
-                  setMfaCode('');
-                }}
+                className="btn btn-ghost"
+                onClick={() => { dispatch(clearMfaState()); setMfaCode(''); }}
               >
-                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                {t('common.cancel')}
               </button>
             </div>
           ) : (
-            // Standard username/password login screen
-            <div style={{ display: 'grid', gap: '16px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                }}
-              >
+            <div className="auth-form">
+              <div className="auth-toggles">
                 <button
-                  style={secondaryButtonStyle}
-                  onClick={() => setLanguage((value) => (value === 'en' ? 'ar' : 'en'))}
+                  type="button"
+                  className={`btn btn-secondary btn-sm${isPlatformAdmin ? ' btn-primary' : ''}`}
+                  onClick={() => setIsPlatformAdmin((v) => !v)}
                 >
-                  {language === 'en' ? 'العربية' : 'English'}
-                </button>
-                <button
-                  style={secondaryButtonStyle}
-                  onClick={() => setIsPlatformAdmin((value) => !value)}
-                >
-                  {isPlatformAdmin
-                    ? language === 'ar'
-                      ? 'تسجيل دخول العميل'
-                      : 'Tenant Login'
-                    : language === 'ar'
-                      ? 'مدير النظام'
-                      : 'Platform Admin'}
+                  <Icon name={isPlatformAdmin ? 'store' : 'shield'} size={16} />
+                  {isPlatformAdmin ? t('auth.tenantLogin') : t('auth.platformAdmin')}
                 </button>
                 <button
                   type="button"
-                  style={{
-                    ...secondaryButtonStyle,
-                    background: isOffline ? '#fde68a' : '#f1f5f9',
-                  }}
-                  onClick={() => setIsOffline((value) => !value)}
+                  className={`btn btn-sm${isOffline ? ' btn-secondary' : ' btn-ghost'}`}
+                  onClick={() => setIsOffline((v) => !v)}
+                  aria-pressed={isOffline}
                 >
-                  {isOffline
-                    ? language === 'ar'
-                      ? 'الوضع غير متصل'
-                      : 'Offline mode'
-                    : language === 'ar'
-                      ? 'الوضع المتصل'
-                      : 'Online mode'}
+                  <Icon name={isOffline ? 'wifi-off' : 'wifi'} size={16} />
+                  {isOffline ? t('auth.offline') : t('auth.online')}
                 </button>
               </div>
-              {!isPlatformAdmin ? (
-                <label style={{ display: 'grid', gap: '6px' }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                    {language === 'ar' ? 'رمز الشركة' : 'Company code'}
-                  </span>
+
+              {!isPlatformAdmin && (
+                <Field label={t('auth.companyCode')} htmlFor="company-code">
                   <input
-                    style={inputStyle}
+                    id="company-code"
+                    className="form-input"
                     value={companyCode}
-                    onChange={(event) => setCompanyCode(event.target.value)}
+                    onChange={(e) => setCompanyCode(e.target.value)}
                     placeholder="company-demo"
                   />
-                </label>
-              ) : null}
-              <label style={{ display: 'grid', gap: '6px' }}>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                  {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-                </span>
+                </Field>
+              )}
+
+              <Field label={t('auth.email')} htmlFor="email">
                 <input
-                  style={inputStyle}
+                  id="email"
+                  className="form-input"
+                  type="email"
                   value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder={
-                    language === 'ar'
-                      ? isPlatformAdmin
-                        ? 'admin@smartretail.local'
-                        : 'demo@smartretail.local'
-                      : isPlatformAdmin
-                        ? 'admin@smartretail.local'
-                        : 'demo@smartretail.local'
-                  }
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={isPlatformAdmin ? 'admin@smartretail.local' : 'user@example.com'}
                 />
-              </label>
-              <label style={{ display: 'grid', gap: '6px' }}>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                  {language === 'ar' ? 'كلمة المرور' : 'Password'}
-                </span>
+              </Field>
+
+              <Field label={t('auth.password')} htmlFor="password">
                 <input
-                  style={inputStyle}
-                  value={password}
+                  id="password"
+                  className="form-input"
                   type="password"
-                  onChange={(event) => setPassword(event.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                 />
-              </label>
-              {!isPlatformAdmin ? (
-                <label style={{ display: 'grid', gap: '6px' }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                    {language === 'ar' ? 'PIN دون اتصال' : 'Offline PIN'}
-                  </span>
+              </Field>
+
+              {!isPlatformAdmin && (
+                <Field label={t('auth.offlinePin')} htmlFor="pin" hint={t('auth.companyHint')}>
                   <input
-                    style={inputStyle}
+                    id="pin"
+                    className="form-input num"
                     value={pin}
-                    onChange={(event) => setPin(event.target.value)}
+                    onChange={(e) => setPin(e.target.value)}
                     placeholder="PIN"
+                    inputMode="numeric"
+                    maxLength={6}
                   />
-                </label>
-              ) : null}
+                </Field>
+              )}
+
               <button
                 type="button"
-                style={buttonStyle}
+                className="btn btn-primary"
                 disabled={
                   isLoading ||
                   !username.trim() ||
@@ -337,30 +274,23 @@ export default function App() {
                 }
                 onClick={handleLogin}
               >
-                {submitLabel}
+                {isLoading ? t('common.loading') : t('auth.continue')}
               </button>
-              {errorMessage ? (
-                <div style={{ color: '#b91c1c', fontSize: '0.95rem' }}>{errorMessage}</div>
-              ) : null}
-              <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                {language === 'ar'
-                  ? `آخر مزامنة: ${new Date().toISOString()}`
-                  : `Last synced: ${new Date().toISOString()}`}
-              </div>
-              {countdownState.isVisible ? (
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    background: countdownState.isCritical ? '#fef2f2' : '#fff7ed',
-                    color: countdownState.isCritical ? '#b91c1c' : '#9a2c00',
-                  }}
-                >
-                  {language === 'ar'
-                    ? `تنتهي الفترة التجريبية بعد ${countdownState.daysRemaining} يوم/أيام و${countdownState.hoursRemaining} ساعة.`
-                    : `Trial ends in ${countdownState.daysRemaining} day(s) and ${countdownState.hoursRemaining} hour(s).`}
+
+              {isPlatformAdmin && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={handleSetupMfa}>
+                  <Icon name="shield" size={16} />
+                  {t('auth.mfaSetupTitle')}
+                </button>
+              )}
+
+              {errorMessage && <div className="error-banner">{errorMessage}</div>}
+
+              {countdownState.isVisible && (
+                <div className={`trial-banner${countdownState.isCritical ? ' critical' : ' warning'}`}>
+                  {t('system.trialEnds', { days: countdownState.daysRemaining, hours: countdownState.hoursRemaining })}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </AuthShell>
@@ -368,29 +298,17 @@ export default function App() {
         <PlatformAdminPanel />
       ) : lockMode ? (
         <AuthShell
-          title={
-            lockMode === 'suspended'
-              ? language === 'ar'
-                ? 'حساب الشركة مجمد'
-                : 'Account Suspended'
-              : language === 'ar'
-                ? 'انتهت الفترة التجريبية'
-                : 'Trial Expired'
-          }
-          subtitle={
-            language === 'ar'
-              ? 'يرجى مراجعة إدارة النظام لتنشيط التراخيص.'
-              : 'Please contact the system administrator to renew.'
-          }
+          title={lockMode === 'suspended' ? t('lock.accountSuspended') : t('lock.trialExpired')}
+          subtitle={t('lock.contactAdmin')}
           isPlatformAdmin={false}
         >
           <Paywall mode={lockMode} />
           <button
             type="button"
+            className="btn btn-secondary auth-logout-btn"
             onClick={() => dispatch(logout())}
-            style={{ ...buttonStyle, marginTop: '20px', width: '100%' }}
           >
-            {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+            {t('common.logout')}
           </button>
         </AuthShell>
       ) : (
@@ -399,31 +317,66 @@ export default function App() {
           <HealthScreen {...status} />
         </>
       )}
+
+      {/* MFA enrollment (QR) — exposes the server-generated enrollment QR */}
+      <Modal
+        open={showMfaSetup}
+        onClose={() => setShowMfaSetup(false)}
+        title={t('auth.mfaSetupTitle')}
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setShowMfaSetup(false)}>
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!auth.mfaSetup?.setupToken || setupCode.length < 6}
+              onClick={handleConfirmMfaSetup}
+            >
+              {t('auth.mfaActivate')}
+            </button>
+          </>
+        }
+      >
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBlockEnd: 'var(--space-4)' }}>
+          {t('auth.mfaSetupDesc')}
+        </p>
+        <div className="row" style={{ justifyContent: 'center', gap: 'var(--space-4)' }}>
+          {auth.mfaSetup?.qrCode ? (
+            <img
+              src={auth.mfaSetup.qrCode}
+              alt={t('qr.title')}
+              width={172}
+              height={172}
+              style={{ background: '#fff', borderRadius: 'var(--radius-md)', padding: 'var(--space-2)' }}
+            />
+          ) : (
+            <div className="spinner-wrap"><span className="spinner" /></div>
+          )}
+        </div>
+        {auth.mfaSetup?.secret && (
+          <div className="field" style={{ marginTop: 'var(--space-4)' }}>
+            <span className="section-label">{t('auth.mfaSecret')}</span>
+            <code className="num" style={{ display: 'block', padding: 'var(--space-2)', background: 'var(--color-bg-inset)', borderRadius: 'var(--radius-sm)', letterSpacing: '0.1em' }}>
+              {auth.mfaSetup.secret}
+            </code>
+          </div>
+        )}
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <Field label={t('auth.mfaEnterCode')} htmlFor="mfa-setup-code">
+            <input
+              id="mfa-setup-code"
+              className="form-input num"
+              value={setupCode}
+              onChange={(e) => setSetupCode(e.target.value)}
+              placeholder="123456"
+              maxLength={6}
+              inputMode="numeric"
+            />
+          </Field>
+        </div>
+      </Modal>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  border: '1px solid #cbd5e1',
-  borderRadius: '12px',
-  padding: '12px 14px',
-  fontSize: '0.95rem',
-};
-
-const buttonStyle: React.CSSProperties = {
-  border: 'none',
-  borderRadius: '999px',
-  padding: '10px 16px',
-  background: '#0f172a',
-  color: '#ffffff',
-  cursor: 'pointer',
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  border: '1px solid #cbd5e1',
-  borderRadius: '999px',
-  padding: '10px 16px',
-  background: '#ffffff',
-  color: '#0f172a',
-  cursor: 'pointer',
-};

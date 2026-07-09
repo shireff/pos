@@ -1,0 +1,72 @@
+/* Design System Tokens — Smart Retail OS (Desktop)
+   Source of truth: docs/Design_System.md §2 Color System, §3 Typography, §4 Spacing */
+
+:root {
+  /* ── Colors ─────────────────────────────────────────────────── */
+  --color-bg-base: #fafaf9;
+  --color-bg-surface: #ffffff;
+  --color-primary: #0f7b6c;
+  --color-primary-hover: #0c6358;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-ai-accent: #6366f1;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #52525b;
+  --color-border: #e4e4e7;
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-family-base: 'IBM Plex Sans Arabic', 'Inter', 'Cairo', system-ui, sans-serif;
+
+  /* ── Spacing (4px base unit) ─────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Radius ─────────────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.10);
+
+  /* ── Button heights ─────────────────────────────────────────── */
+  --btn-height-sm: 32px;
+  --btn-height-md: 40px;
+  --btn-height-lg: 48px;
+
+  /* ── Transition ─────────────────────────────────────────────── */
+  --transition-fast: 150ms ease-out;
+  --transition-base: 200ms ease-out;
+}
+
+[data-theme='dark'] {
+  --color-bg-base: #14161a;
+  --color-bg-surface: #1e2126;
+  --color-primary: #2dd4bf;
+  --color-primary-hover: #14b8a6;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-ai-accent: #818cf8;
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-border: #2e3138;
+}

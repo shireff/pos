@@ -1,4 +1,4 @@
-import React from 'react';
+import { useT } from '../i18n';
 
 export interface UnitConversionBadgeProps {
   unitName: string;
@@ -12,38 +12,20 @@ export function UnitConversionBadge({
   conversionFactorToBase,
   baseUnitName,
   isBaseUnit = false,
-}: UnitConversionBadgeProps): React.ReactElement {
+}: UnitConversionBadgeProps) {
+  const t = useT();
+  const title = isBaseUnit
+    ? `${unitName} — ${t('units.baseUnit')}`
+    : `1 ${unitName} = ${conversionFactorToBase} ${baseUnitName}`;
+
   return (
     <span
-      title={
-        isBaseUnit
-          ? `${unitName} is the base unit`
-          : `1 ${unitName} = ${conversionFactorToBase} ${baseUnitName}`
-      }
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        fontSize: 12,
-        fontWeight: 500,
-        color: isBaseUnit ? '#166534' : '#1e40af',
-        background: isBaseUnit ? '#dcfce7' : '#dbeafe',
-        border: `1px solid ${isBaseUnit ? '#bbf7d0' : '#bfdbfe'}`,
-        borderRadius: 999,
-        padding: '2px 8px',
-        whiteSpace: 'nowrap',
-      }}
+      className="badge badge-draft"
+      title={title}
+      style={{ background: isBaseUnit ? 'var(--color-success-soft)' : 'var(--color-info-soft)', color: isBaseUnit ? 'var(--color-success-on)' : 'var(--color-info-on)' }}
     >
-      {isBaseUnit ? (
-        <>
-          <span aria-hidden="true">★</span>
-          {unitName}
-        </>
-      ) : (
-        <>
-          1 {unitName} = {conversionFactorToBase} {baseUnitName}
-        </>
-      )}
+      {isBaseUnit ? <span aria-hidden="true">★</span> : null}
+      {isBaseUnit ? unitName : `1 ${unitName} = ${conversionFactorToBase} ${baseUnitName}`}
     </span>
   );
 }

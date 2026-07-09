@@ -4,23 +4,7 @@ import { ValidationError, UnauthorizedError, handleApiError } from '../../../../
 import { PlatformAdminLoginSchema } from '@packages/shared-kernel';
 import { PlatformAdminUser } from '@packages/domain-platform-admin';
 import { getMongoDb } from '../../../../../lib/cloud-db';
-import crypto from 'crypto';
-
-/**
- * Verify a scrypt-hashed password stored by the seed utility.
- * Format: scrypt$<salt_hex>$<derived_key_hex>
- */
-function verifyPassword(input: string, stored: string): boolean {
-  try {
-    const parts = stored.split('$');
-    if (parts.length !== 3 || parts[0] !== 'scrypt') return false;
-    const [, saltHex, keyHex] = parts;
-    const derived = crypto.scryptSync(input, Buffer.from(saltHex, 'hex'), 64);
-    return crypto.timingSafeEqual(derived, Buffer.from(keyHex, 'hex'));
-  } catch {
-    return false;
-  }
-}
+import { verifyPassword } from '../../../../../lib/password';
 
 // Cache: lookup admin + verify password before invoking the use-case
 const adminByEmailWithAuth = async (
@@ -35,7 +19,10 @@ const adminByEmailWithAuth = async (
   const valid = verifyPassword(password, doc.password_hash);
   if (!valid) return null; // treat as "not found" to prevent user-enumeration
 
-  return PlatformAdminUser.create({
+  // Reconstitute with the document's real _id so the challenge token maps back
+  // to an actual record (PlatformAdminUser.create() would mint a fresh id).
+  return PlatformAdminUser.reconstitute({
+    id: String(doc._id),
     name: doc.name ?? email.split('@')[0],
     email: doc.email,
     passwordHash: doc.password_hash,
@@ -43,6 +30,10 @@ const adminByEmailWithAuth = async (
     mfaSecret: doc.mfa_secret,
     isMfaEnrolled: Boolean(doc.mfa_secret),
     isActive: doc.is_active,
+    failedLoginAttempts: doc.failed_login_attempts ?? 0,
+    lockedUntil: doc.locked_until ?? null,
+    createdAt: doc.created_at ? new Date(doc.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: doc.updated_at ? new Date(doc.updated_at).toISOString() : new Date().toISOString(),
   });
 };
 

@@ -5,8 +5,8 @@ import axios, {
 } from 'axios';
 import { getAuthSession, removeAuthSession } from '../storage/secureStorage';
 
-const baseURL = process.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
-const timeout = Number(process.env.VITE_API_TIMEOUT ?? '15000');
+const baseURL: string = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
+const timeout: number = Number(import.meta.env.VITE_API_TIMEOUT ?? '30000');
 
 export const client = axios.create({
   baseURL,

@@ -32,10 +32,26 @@ export function createSupabaseClient(): SupabaseClient {
   return createClient(supabaseUrl, supabaseKey);
 }
 
+// Cache the connection promise across hot-reloads (Next.js HMR can discard
+// module-level singletons). Storing on globalThis keeps a single warm
+// connection for the lifetime of the server process.
+const globalForMongo = globalThis as unknown as {
+  __mongoConnectionPromise?: Promise<MongoConnection> | undefined;
+};
+
 export async function initMongoConnection(): Promise<MongoConnection> {
-  const mongoConnection = MongoConnection.getInstance(getMongoUri(), getMongoDbName());
-  await mongoConnection.connect();
-  return mongoConnection;
+  if (!globalForMongo.__mongoConnectionPromise) {
+    const mongoConnection = MongoConnection.getInstance(getMongoUri(), getMongoDbName());
+    globalForMongo.__mongoConnectionPromise = mongoConnection
+      .connect()
+      .then(() => mongoConnection)
+      .catch((error) => {
+        // Don't cache a failed connection — allow the next call to retry.
+        globalForMongo.__mongoConnectionPromise = undefined;
+        throw error;
+      });
+  }
+  return globalForMongo.__mongoConnectionPromise;
 }
 
 export async function getMongoDb(): Promise<Db> {

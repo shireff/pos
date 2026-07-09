@@ -6,11 +6,11 @@ import { Paywall } from './paywall';
 describe('Paywall', () => {
   it('renders an upgrade CTA for trial expiry', () => {
     const html = renderToString(React.createElement(Paywall, { mode: 'trial_expired' }));
-    expect(html).toContain('Choose a Plan');
+    expect(html).toContain('اختر باقة');
   });
 
   it('renders support contact for suspended accounts', () => {
     const html = renderToString(React.createElement(Paywall, { mode: 'suspended' }));
-    expect(html).toContain('Contact support');
+    expect(html).toContain('تواصل مع الدعم');
   });
 });

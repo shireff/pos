@@ -1,6 +1,8 @@
-import { Db, Document } from 'mongodb';
+import { Db } from 'mongodb';
 
-const COLLECTIONS: Array<{ name: string; schema: Document }> = [
+type Schema = Record<string, unknown>;
+
+const COLLECTIONS: Array<{ name: string; schema: Schema }> = [
   {
     name: 'permissions',
     schema: {
@@ -119,13 +121,8 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
     schema: {
       bsonType: 'object',
       required: [
-        '_id',
-        'company_id',
-        'device_type',
-        'device_fingerprint',
-        'registered_at',
-        'last_seen_at',
-        'is_revoked',
+        '_id', 'company_id', 'device_type', 'device_fingerprint',
+        'registered_at', 'last_seen_at', 'is_revoked',
       ],
       properties: {
         _id: { bsonType: 'string' },
@@ -187,13 +184,11 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
         default_currency: { bsonType: 'string' },
         default_language: { bsonType: 'string', enum: ['ar', 'en'] },
         timezone: { bsonType: 'string' },
-        subscription_tier: { bsonType: 'string' },
         eta_enabled: { bsonType: 'bool' },
         is_deleted: { bsonType: 'bool' },
         sync_version: { bsonType: 'int' },
         created_at: { bsonType: 'date' },
         updated_at: { bsonType: 'date' },
-        created_by_device_id: { bsonType: 'string' },
       },
       additionalProperties: false,
     },
@@ -216,7 +211,6 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
         sync_version: { bsonType: 'int' },
         created_at: { bsonType: 'date' },
         updated_at: { bsonType: 'date' },
-        created_by_device_id: { bsonType: 'string' },
       },
     },
   },
@@ -238,7 +232,6 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
         sync_version: { bsonType: 'int' },
         created_at: { bsonType: 'date' },
         updated_at: { bsonType: 'date' },
-        created_by_device_id: { bsonType: 'string' },
       },
     },
   },
@@ -261,7 +254,6 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
         sync_version: { bsonType: 'int' },
         created_at: { bsonType: 'date' },
         updated_at: { bsonType: 'date' },
-        created_by_device_id: { bsonType: 'string' },
       },
     },
   },
@@ -269,14 +261,7 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
     name: 'stock_movement_events',
     schema: {
       bsonType: 'object',
-      required: [
-        '_id',
-        'warehouse_id',
-        'product_variant_id',
-        'event_type',
-        'quantity_delta',
-        'occurred_at',
-      ],
+      required: ['_id', 'warehouse_id', 'product_variant_id', 'event_type', 'quantity_delta', 'occurred_at'],
       properties: {
         _id: { bsonType: 'string' },
         warehouse_id: { bsonType: 'string' },
@@ -300,14 +285,7 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
     name: 'sync_outbox',
     schema: {
       bsonType: 'object',
-      required: [
-        '_id',
-        'aggregate_type',
-        'aggregate_id',
-        'event_payload_json',
-        'created_at',
-        'device_id',
-      ],
+      required: ['_id', 'aggregate_type', 'aggregate_id', 'event_payload_json', 'created_at', 'device_id'],
       properties: {
         _id: { bsonType: 'string' },
         aggregate_type: { bsonType: 'string' },
@@ -323,15 +301,7 @@ const COLLECTIONS: Array<{ name: string; schema: Document }> = [
     name: 'audit_entries',
     schema: {
       bsonType: 'object',
-      required: [
-        '_id',
-        'company_id',
-        'actor_user_id',
-        'action_code',
-        'entity_type',
-        'entity_id',
-        'occurred_at',
-      ],
+      required: ['_id', 'company_id', 'actor_user_id', 'action_code', 'entity_type', 'entity_id', 'occurred_at'],
       properties: {
         _id: { bsonType: 'string' },
         company_id: { bsonType: 'string' },
@@ -360,8 +330,6 @@ export const up = async (db: Db): Promise<void> => {
     }
   }
 
-  // Create indexes per Database.md §6
-  const companyId = await db.createCollection('companies').catch(() => db.collection('companies'));
   await db.collection('users').createIndex({ company_id: 1 });
   await db.collection('permissions').createIndex({ company_id: 1, code: 1 }, { unique: true });
   await db.collection('roles').createIndex({ company_id: 1, name: 1 });
@@ -369,23 +337,21 @@ export const up = async (db: Db): Promise<void> => {
   await db.collection('subscriptions').createIndex({ company_id: 1 }, { unique: true });
   await db.collection('subscription_plans').createIndex({ company_id: 1, tier: 1 });
   await db.collection('license_keys').createIndex({ company_id: 1, key: 1 }, { unique: true });
-  await db
-    .collection('devices')
-    .createIndex(
-      { company_id: 1, device_fingerprint: 1 },
-      { unique: true, name: 'company_device_fingerprint' },
-    );
+  await db.collection('devices').createIndex(
+    { company_id: 1, device_fingerprint: 1 },
+    { unique: true, name: 'company_device_fingerprint' },
+  );
   await db.collection('platform_admins').createIndex({ email: 1 }, { unique: true });
   await db.collection('platform_admin_actions').createIndex({ admin_id: 1, created_at: -1 });
   await db.collection('products').createIndex({ company_id: 1 });
   await db.collection('orders').createIndex({ branch_id: 1, created_at: -1 });
-  await db
-    .collection('stock_movement_events')
-    .createIndex({ warehouse_id: 1, product_variant_id: 1, sequence_no: 1 });
-  await db
-    .collection('sync_outbox')
-    .createIndex({ device_id: 1, sent_at: 1 }, { sparse: true, name: 'pending_outbox' });
-  void companyId; // suppress unused var
+  await db.collection('stock_movement_events').createIndex({
+    warehouse_id: 1, product_variant_id: 1, sequence_no: 1,
+  });
+  await db.collection('sync_outbox').createIndex(
+    { device_id: 1, sent_at: 1 },
+    { sparse: true, name: 'pending_outbox' },
+  );
 };
 
 export const down = async (db: Db): Promise<void> => {

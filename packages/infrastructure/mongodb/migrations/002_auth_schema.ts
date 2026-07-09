@@ -1,11 +1,9 @@
-import { Db, Document, CreateIndexesOptions, IndexSpecification } from 'mongodb';
+import { Db } from 'mongodb';
 
-type IndexDefinition = {
-  key: IndexSpecification;
-  options?: CreateIndexesOptions;
-};
+type Schema = Record<string, unknown>;
+type IndexDefinition = { key: Record<string, number>; options?: Record<string, unknown> };
 
-const COLLECTIONS: Array<{ name: string; schema: Document; indexes?: IndexDefinition[] }> = [
+const COLLECTIONS: Array<{ name: string; schema: Schema; indexes?: IndexDefinition[] }> = [
   {
     name: 'companies',
     schema: {
@@ -178,36 +176,17 @@ export const up = async (db: Db): Promise<void> => {
       });
     } else {
       try {
-        await db.command({
-          collMod: name,
-          validator: { $jsonSchema: schema },
-          validationLevel: 'moderate',
-          validationAction: 'error',
-        });
-      } catch (err) {
-        // ignore collMod failures on older servers
-      }
+        await db.command({ collMod: name, validator: { $jsonSchema: schema }, validationLevel: 'moderate', validationAction: 'error' });
+      } catch { /* ignore */ }
     }
-
-    if (indexes && indexes.length) {
-      for (const idx of indexes) {
-        try {
-          await db.collection(name).createIndex(idx.key, idx.options || undefined);
-        } catch (err) {
-          // index may already exist with different options
-        }
-      }
+    for (const idx of indexes ?? []) {
+      try { await db.collection(name).createIndex(idx.key, idx.options); } catch { /* ignore */ }
     }
   }
 };
 
 export const down = async (db: Db): Promise<void> => {
-  // don't drop collections in down; instead relax validators
   for (const { name } of COLLECTIONS) {
-    try {
-      await db.command({ collMod: name, validator: {}, validationLevel: 'off' });
-    } catch (err) {
-      // ignore
-    }
+    try { await db.command({ collMod: name, validator: {}, validationLevel: 'off' }); } catch { /* ignore */ }
   }
 };

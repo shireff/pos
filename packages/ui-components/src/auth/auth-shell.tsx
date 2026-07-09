@@ -1,59 +1,37 @@
-import React from 'react';
+import { useT } from '../i18n';
+import { Icon } from '../components/Icon';
 
 export interface AuthShellProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   isPlatformAdmin?: boolean;
+  brand?: string;
 }
 
-export function AuthShell({ title, subtitle, children, isPlatformAdmin = false }: AuthShellProps) {
+export function AuthShell({ title, subtitle, children, isPlatformAdmin = false, brand }: AuthShellProps) {
+  const t = useT();
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        background: isPlatformAdmin
-          ? 'linear-gradient(135deg, #0f172a, #1e293b)'
-          : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-        color: isPlatformAdmin ? '#f8fafc' : '#0f172a',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '480px',
-          borderRadius: '24px',
-          padding: '32px',
-          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.16)',
-          background: isPlatformAdmin ? '#111827' : '#ffffff',
-          border: isPlatformAdmin ? '1px solid rgba(255,255,255,0.12)' : '1px solid #e2e8f0',
-        }}
-      >
-        {isPlatformAdmin ? (
-          <div
-            style={{
-              marginBottom: '16px',
-              fontSize: '0.8rem',
-              letterSpacing: '0.28em',
-              textTransform: 'uppercase',
-              color: '#f59e0b',
-            }}
-          >
-            Internal Tool
+    <div className="auth-shell" style={isPlatformAdmin ? { background: 'linear-gradient(135deg, #0f172a, #1e293b)' } : undefined}>
+      <div className="auth-card" style={isPlatformAdmin ? { background: '#111827', borderColor: 'rgba(255,255,255,0.12)', color: '#f8fafc' } : undefined}>
+        <div className="auth-brand" style={isPlatformAdmin ? { color: '#f8fafc' } : undefined}>
+          <span className="auth-brand__logo">
+            <Icon name="store" size={22} />
+          </span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{brand ?? t('app.name')}</div>
+            {isPlatformAdmin && (
+              <div style={{ fontSize: 'var(--font-size-xs)', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-warning)' }}>
+                {t('auth.internalTool')}
+              </div>
+            )}
           </div>
-        ) : null}
-        <h1 style={{ fontSize: '1.75rem', marginBottom: '8px' }}>{title}</h1>
+        </div>
+        <h1 className="auth-title" style={isPlatformAdmin ? { color: '#f8fafc' } : undefined}>{title}</h1>
         {subtitle ? (
-          <p style={{ margin: 0, color: isPlatformAdmin ? '#cbd5e1' : '#64748b', lineHeight: 1.6 }}>
-            {subtitle}
-          </p>
+          <p className="auth-subtitle" style={isPlatformAdmin ? { color: '#cbd5e1' } : undefined}>{subtitle}</p>
         ) : null}
-        <div style={{ marginTop: '24px' }}>{children}</div>
+        <div className="auth-form">{children}</div>
       </div>
     </div>
   );

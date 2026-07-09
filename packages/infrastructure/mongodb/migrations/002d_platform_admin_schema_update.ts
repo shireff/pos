@@ -1,18 +1,12 @@
-import { Db, Document } from 'mongodb';
+import { Db } from 'mongodb';
+
+type Schema = Record<string, unknown>;
 
 const COLLECTION_NAME = 'platform_admins';
-const UPDATED_SCHEMA: Document = {
+
+const UPDATED_SCHEMA: Schema = {
   bsonType: 'object',
-  required: [
-    '_id',
-    'email',
-    'role',
-    'password_hash',
-    'is_active',
-    'is_mfa_enrolled',
-    'created_at',
-    'updated_at',
-  ],
+  required: ['_id', 'email', 'role', 'password_hash', 'is_active', 'is_mfa_enrolled', 'created_at', 'updated_at'],
   properties: {
     _id: { bsonType: 'string' },
     email: { bsonType: 'string' },
@@ -29,7 +23,7 @@ const UPDATED_SCHEMA: Document = {
   additionalProperties: false,
 };
 
-const ORIGINAL_SCHEMA: Document = {
+const ORIGINAL_SCHEMA: Schema = {
   bsonType: 'object',
   required: ['_id', 'email', 'role', 'password_hash', 'is_active', 'created_at'],
   properties: {
@@ -57,23 +51,11 @@ export const up = async (db: Db): Promise<void> => {
     });
     return;
   }
-
-  await db.command({
-    collMod: COLLECTION_NAME,
-    validator: { $jsonSchema: UPDATED_SCHEMA },
-    validationLevel: 'moderate',
-    validationAction: 'error',
-  });
+  await db.command({ collMod: COLLECTION_NAME, validator: { $jsonSchema: UPDATED_SCHEMA }, validationLevel: 'moderate', validationAction: 'error' });
 };
 
 export const down = async (db: Db): Promise<void> => {
   const existing = await db.listCollections({ name: COLLECTION_NAME }).toArray();
   if (existing.length === 0) return;
-
-  await db.command({
-    collMod: COLLECTION_NAME,
-    validator: { $jsonSchema: ORIGINAL_SCHEMA },
-    validationLevel: 'moderate',
-    validationAction: 'error',
-  });
+  await db.command({ collMod: COLLECTION_NAME, validator: { $jsonSchema: ORIGINAL_SCHEMA }, validationLevel: 'moderate', validationAction: 'error' });
 };

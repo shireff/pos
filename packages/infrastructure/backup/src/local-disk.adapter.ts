@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import * as zlib from 'zlib';
 import { promisify } from 'util';
-import { BackupPayload, BackupMetadata } from './backup-payload.js';
+import { BackupPayload, BackupMetadata } from './backup-payload';
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);

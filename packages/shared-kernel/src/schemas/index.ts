@@ -67,6 +67,18 @@ export const MfaVerifySchema = z.object({
 });
 export type MfaVerifyInput = z.infer<typeof MfaVerifySchema>;
 
+export const MfaSetupSchema = z.object({
+  email: z.string().email('Email must be valid'),
+  password: z.string().min(1, 'Password is required'),
+});
+export type MfaSetupInput = z.infer<typeof MfaSetupSchema>;
+
+export const MfaSetupVerifySchema = z.object({
+  setupToken: z.string().min(1, 'MFA setup token is required'),
+  code: z.string().regex(/^\d{6}$/, 'MFA code must be 6 digits'),
+});
+export type MfaSetupVerifyInput = z.infer<typeof MfaSetupVerifySchema>;
+
 // ─── Platform Admin Tenant Management Schemas ────────────────────────────────
 
 export const ChangePlanSchema = z.object({

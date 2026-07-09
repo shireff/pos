@@ -1,0 +1,5 @@
+/* Smart Retail OS — Design System entry.
+   Import once at app root. Provides tokens, base reset, and components. */
+@import './tokens.css';
+@import './base.css';
+@import './components.css';
