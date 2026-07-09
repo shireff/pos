@@ -13,6 +13,10 @@
     "refresh": "npm run migrate && npm run seed"
   },
   "dependencies": {
+    "@packages/application-sales": "*",
+    "@packages/domain-inventory": "*",
+    "@packages/domain-purchasing": "*",
+    "@packages/domain-sales": "*",
     "@packages/shared-kernel": "*",
     "mongodb": "6.5.0",
     "mongoose": "8.3.0",

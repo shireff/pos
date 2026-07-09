@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "return_id",
+    "original_order_line_id",
+    "product_variant_id",
+    "quantity",
+    "refund_amount_piasters"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "return_id": { "bsonType": "string" },
+    "original_order_line_id": { "bsonType": "string" },
+    "product_variant_id": { "bsonType": "string" },
+    "batch_id": { "bsonType": "string" },
+    "quantity": { "bsonType": "int", "minimum": 1 },
+    "refund_amount_piasters": { "bsonType": "int", "minimum": 0 }
+  }
+}

@@ -1,15 +1,35 @@
-import { PurchaseOrder } from '@packages/domain-purchasing';
-import { Supplier } from '@packages/domain-purchasing';
+import { PurchaseOrder, GoodsReceipt, SupplierInvoice } from '@packages/domain-purchasing';
+import {
+  StockMovementEventRepository,
+  StockItemRepository,
+} from '@packages/application-inventory';
+
+export type { StockMovementEventRepository, StockItemRepository };
+
+export interface PurchaseOrderFilter {
+  status?: string;
+  supplierId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
 
 export interface PurchaseOrderRepository {
   findById(id: string, companyId: string): Promise<PurchaseOrder | null>;
-  findBySupplierId(supplierId: string, companyId: string): Promise<PurchaseOrder[]>;
-  findPendingApproval(companyId: string): Promise<PurchaseOrder[]>;
+  findByCompany(
+    companyId: string,
+    filter?: PurchaseOrderFilter,
+  ): Promise<PurchaseOrder[]>;
   save(po: PurchaseOrder): Promise<void>;
 }
 
-export interface SupplierRepository {
-  findById(id: string, companyId: string): Promise<Supplier | null>;
-  findAll(companyId: string): Promise<Supplier[]>;
-  save(supplier: Supplier): Promise<void>;
+export interface GoodsReceiptRepository {
+  findById(id: string): Promise<GoodsReceipt | null>;
+  findByPurchaseOrder(purchaseOrderId: string): Promise<GoodsReceipt[]>;
+  save(gr: GoodsReceipt): Promise<void>;
+}
+
+export interface SupplierInvoiceRepository {
+  findById(id: string): Promise<SupplierInvoice | null>;
+  findByPurchaseOrder(purchaseOrderId: string): Promise<SupplierInvoice[]>;
+  save(invoice: SupplierInvoice): Promise<void>;
 }

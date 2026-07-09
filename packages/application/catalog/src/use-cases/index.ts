@@ -27,7 +27,7 @@ export class CreateProductUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly categoryRepository: CategoryRepository,
-  ) {}
+  ) { }
 
   public async execute(input: CreateProductInput): Promise<Product> {
     if (input.categoryId) {
@@ -66,7 +66,7 @@ export class UpdateProductUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly categoryRepository: CategoryRepository,
-  ) {}
+  ) { }
 
   public async execute(input: UpdateProductInput): Promise<Product> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -100,7 +100,7 @@ export interface ArchiveProductInput {
 export class ArchiveProductUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
-  ) {}
+  ) { }
 
   public async execute(input: ArchiveProductInput): Promise<Product> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -108,10 +108,10 @@ export class ArchiveProductUseCase {
       throw new Error('Product not found');
     }
 
-    const hasOpenPurchaseOrderLines = await this.productRepository.hasOpenPurchaseOrderLines(
+    const hasOpenPurchaseOrderLines = await this.productRepository.hasOpenPurchaseOrderLines?.(
       input.productId,
       input.companyId,
-    );
+    ) ?? false;
     if (hasOpenPurchaseOrderLines) {
       throw new Error('Cannot archive a product that has open purchase order lines');
     }
@@ -134,7 +134,7 @@ export interface GenerateBarcodeResult {
 }
 
 export class GenerateBarcodeUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(private readonly productRepository: ProductRepository) { }
 
   public async execute(input: GenerateBarcodeInput): Promise<GenerateBarcodeResult> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -173,7 +173,7 @@ export interface ConfigureBundleInput {
 }
 
 export class ConfigureBundleUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(private readonly productRepository: ProductRepository) { }
 
   public async execute(input: ConfigureBundleInput): Promise<Product> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -222,7 +222,7 @@ export interface AddVariantInput {
 }
 
 export class AddVariantUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(private readonly productRepository: ProductRepository) { }
 
   public async execute(input: AddVariantInput): Promise<Product['variants'][number]> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -249,7 +249,7 @@ export interface GetProductQueryInput {
 }
 
 export class GetProductQueryUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(private readonly productRepository: ProductRepository) { }
 
   public async execute(input: GetProductQueryInput): Promise<Product> {
     const product = await this.productRepository.findById(input.productId, input.companyId);
@@ -277,7 +277,7 @@ export interface ListProductsQueryResult {
 }
 
 export class ListProductsQueryUseCase {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(private readonly productRepository: ProductRepository) { }
 
   public async execute(input: ListProductsQueryInput): Promise<ListProductsQueryResult> {
     const products = await this.productRepository.findAll(input.companyId, {
@@ -327,7 +327,7 @@ export interface CreateCategoryOutput {
 }
 
 export class CreateCategoryUseCase {
-  public constructor(private readonly categories: CategoryRepository) {}
+  public constructor(private readonly categories: CategoryRepository) { }
 
   public async execute(input: CreateCategoryInput): Promise<CreateCategoryOutput> {
     const parentId = input.parentId ?? null;
@@ -383,7 +383,7 @@ export interface UpdateCategoryOutput {
 }
 
 export class UpdateCategoryUseCase {
-  public constructor(private readonly categories: CategoryRepository) {}
+  public constructor(private readonly categories: CategoryRepository) { }
 
   public async execute(input: UpdateCategoryInput): Promise<UpdateCategoryOutput> {
     const category = await this.categories.findById(input.categoryId, input.companyId);
@@ -421,7 +421,7 @@ export class DeleteCategoryUseCase {
   public constructor(
     private readonly categories: CategoryRepository,
     private readonly products: ProductRepository,
-  ) {}
+  ) { }
 
   public async execute(input: DeleteCategoryInput): Promise<DeleteCategoryOutput> {
     const category = await this.categories.findById(input.categoryId, input.companyId);
@@ -457,7 +457,7 @@ export interface ReorderCategoryOutput {
 }
 
 export class ReorderCategoryUseCase {
-  public constructor(private readonly categories: CategoryRepository) {}
+  public constructor(private readonly categories: CategoryRepository) { }
 
   public async execute(input: ReorderCategoryInput): Promise<ReorderCategoryOutput> {
     const category = await this.categories.findById(input.categoryId, input.companyId);
@@ -532,7 +532,7 @@ export interface GetCategoryTreeOutput {
 }
 
 export class GetCategoryTreeUseCase {
-  public constructor(private readonly categories: CategoryRepository) {}
+  public constructor(private readonly categories: CategoryRepository) { }
 
   public async execute(input: GetCategoryTreeInput): Promise<GetCategoryTreeOutput> {
     const all = await this.categories.findAll(input.companyId);
@@ -589,7 +589,7 @@ export interface CreateUnitOutput {
 }
 
 export class CreateUnitUseCase {
-  public constructor(private readonly units: CompanyUnitRepository) {}
+  public constructor(private readonly units: CompanyUnitRepository) { }
 
   public async execute(input: CreateUnitInput): Promise<CreateUnitOutput> {
     if (input.isBaseUnit && input.conversionFactorToBase !== 1.0) {
@@ -646,7 +646,7 @@ export interface UpdateUnitOutput {
 }
 
 export class UpdateUnitUseCase {
-  public constructor(private readonly units: CompanyUnitRepository) {}
+  public constructor(private readonly units: CompanyUnitRepository) { }
 
   public async execute(input: UpdateUnitInput): Promise<UpdateUnitOutput> {
     const existing = await this.units.findById(input.unitId, input.companyId);
@@ -717,7 +717,7 @@ export interface ListUnitsOutput {
 }
 
 export class ListUnitsUseCase {
-  public constructor(private readonly units: CompanyUnitRepository) {}
+  public constructor(private readonly units: CompanyUnitRepository) { }
 
   public async execute(input: ListUnitsInput): Promise<ListUnitsOutput> {
     const all = await this.units.findAll(input.companyId);

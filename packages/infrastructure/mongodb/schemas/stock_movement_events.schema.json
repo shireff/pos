@@ -3,27 +3,30 @@
   "bsonType": "object",
   "required": [
     "_id",
+    "company_id",
     "warehouse_id",
-    "product_variant_id",
+    "product_id",
     "event_type",
-    "quantity_delta",
+    "quantity",
     "occurred_at"
   ],
   "properties": {
     "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
     "warehouse_id": { "bsonType": "string" },
-    "product_variant_id": { "bsonType": "string" },
+    "product_id": { "bsonType": "string" },
+    "variant_id": { "bsonType": "string" },
     "batch_id": { "bsonType": "string" },
     "event_type": {
       "bsonType": "string",
-      "enum": ["SALE", "RETURN", "TRANSFER_OUT", "TRANSFER_IN", "ADJUSTMENT", "PURCHASE_RECEIPT"]
+      "enum": ["SALE", "RETURN", "TRANSFER_OUT", "TRANSFER_IN", "ADJUSTMENT", "PURCHASE_RECEIPT", "EXPIRY_WRITE_OFF", "DAMAGE_WRITE_OFF", "BUNDLE_DEDUCTION", "CORRECTION"]
     },
-    "quantity_delta": { "bsonType": "int" },
-    "occurred_at": { "bsonType": "date" },
+    "quantity": { "bsonType": "int" },
+    "reference_type": { "bsonType": "string" },
+    "reference_id": { "bsonType": "string" },
     "originating_device_id": { "bsonType": "string" },
     "sequence_no": { "bsonType": "long" },
     "causality_vector": { "bsonType": "object" },
-    "reference_type": { "bsonType": "string" },
-    "reference_id": { "bsonType": "string" }
+    "created_at": { "bsonType": "date" }
   }
 }

@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "purchase_order_id", "received_by_user_id", "received_at", "created_at", "updated_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "purchase_order_id": { "bsonType": "string" },
+    "received_by_user_id": { "bsonType": "string" },
+    "received_at": { "bsonType": "date" },
+    "notes": { "bsonType": "string" },
+    "hlc_timestamp": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@packages/shared-kernel": "*",
-    "@packages/domain-sales": "*"
+    "@packages/application-inventory": "*",
+    "@packages/domain-inventory": "*",
+    "@packages/domain-sales": "*",
+    "@packages/shared-kernel": "*"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

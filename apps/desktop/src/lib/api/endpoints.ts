@@ -47,27 +47,47 @@ export enum ApiEndpoints {
   Orders = '/api/v1/orders',
   OrderById = '/api/v1/orders/:id',
   OrderReturn = '/api/v1/orders/:id/returns',
+  OrderReturnApprove = '/api/v1/orders/:id/returns/:returnId/approve',
+  OrderVoid = '/api/v1/orders/:id/void',
+
+  // ── Sales / Shifts ──────────────────────────────────────────
+  ShiftOpen = '/api/v1/shifts',
+  ShiftCurrent = '/api/v1/shifts/current',
+  ShiftClose = '/api/v1/shifts/current/close',
 
   // ── Inventory / Stock ─────────────────────────────────────────
   StockAdjustments = '/api/v1/stock/adjustments',
   StockTransfers = '/api/v1/stock/transfers',
   StockTransferById = '/api/v1/stock/transfers/:id',
+  StockTransferSubmit = '/api/v1/stock/transfers/:id/submit',
   StockTransferApprove = '/api/v1/stock/transfers/:id/approve',
   StockTransferShip = '/api/v1/stock/transfers/:id/ship',
   StockTransferReceive = '/api/v1/stock/transfers/:id/receive',
+  StockTransferCancel = '/api/v1/stock/transfers/:id/cancel',
   StockMovements = '/api/v1/stock/movements',
+  Warehouses = '/api/v1/warehouses',
+  WarehouseById = '/api/v1/warehouses/:id',
 
   // ── Purchasing ───────────────────────────────────────────────
   PurchaseOrders = '/api/v1/purchase-orders',
   PurchaseOrderById = '/api/v1/purchase-orders/:id',
+  PurchaseOrderSubmit = '/api/v1/purchase-orders/:id/submit',
   PurchaseOrderApprove = '/api/v1/purchase-orders/:id/approve',
+  PurchaseOrderReject = '/api/v1/purchase-orders/:id/reject',
+  PurchaseOrderCancel = '/api/v1/purchase-orders/:id/cancel',
   PurchaseOrderReceive = '/api/v1/purchase-orders/:id/receive',
+  PurchaseOrderInvoice = '/api/v1/purchase-orders/:id/invoice',
+  PurchaseOrderOcr = '/api/v1/purchase-orders/:id/ocr',
   SupplierInvoiceOcr = '/api/v1/supplier-invoices/ocr',
 
   // ── Customers ─────────────────────────────────────────────────
   Customers = '/api/v1/customers',
   CustomerById = '/api/v1/customers/:id',
   CustomerLoyaltyRedeem = '/api/v1/customers/:id/loyalty/redeem',
+  CustomerLoyaltyHistory = '/api/v1/customers/:id/loyalty/history',
+  CustomerCreditPayments = '/api/v1/customers/:id/credit/payments',
+  CustomerCreditHistory = '/api/v1/customers/:id/credit/history',
+  CustomerMerge = '/api/v1/customers/merge',
 
   // ── Reports ──────────────────────────────────────────────────
   ReportsDailySales = '/api/v1/reports/daily-sales',

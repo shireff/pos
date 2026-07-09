@@ -9,6 +9,11 @@ const STATUS_MAP: Record<string, { cls: string; key: string }> = {
   trialing: { cls: 'badge-trialing', key: 'status.trialing' },
   trial_expired: { cls: 'badge-trial-expired', key: 'status.trial_expired' },
   past_due: { cls: 'badge-trial-expired', key: 'status.past_due' },
+  pending_approval: { cls: 'badge-trialing', key: 'status.pending_approval' },
+  approved: { cls: 'badge-active', key: 'status.approved' },
+  partially_received: { cls: 'badge-draft', key: 'status.partially_received' },
+  fully_received: { cls: 'badge-active', key: 'status.fully_received' },
+  cancelled: { cls: 'badge-suspended', key: 'status.cancelled' },
 };
 
 export interface StatusBadgeProps {

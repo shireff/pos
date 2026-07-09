@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "from_warehouse_id",
+    "to_warehouse_id",
+    "status",
+    "requested_by_user_id",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "from_warehouse_id": { "bsonType": "string" },
+    "to_warehouse_id": { "bsonType": "string" },
+    "status": {
+      "bsonType": "string",
+      "enum": ["draft", "pending_approval", "approved", "shipped", "received", "cancelled"]
+    },
+    "requested_by_user_id": { "bsonType": "string" },
+    "approved_by_user_id": { "bsonType": "string" },
+    "shipped_at": { "bsonType": "date" },
+    "received_at": { "bsonType": "date" },
+    "cancelled_at": { "bsonType": "date" },
+    "notes": { "bsonType": "string" },
+    "is_deleted": { "bsonType": "bool" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

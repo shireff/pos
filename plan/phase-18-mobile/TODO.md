@@ -75,3 +75,9 @@
 ## Tests
 
 - [ ] See TESTS.md
+
+### Quality Gates
+
+- [ ] Zero TypeScript errors
+- [ ] All tests passing
+- [ ] Update API.md if any endpoint contract was refined during implementation

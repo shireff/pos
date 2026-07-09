@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "order_id", "company_id", "tender_type", "amount_piasters"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "order_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "tender_type": {
+      "bsonType": "string",
+      "enum": [
+        "cash",
+        "card",
+        "vodafone_cash",
+        "orange_cash",
+        "etisalat_cash",
+        "we_pay",
+        "instapay",
+        "bank_transfer",
+        "customer_credit",
+        "store_credit"
+      ]
+    },
+    "amount_piasters": { "bsonType": "int", "minimum": 1 },
+    "provider_reference": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" }
+  }
+}

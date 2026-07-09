@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "goods_receipt_id", "purchase_order_line_id", "product_id", "warehouse_id", "received_quantity", "created_at", "updated_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "goods_receipt_id": { "bsonType": "string" },
+    "purchase_order_line_id": { "bsonType": "string" },
+    "product_id": { "bsonType": "string" },
+    "variant_id": { "bsonType": "string" },
+    "warehouse_id": { "bsonType": "string" },
+    "received_quantity": { "bsonType": "int", "minimum": 0 },
+    "discrepancy_type": { "bsonType": "string", "enum": ["quantity_shortage", "quality_rejection", "wrong_item"] },
+    "discrepancy_notes": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

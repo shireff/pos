@@ -1,7 +1,3 @@
-/**
- * StockEventType enumerates all possible stock movement types.
- * Each type maps to one appendable StockMovementEvent.
- */
 export type StockEventType =
   | 'SALE'
   | 'RETURN'
@@ -14,14 +10,8 @@ export type StockEventType =
   | 'BUNDLE_DEDUCTION'
   | 'CORRECTION';
 
-/**
- * TransferStatus tracks the lifecycle of a stock transfer request.
- */
-export type TransferStatus = 'requested' | 'approved' | 'shipped' | 'received' | 'cancelled';
+export type TransferStatus = 'draft' | 'pending_approval' | 'approved' | 'shipped' | 'received' | 'cancelled';
 
-/**
- * WeightReading from a connected scale peripheral.
- */
 export interface WeightReading {
   grams: number;
   isStable: boolean;

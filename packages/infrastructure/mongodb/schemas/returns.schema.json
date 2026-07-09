@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "original_order_id",
+    "returned_by_user_id",
+    "status",
+    "refund_amount_piasters"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "original_order_id": { "bsonType": "string" },
+    "returned_by_user_id": { "bsonType": "string" },
+    "approved_by_user_id": { "bsonType": "string" },
+    "reason": { "bsonType": "string", "minLength": 5 },
+    "refund_method": { "bsonType": "string" },
+    "status": { "bsonType": "string", "enum": ["pending_approval", "approved", "rejected"] },
+    "refund_amount_piasters": { "bsonType": "int", "minimum": 0 },
+    "voided_order_id": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

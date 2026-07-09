@@ -35,7 +35,7 @@ export function LocaleProvider({
 }: {
   locale?: Locale;
   onChange?: (locale: Locale) => void;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   const value = useMemo<LocaleContextValue>(() => {
     let locale = initialLocale;
@@ -67,4 +67,9 @@ export function useLocale(): LocaleContextValue {
 
 export function useT() {
   return useLocale().t;
+}
+
+/** Convenience alias returning the translate function (mirrors react-i18next's useTranslation). */
+export function useTranslation(): (key: string, vars?: Record<string, string | number>) => string {
+  return useT();
 }

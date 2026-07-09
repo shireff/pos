@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "name",
+    "is_default",
+    "is_active",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "branch_id": { "bsonType": "string" },
+    "name": { "bsonType": "string", "minLength": 1 },
+    "address": { "bsonType": "string" },
+    "is_default": { "bsonType": "bool" },
+    "is_active": { "bsonType": "bool" },
+    "manager_id": { "bsonType": "string" },
+    "is_deleted": { "bsonType": "bool" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

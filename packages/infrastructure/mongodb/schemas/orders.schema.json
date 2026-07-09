@@ -1,17 +1,31 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "bsonType": "object",
-  "required": ["_id", "branch_id", "cashier_id", "status", "grand_total"],
+  "required": [
+    "_id",
+    "company_id",
+    "branch_id",
+    "cashier_id",
+    "client_txn_id",
+    "status",
+    "grand_total"
+  ],
   "properties": {
     "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
     "branch_id": { "bsonType": "string" },
     "cashier_id": { "bsonType": "string" },
+    "client_txn_id": { "bsonType": "string" },
+    "shift_session_id": { "bsonType": "string" },
     "customer_id": { "bsonType": "string" },
-    "status": { "bsonType": "string" },
+    "status": {
+      "bsonType": "string",
+      "enum": ["pending", "completed", "partially_returned", "fully_returned", "voided"]
+    },
     "subtotal": { "bsonType": "int", "minimum": 0 },
     "discount_total": { "bsonType": "int", "minimum": 0 },
     "tax_total": { "bsonType": "int", "minimum": 0 },
-    "grand_total": { "bsonType": "int", "minimum": 0 },
+    "grand_total": { "bsonType": "int", "minimum": 1 },
     "is_deleted": { "bsonType": "bool" },
     "sync_version": { "bsonType": "int" },
     "created_at": { "bsonType": "date" },

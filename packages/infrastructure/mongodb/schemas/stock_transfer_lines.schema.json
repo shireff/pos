@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "transfer_id",
+    "product_id",
+    "quantity_requested",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "transfer_id": { "bsonType": "string" },
+    "product_id": { "bsonType": "string" },
+    "variant_id": { "bsonType": "string" },
+    "batch_id": { "bsonType": "string" },
+    "quantity_requested": { "bsonType": "int", "minimum": 1 },
+    "quantity_shipped": { "bsonType": "int", "minimum": 0 },
+    "quantity_received": { "bsonType": "int", "minimum": 0 },
+    "notes": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

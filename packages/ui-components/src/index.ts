@@ -29,6 +29,13 @@ export type { UnitConversionBadgeProps } from './categories/UnitConversionBadge'
 export { UnitPickerModal } from './categories/UnitPickerModal';
 export type { UnitPickerModalProps } from './categories/UnitPickerModal';
 
+export { StockLevelBadge } from './inventory/StockLevelBadge';
+export type { StockLevelBadgeProps } from './inventory/StockLevelBadge';
+export { WarehouseSelector } from './inventory/WarehouseSelector';
+export type { WarehouseSelectorProps } from './inventory/WarehouseSelector';
+export { BatchSelector } from './inventory/BatchSelector';
+export type { BatchSelectorProps } from './inventory/BatchSelector';
+
 /* Core design-system components */
 export {
   Modal,
@@ -48,7 +55,17 @@ export type { StatusBadgeProps } from './components/StatusBadge';
 export { Icon } from './components/Icon';
 export type { IconName, IconProps } from './components/Icon';
 
+/* Customer components */
+export { CustomerCard } from './customers/CustomerCard';
+export type { CustomerCardProps } from './customers/CustomerCard';
+export { LoyaltyTierBadge } from './customers/LoyaltyTierBadge';
+export type { LoyaltyTierBadgeProps } from './customers/LoyaltyTierBadge';
+export { LoyaltyRedemptionDialog } from './customers/LoyaltyRedemptionDialog';
+export type { LoyaltyRedemptionDialogProps } from './customers/LoyaltyRedemptionDialog';
+export { CustomerSearchSheet } from './customers/CustomerSearchSheet';
+export type { CustomerSearchSheetProps, CustomerSearchResult } from './customers/CustomerSearchSheet';
+
 /* i18n + formatting */
-export { LocaleProvider, useLocale, useT, translate, DEFAULT_LOCALE, ARABIC_LOCALE } from './i18n/index';
+export { LocaleProvider, useLocale, useT, useTranslation, translate, DEFAULT_LOCALE, ARABIC_LOCALE } from './i18n/index';
 export type { Locale, Dict } from './i18n/index';
 export { formatNumber, formatMoney, formatDate } from './utils/format';

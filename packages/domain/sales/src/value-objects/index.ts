@@ -13,6 +13,15 @@ export type TenderType =
   | 'customer_credit'
   | 'store_credit';
 
-export type OrderStatus = 'completed' | 'partially_returned' | 'fully_returned' | 'voided';
+export type OrderStatus =
+  | 'pending'
+  | 'completed'
+  | 'partially_returned'
+  | 'fully_returned'
+  | 'voided';
+
 export type ReturnStatus = 'pending_approval' | 'approved' | 'rejected';
+
 export type RefundMethod = TenderType | 'store_credit';
+
+export type ShiftStatus = 'open' | 'closed';

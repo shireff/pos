@@ -11,6 +11,15 @@ export class PurchaseOrderCreated extends DomainEventBase {
   }
 }
 
+export class PurchaseOrderSubmitted extends DomainEventBase {
+  public readonly autoApproved: boolean;
+
+  public constructor(props: { poId: string; autoApproved: boolean }) {
+    super(props.poId, 'PurchaseOrder');
+    this.autoApproved = props.autoApproved;
+  }
+}
+
 export class PurchaseOrderApproved extends DomainEventBase {
   public readonly approvedByUserId: string;
 
@@ -20,7 +29,25 @@ export class PurchaseOrderApproved extends DomainEventBase {
   }
 }
 
-export class PurchaseOrderReceived extends DomainEventBase {
+export class PurchaseOrderRejected extends DomainEventBase {
+  public readonly reason: string;
+
+  public constructor(props: { poId: string; reason: string }) {
+    super(props.poId, 'PurchaseOrder');
+    this.reason = props.reason;
+  }
+}
+
+export class PurchaseOrderCancelled extends DomainEventBase {
+  public readonly reason: string;
+
+  public constructor(props: { poId: string; reason: string }) {
+    super(props.poId, 'PurchaseOrder');
+    this.reason = props.reason;
+  }
+}
+
+export class GoodsReceived extends DomainEventBase {
   public readonly hasDiscrepancy: boolean;
 
   public constructor(props: { poId: string; hasDiscrepancy: boolean }) {
@@ -29,9 +56,14 @@ export class PurchaseOrderReceived extends DomainEventBase {
   }
 }
 
-export class PurchaseOrderCancelled extends DomainEventBase {
-  public constructor(props: { poId: string }) {
+export class SupplierInvoiceRecorded extends DomainEventBase {
+  public readonly invoiceId: string;
+  public readonly supplierId: string;
+
+  public constructor(props: { poId: string; invoiceId: string; supplierId: string }) {
     super(props.poId, 'PurchaseOrder');
+    this.invoiceId = props.invoiceId;
+    this.supplierId = props.supplierId;
   }
 }
 
@@ -43,16 +75,5 @@ export class SupplierInvoiceOCRExtracted extends DomainEventBase {
     super(props.supplierId, 'Supplier');
     this.ocrJobId = props.ocrJobId;
     this.fieldCount = props.fieldCount;
-  }
-}
-
-export class SupplierInvoiceConfirmed extends DomainEventBase {
-  public readonly ocrJobId: string;
-  public readonly correctionCount: number;
-
-  public constructor(props: { supplierId: string; ocrJobId: string; correctionCount: number }) {
-    super(props.supplierId, 'Supplier');
-    this.ocrJobId = props.ocrJobId;
-    this.correctionCount = props.correctionCount;
   }
 }

@@ -1,23 +1,51 @@
-import { Customer } from '@packages/domain-crm';
-import { LoyaltyAccount, LoyaltyPointEvent, CreditLedgerEntry } from '@packages/domain-crm';
+import {
+  Customer,
+  LoyaltyAccount,
+  LoyaltyEvent,
+  CreditLedger,
+  CreditLedgerEntry,
+} from '@packages/domain-crm';
+
+export interface CustomerFilter {
+  search?: string;
+  isActive?: boolean;
+}
 
 export interface CustomerRepository {
   findById(id: string, companyId: string): Promise<Customer | null>;
+  findByCompany(companyId: string, filter?: CustomerFilter): Promise<Customer[]>;
   findByPhone(phone: string, companyId: string): Promise<Customer | null>;
-  findByLoyaltyCode(code: string, companyId: string): Promise<Customer | null>;
-  findAll(companyId: string): Promise<Customer[]>;
   save(customer: Customer): Promise<void>;
 }
 
 export interface LoyaltyAccountRepository {
-  findByCustomer(customerId: string): Promise<LoyaltyAccount | null>;
-  findEvents(customerId: string): Promise<LoyaltyPointEvent[]>;
-  appendEvent(event: LoyaltyPointEvent): Promise<void>;
-  saveAccount(account: LoyaltyAccount): Promise<void>;
+  findByCustomer(customerId: string, companyId: string): Promise<LoyaltyAccount | null>;
+  save(account: LoyaltyAccount): Promise<void>;
+}
+
+export interface LoyaltyEventRepository {
+  findByCustomer(
+    customerId: string,
+    companyId: string,
+    limit: number,
+    offset: number,
+  ): Promise<LoyaltyEvent[]>;
+  append(event: LoyaltyEvent): Promise<void>;
+  countByCustomer(customerId: string, companyId: string): Promise<number>;
 }
 
 export interface CreditLedgerRepository {
-  findByCustomer(customerId: string): Promise<CreditLedgerEntry[]>;
-  /** Append-only — no update or delete permitted. */
+  findByCustomer(
+    customerId: string,
+    companyId: string,
+    limit: number,
+    offset: number,
+  ): Promise<CreditLedgerEntry[]>;
   append(entry: CreditLedgerEntry): Promise<void>;
+  countByCustomer(customerId: string, companyId: string): Promise<number>;
+}
+
+export interface CreditLedgerBalanceRepository {
+  findByCustomer(customerId: string, companyId: string): Promise<CreditLedger | null>;
+  save(ledger: CreditLedger): Promise<void>;
 }

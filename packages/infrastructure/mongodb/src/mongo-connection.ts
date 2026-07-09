@@ -89,3 +89,14 @@ export class MongoConnection {
     MongoConnection.instance = null;
   }
 }
+
+/**
+ * Returns the active Db instance, establishing the connection on first use.
+ * Mirrors the `getMongoDb()` helper used by the backend so that repository
+ * modules can resolve the same singleton connection.
+ */
+export async function getMongoDb(): Promise<Db> {
+  const connection = MongoConnection.getInstance();
+  await connection.connect();
+  return connection.db();
+}

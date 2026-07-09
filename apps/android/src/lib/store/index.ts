@@ -3,7 +3,9 @@ import authReducer from './authSlice';
 import catalogReducer from './catalogSlice';
 import systemReducer from './systemSlice';
 import salesReducer from './salesSlice';
+import inventoryReducer from './inventorySlice';
 import customersReducer from './customersSlice';
+import purchasingReducer from './purchasingSlice';
 
 export const store = configureStore({
     reducer: {
@@ -11,7 +13,9 @@ export const store = configureStore({
         catalog: catalogReducer,
         system: systemReducer,
         sales: salesReducer,
+        inventory: inventoryReducer,
         customers: customersReducer,
+        purchasing: purchasingReducer,
     },
 });
 

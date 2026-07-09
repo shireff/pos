@@ -104,8 +104,23 @@ Standard envelope:
 
 ### 4.4 Purchasing
 
-- `POST /v1/purchase-orders`, `POST /v1/purchase-orders/{id}/approve`, `POST /v1/purchase-orders/{id}/receive`.
-- `POST /v1/supplier-invoices/ocr` — upload invoice image → returns parsed line items for review (see AI.md).
+All endpoints require `purchasing.*` permissions (see Permission_Matrix.md). The purchase order state machine is
+`draft → pending_approval → approved → partially_received → fully_received`, with `→ cancelled` from any
+non-received state (Phase 06).
+
+- `POST /v1/purchase-orders` — create a PO (requires `purchasing.create`). Body: `{ companyId, branchId, supplierId, expectedDeliveryDate, notes?, lines: [{ productId, variantId?, unitId, orderedQuantity, unitPricePiasters }], autoApproveThresholdPiasters? }`. Auto-submits/auto-approves when the threshold is supplied. Returns the serialized PO.
+- `PATCH /v1/purchase-orders/{id}` — update draft PO header/lines (requires `purchasing.edit`).
+- `GET /v1/purchase-orders` — paginated list, filterable by `status`, `supplierId`, `dateFrom`, `dateTo`.
+- `GET /v1/purchase-orders/{id}` — full detail with lines and receipts.
+- `POST /v1/purchase-orders/{id}/submit` — submit for approval; auto-approves when below company threshold.
+- `POST /v1/purchase-orders/{id}/approve` — approve (requires `purchasing.approve`).
+- `POST /v1/purchase-orders/{id}/reject` — reject with `reason` (min 10 chars) (requires `purchasing.approve`).
+- `POST /v1/purchase-orders/{id}/cancel` — cancel with `reason` (requires `purchasing.edit`).
+- `POST /v1/purchase-orders/{id}/receive` — record goods receipt (requires `purchasing.receive`). Body: `{ notes?, lines: [{ lineId, warehouseId, receivedQuantity, discrepancyType?, discrepancyNotes? }] }`. Emits a `PURCHASE_RECEIPT` stock movement per line and captures discrepancies (BR-SUP-002).
+- `POST /v1/purchase-orders/{id}/invoice` — record supplier invoice (requires `purchasing.invoice.record`). Body: `{ supplierId, invoiceNumber, invoiceDate, totalAmountPiasters, taxAmountPiasters, attachmentUrl? }`.
+- `POST /v1/purchase-orders/{id}/ocr` — upload invoice image reference → returns deterministic extracted fields for review (stub; real OCR in Phase 15). Never auto-commits (BR-SUP-003).
+
+Sync classes: `purchase_orders` and `supplier_invoices` are **Class B** (field-level HLC merge); `goods_receipt_lines` is **Class A** (append-only, never overwritten). See Sync Architecture.md and `packages/application-sync/src/sync-classification.ts`.
 
 ### 4.5 Customers & Loyalty
 

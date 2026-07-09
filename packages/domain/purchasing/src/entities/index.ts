@@ -1,142 +1,189 @@
 import { Identifier } from '@packages/shared-kernel';
+import { SupplierInvoiceStatus } from '../value-objects';
 
-// ─── PurchaseOrderLine ────────────────────────────────────────────────────────
+// ─── PurchaseOrderLine ───────────────────────────────────────────────────────
 
 export interface PurchaseOrderLineProps {
   id: string;
   purchaseOrderId: string;
-  productVariantId: string;
-  quantityOrdered: number;
-  quantityReceived: number;
-  unitCostPiasters: number;
+  productId: string;
+  variantId: string | null;
+  unitId: string;
+  orderedQuantity: number;
+  unitPricePiasters: number;
+  receivedQuantity: number;
 }
 
 export class PurchaseOrderLine {
   public readonly id: string;
   public readonly purchaseOrderId: string;
-  public readonly productVariantId: string;
-  public readonly quantityOrdered: number;
-  private _quantityReceived: number;
-  public readonly unitCostPiasters: number;
+  public readonly productId: string;
+  public readonly variantId: string | null;
+  public readonly unitId: string;
+  private _orderedQuantity: number;
+  private _unitPricePiasters: number;
+  private _receivedQuantity: number;
 
   private constructor(props: PurchaseOrderLineProps) {
-    if (props.quantityOrdered <= 0) throw new Error('PO line quantity must be positive');
+    if (props.orderedQuantity <= 0) throw new Error('PO line ordered quantity must be positive');
+    if (props.unitPricePiasters < 0) throw new Error('PO line unit price cannot be negative');
     this.id = props.id;
     this.purchaseOrderId = props.purchaseOrderId;
-    this.productVariantId = props.productVariantId;
-    this.quantityOrdered = props.quantityOrdered;
-    this._quantityReceived = props.quantityReceived;
-    this.unitCostPiasters = props.unitCostPiasters;
+    this.productId = props.productId;
+    this.variantId = props.variantId;
+    this.unitId = props.unitId;
+    this._orderedQuantity = props.orderedQuantity;
+    this._unitPricePiasters = props.unitPricePiasters;
+    this._receivedQuantity = props.receivedQuantity;
   }
 
   public static create(
-    props: Omit<PurchaseOrderLineProps, 'id' | 'quantityReceived'>,
+    props: Omit<PurchaseOrderLineProps, 'id' | 'receivedQuantity'>,
   ): PurchaseOrderLine {
-    return new PurchaseOrderLine({ id: Identifier.generate(), quantityReceived: 0, ...props });
+    return new PurchaseOrderLine({
+      id: Identifier.generate(),
+      receivedQuantity: 0,
+      ...props,
+    });
   }
 
   public static reconstitute(props: PurchaseOrderLineProps): PurchaseOrderLine {
     return new PurchaseOrderLine(props);
   }
 
-  public get quantityReceived(): number {
-    return this._quantityReceived;
+  public get orderedQuantity(): number {
+    return this._orderedQuantity;
+  }
+  public get unitPricePiasters(): number {
+    return this._unitPricePiasters;
+  }
+  public get receivedQuantity(): number {
+    return this._receivedQuantity;
+  }
+  public get lineTotalPiasters(): number {
+    return this._orderedQuantity * this._unitPricePiasters;
   }
   public get discrepancy(): number {
-    return this.quantityOrdered - this._quantityReceived;
+    return this._orderedQuantity - this._receivedQuantity;
+  }
+  public get isFullyReceived(): boolean {
+    return this._receivedQuantity >= this._orderedQuantity;
   }
 
-  public recordReceived(qty: number): void {
-    if (qty < 0) throw new Error('Received quantity cannot be negative');
-    this._quantityReceived = qty;
+  public recordReceived(quantity: number): void {
+    if (quantity < 0) throw new Error('Received quantity cannot be negative');
+    if (quantity > this._orderedQuantity) {
+      throw new Error('Received quantity cannot exceed ordered quantity');
+    }
+    this._receivedQuantity = quantity;
+  }
+
+  public update(orderedQuantity: number, unitPricePiasters: number): void {
+    if (orderedQuantity <= 0) throw new Error('PO line ordered quantity must be positive');
+    if (unitPricePiasters < 0) throw new Error('PO line unit price cannot be negative');
+    if (orderedQuantity < this._receivedQuantity) {
+      throw new Error('Ordered quantity cannot be less than received quantity');
+    }
+    this._orderedQuantity = orderedQuantity;
+    this._unitPricePiasters = unitPricePiasters;
   }
 }
 
-// ─── Supplier ────────────────────────────────────────────────────────────────
+// ─── SupplierInvoice ─────────────────────────────────────────────────────────
 
-export interface SupplierProps {
+export interface SupplierInvoiceProps {
   id: string;
   companyId: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  isDeleted: boolean;
+  purchaseOrderId: string;
+  supplierId: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  totalAmountPiasters: number;
+  taxAmountPiasters: number;
+  attachmentUrl: string | null;
+  status: SupplierInvoiceStatus;
   createdAt: string;
   updatedAt: string;
 }
 
-export class Supplier {
+export class SupplierInvoice {
   public readonly id: string;
   public readonly companyId: string;
-  private _name: string;
-  private _phone: string | null;
-  private _email: string | null;
-  private _address: string | null;
-  private _isDeleted: boolean;
+  public readonly purchaseOrderId: string;
+  public readonly supplierId: string;
+  private _invoiceNumber: string;
+  private _invoiceDate: string;
+  private _totalAmountPiasters: number;
+  private _taxAmountPiasters: number;
+  private _attachmentUrl: string | null;
+  private _status: SupplierInvoiceStatus;
   public readonly createdAt: string;
   private _updatedAt: string;
 
-  private constructor(props: SupplierProps) {
+  private constructor(props: SupplierInvoiceProps) {
     this.id = props.id;
     this.companyId = props.companyId;
-    this._name = props.name;
-    this._phone = props.phone;
-    this._email = props.email;
-    this._address = props.address;
-    this._isDeleted = props.isDeleted;
+    this.purchaseOrderId = props.purchaseOrderId;
+    this.supplierId = props.supplierId;
+    this._invoiceNumber = props.invoiceNumber;
+    this._invoiceDate = props.invoiceDate;
+    this._totalAmountPiasters = props.totalAmountPiasters;
+    this._taxAmountPiasters = props.taxAmountPiasters;
+    this._attachmentUrl = props.attachmentUrl;
+    this._status = props.status;
     this.createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
   }
 
   public static create(
-    props: Omit<SupplierProps, 'id' | 'isDeleted' | 'createdAt' | 'updatedAt'>,
-  ): Supplier {
+    props: Omit<
+      SupplierInvoiceProps,
+      'id' | 'status' | 'createdAt' | 'updatedAt'
+    >,
+  ): SupplierInvoice {
     const now = new Date().toISOString();
-    return new Supplier({
+    return new SupplierInvoice({
       id: Identifier.generate(),
-      isDeleted: false,
+      status: 'pending',
       createdAt: now,
       updatedAt: now,
       ...props,
     });
   }
 
-  public static reconstitute(props: SupplierProps): Supplier {
-    return new Supplier(props);
+  public static reconstitute(props: SupplierInvoiceProps): SupplierInvoice {
+    return new SupplierInvoice(props);
   }
 
-  public get name(): string {
-    return this._name;
+  public get invoiceNumber(): string {
+    return this._invoiceNumber;
   }
-  public get phone(): string | null {
-    return this._phone;
+  public get invoiceDate(): string {
+    return this._invoiceDate;
   }
-  public get email(): string | null {
-    return this._email;
+  public get totalAmountPiasters(): number {
+    return this._totalAmountPiasters;
   }
-  public get address(): string | null {
-    return this._address;
+  public get taxAmountPiasters(): number {
+    return this._taxAmountPiasters;
   }
-  public get isDeleted(): boolean {
-    return this._isDeleted;
+  public get attachmentUrl(): string | null {
+    return this._attachmentUrl;
+  }
+  public get status(): SupplierInvoiceStatus {
+    return this._status;
   }
   public get updatedAt(): string {
     return this._updatedAt;
   }
 
-  public update(
-    fields: Partial<Pick<SupplierProps, 'name' | 'phone' | 'email' | 'address'>>,
-  ): void {
-    if (fields.name !== undefined) this._name = fields.name;
-    if (fields.phone !== undefined) this._phone = fields.phone;
-    if (fields.email !== undefined) this._email = fields.email;
-    if (fields.address !== undefined) this._address = fields.address;
+  public markMatched(): void {
+    this._status = 'matched';
     this._updatedAt = new Date().toISOString();
   }
 
-  public archive(): void {
-    this._isDeleted = true;
+  public markDisputed(): void {
+    this._status = 'disputed';
     this._updatedAt = new Date().toISOString();
   }
 }

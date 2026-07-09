@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "purchase_order_id", "supplier_id", "invoice_number", "invoice_date", "total_amount_piasters", "tax_amount_piasters", "status", "created_at", "updated_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "purchase_order_id": { "bsonType": "string" },
+    "supplier_id": { "bsonType": "string" },
+    "invoice_number": { "bsonType": "string", "minLength": 1 },
+    "invoice_date": { "bsonType": "date" },
+    "total_amount_piasters": { "bsonType": "int", "minimum": 0 },
+    "tax_amount_piasters": { "bsonType": "int", "minimum": 0 },
+    "attachment_url": { "bsonType": "string" },
+    "status": { "bsonType": "string", "enum": ["pending", "matched", "disputed"] },
+    "hlc_timestamp": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

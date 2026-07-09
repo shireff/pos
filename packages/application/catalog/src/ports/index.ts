@@ -10,7 +10,8 @@ export interface ProductRepository {
   ): Promise<Product[]>;
   save(product: Product): Promise<void>;
   isBarcodeUnique(barcode: string, companyId: string, excludeVariantId?: string): Promise<boolean>;
-  hasOpenPurchaseOrderLines(productId: string, companyId: string): Promise<boolean>;
+  /** Optional — required only by purchasing integration (Phase 08). */
+  hasOpenPurchaseOrderLines?(productId: string, companyId: string): Promise<boolean>;
 }
 
 export interface CategoryRepository {

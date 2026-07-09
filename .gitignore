@@ -60,3 +60,4 @@ plan/clean_node_modules.js
 
 # ─── Windows reserved device names (should never be tracked) ─────────────────
 nul
+.aider*

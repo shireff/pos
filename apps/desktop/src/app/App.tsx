@@ -11,6 +11,9 @@ import {
   Field,
 } from '@packages/ui-components';
 import { CatalogPage } from '../features/catalog/CatalogPage';
+import { PurchasingPage } from '../features/purchasing/PurchasingPage';
+import { CustomerListPage } from '../features/customers/CustomerListPage';
+import { PosRegisterPage } from '../features/pos/PosRegisterPage';
 import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
@@ -43,6 +46,7 @@ export default function App() {
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
+  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'pos'>('catalog');
   const [showMfaSetup, setShowMfaSetup] = useState(false);
   const [setupCode, setSetupCode] = useState('');
   const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
@@ -313,7 +317,37 @@ export default function App() {
         </AuthShell>
       ) : (
         <>
-          <CatalogPage />
+          <nav className="top-nav" aria-label="Main">
+            <button
+              type="button"
+              className={`top-nav__item${activeView === 'catalog' ? ' active' : ''}`}
+              onClick={() => setActiveView('catalog')}
+            >
+              <Icon name="package" size={16} /> Catalog
+            </button>
+            <button
+              type="button"
+              className={`top-nav__item${activeView === 'purchasing' ? ' active' : ''}`}
+              onClick={() => setActiveView('purchasing')}
+            >
+              <Icon name="shopping-cart" size={16} /> Purchasing
+            </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'customers' ? ' active' : ''}`}
+                onClick={() => setActiveView('customers')}
+              >
+                <Icon name="users" size={16} /> Customers
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'pos' ? ' active' : ''}`}
+                onClick={() => setActiveView('pos')}
+              >
+                <Icon name="credit-card" size={16} /> POS
+              </button>
+          </nav>
+          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'pos' ? <PosRegisterPage /> : <CustomerListPage />}
           <HealthScreen {...status} />
         </>
       )}

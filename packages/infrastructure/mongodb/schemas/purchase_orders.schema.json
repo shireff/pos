@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "branch_id", "supplier_id", "reference_number", "status", "expected_delivery_date", "total_amount_piasters", "created_at", "updated_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "branch_id": { "bsonType": "string" },
+    "supplier_id": { "bsonType": "string" },
+    "reference_number": { "bsonType": "string", "minLength": 1 },
+    "status": { "bsonType": "string", "enum": ["draft", "pending_approval", "approved", "partially_received", "fully_received", "cancelled"] },
+    "expected_delivery_date": { "bsonType": "date" },
+    "total_amount_piasters": { "bsonType": "int", "minimum": 0 },
+    "notes": { "bsonType": "string" },
+    "requested_by_user_id": { "bsonType": "string" },
+    "approved_by_user_id": { "bsonType": "string" },
+    "rejected_reason": { "bsonType": "string" },
+    "cancelled_reason": { "bsonType": "string" },
+    "hlc_timestamp": { "bsonType": "string" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

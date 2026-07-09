@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "product_id",
+    "variant_id",
+    "warehouse_id",
+    "batch_number",
+    "quantity_remaining",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "product_id": { "bsonType": "string" },
+    "variant_id": { "bsonType": "string" },
+    "warehouse_id": { "bsonType": "string" },
+    "batch_number": { "bsonType": "string" },
+    "expiry_date": { "bsonType": "date" },
+    "manufacturing_date": { "bsonType": "date" },
+    "cost_price_piasters": { "bsonType": "int", "minimum": 0 },
+    "quantity_remaining": { "bsonType": "int", "minimum": 0 },
+    "is_deleted": { "bsonType": "bool" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

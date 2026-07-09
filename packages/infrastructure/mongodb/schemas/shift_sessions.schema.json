@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "branch_id", "cashier_id", "status"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string" },
+    "branch_id": { "bsonType": "string" },
+    "cashier_id": { "bsonType": "string" },
+    "opened_at": { "bsonType": "date" },
+    "closed_at": { "bsonType": "date" },
+    "opening_cash_piasters": { "bsonType": "int", "minimum": 0 },
+    "closing_cash_piasters": { "bsonType": "int", "minimum": 0 },
+    "status": { "bsonType": "string", "enum": ["open", "closed"] },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

@@ -1,33 +1,43 @@
 import { Identifier } from '@packages/shared-kernel';
 
-// ─── Batch ───────────────────────────────────────────────────────────────────
-
 export interface BatchProps {
   id: string;
-  productVariantId: string;
+  companyId: string;
+  productId: string;
+  variantId: string | null;
   warehouseId: string;
   batchNumber: string;
-  manufacturedAt: string | null; // ISO UTC
-  expiresAt: string | null; // ISO UTC
+  expiryDate: string | null;
+  manufacturingDate: string | null;
+  costPrice: number;
+  quantityRemaining: number;
   isDeleted: boolean;
 }
 
 export class Batch {
   public readonly id: string;
-  public readonly productVariantId: string;
+  public readonly companyId: string;
+  public readonly productId: string;
+  public readonly variantId: string | null;
   public readonly warehouseId: string;
   public readonly batchNumber: string;
-  public readonly manufacturedAt: string | null;
-  public readonly expiresAt: string | null;
+  public readonly expiryDate: string | null;
+  public readonly manufacturingDate: string | null;
+  private _costPrice: number;
+  private _quantityRemaining: number;
   private _isDeleted: boolean;
 
   private constructor(props: BatchProps) {
     this.id = props.id;
-    this.productVariantId = props.productVariantId;
+    this.companyId = props.companyId;
+    this.productId = props.productId;
+    this.variantId = props.variantId;
     this.warehouseId = props.warehouseId;
     this.batchNumber = props.batchNumber;
-    this.manufacturedAt = props.manufacturedAt;
-    this.expiresAt = props.expiresAt;
+    this.expiryDate = props.expiryDate;
+    this.manufacturingDate = props.manufacturingDate;
+    this._costPrice = props.costPrice;
+    this._quantityRemaining = props.quantityRemaining;
     this._isDeleted = props.isDeleted;
   }
 
@@ -39,13 +49,29 @@ export class Batch {
     return new Batch(props);
   }
 
+  public get costPrice(): number {
+    return this._costPrice;
+  }
+
+  public get quantityRemaining(): number {
+    return this._quantityRemaining;
+  }
+
   public get isDeleted(): boolean {
     return this._isDeleted;
   }
 
   public isExpired(asOfDate: Date = new Date()): boolean {
-    if (!this.expiresAt) return false;
-    return new Date(this.expiresAt) < asOfDate;
+    if (!this.expiryDate) return false;
+    return new Date(this.expiryDate) < asOfDate;
+  }
+
+  public deduct(quantity: number): void {
+    if (quantity <= 0) throw new Error('Deduction quantity must be positive');
+    if (this._quantityRemaining < quantity) {
+      throw new Error(`Insufficient batch quantity: requested ${quantity}, available ${this._quantityRemaining}`);
+    }
+    this._quantityRemaining -= quantity;
   }
 
   public archive(): void {
@@ -53,31 +79,35 @@ export class Batch {
   }
 }
 
-// ─── Warehouse ───────────────────────────────────────────────────────────────
-
 export interface WarehouseProps {
   id: string;
   companyId: string;
-  branchId: string | null;
   name: string;
-  isCentral: boolean;
+  address: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+  managerId: string | null;
   isDeleted: boolean;
 }
 
 export class Warehouse {
   public readonly id: string;
   public readonly companyId: string;
-  public readonly branchId: string | null;
   private _name: string;
-  public readonly isCentral: boolean;
+  private _address: string | null;
+  public readonly isDefault: boolean;
+  public readonly isActive: boolean;
+  private _managerId: string | null;
   private _isDeleted: boolean;
 
   private constructor(props: WarehouseProps) {
     this.id = props.id;
     this.companyId = props.companyId;
-    this.branchId = props.branchId;
     this._name = props.name;
-    this.isCentral = props.isCentral;
+    this._address = props.address;
+    this.isDefault = props.isDefault;
+    this.isActive = props.isActive;
+    this._managerId = props.managerId;
     this._isDeleted = props.isDeleted;
   }
 
@@ -92,64 +122,116 @@ export class Warehouse {
   public get name(): string {
     return this._name;
   }
+
+  public get address(): string | null {
+    return this._address;
+  }
+
   public get isDeleted(): boolean {
     return this._isDeleted;
+  }
+
+  public get managerId(): string | null {
+    return this._managerId;
   }
 
   public rename(name: string): void {
     this._name = name;
   }
+
+  public updateAddress(address: string | null): void {
+    this._address = address;
+  }
+
+  public updateManager(managerId: string | null): void {
+    this._managerId = managerId;
+  }
+
   public archive(): void {
     this._isDeleted = true;
   }
 }
 
-// ─── StockTransferLine ───────────────────────────────────────────────────────
-
 export interface StockTransferLineProps {
   id: string;
   transferId: string;
-  productVariantId: string;
+  productId: string;
+  variantId: string | null;
+  batchId: string | null;
   quantityRequested: number;
-  quantityReceived: number | null;
+  quantityShipped: number;
+  quantityReceived: number;
+  notes: string | null;
 }
 
 export class StockTransferLine {
   public readonly id: string;
   public readonly transferId: string;
-  public readonly productVariantId: string;
+  public readonly productId: string;
+  public readonly variantId: string | null;
+  public readonly batchId: string | null;
   public readonly quantityRequested: number;
-  private _quantityReceived: number | null;
+  private _quantityShipped: number;
+  private _quantityReceived: number;
+  private _notes: string | null;
 
   private constructor(props: StockTransferLineProps) {
     this.id = props.id;
     this.transferId = props.transferId;
-    this.productVariantId = props.productVariantId;
+    this.productId = props.productId;
+    this.variantId = props.variantId;
+    this.batchId = props.batchId;
     this.quantityRequested = props.quantityRequested;
+    this._quantityShipped = props.quantityShipped;
     this._quantityReceived = props.quantityReceived;
+    this._notes = props.notes;
   }
 
   public static create(
-    props: Omit<StockTransferLineProps, 'id' | 'quantityReceived'>,
+    props: Omit<StockTransferLineProps, 'id' | 'quantityShipped' | 'quantityReceived' | 'notes'>,
   ): StockTransferLine {
-    return new StockTransferLine({ id: Identifier.generate(), quantityReceived: null, ...props });
+    return new StockTransferLine({
+      id: Identifier.generate(),
+      quantityShipped: 0,
+      quantityReceived: 0,
+      notes: null,
+      ...props,
+    });
   }
 
   public static reconstitute(props: StockTransferLineProps): StockTransferLine {
     return new StockTransferLine(props);
   }
 
-  public get quantityReceived(): number | null {
+  public get quantityShipped(): number {
+    return this._quantityShipped;
+  }
+
+  public get quantityReceived(): number {
     return this._quantityReceived;
   }
 
-  public recordReceived(qty: number): void {
-    if (qty < 0) throw new Error('Received quantity cannot be negative');
-    this._quantityReceived = qty;
+  public get notes(): string | null {
+    return this._notes;
   }
 
-  public get discrepancy(): number | null {
-    if (this._quantityReceived === null) return null;
+  public get discrepancy(): number {
     return this.quantityRequested - this._quantityReceived;
+  }
+
+  public ship(quantity: number): void {
+    if (quantity <= 0) throw new Error('Shipped quantity must be positive');
+    if (quantity > this.quantityRequested) throw new Error('Shipped quantity exceeds requested');
+    this._quantityShipped = quantity;
+  }
+
+  public receive(quantity: number): void {
+    if (quantity < 0) throw new Error('Received quantity cannot be negative');
+    if (quantity > this.quantityRequested) throw new Error('Received quantity exceeds requested');
+    this._quantityReceived = quantity;
+  }
+
+  public addNotes(notes: string): void {
+    this._notes = notes;
   }
 }

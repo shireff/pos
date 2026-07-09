@@ -19,12 +19,14 @@ import {
 } from '../lib/store/systemSlice';
 import { ProductListPage } from '../features/catalog/ProductListPage';
 import { CategoryTreePage } from '../features/categories/CategoryTreePage';
+import { PurchaseOrderListPage } from '../features/purchasing/PurchaseOrderListPage';
+import { PosScreen } from '../features/pos/PosScreen';
 import { ApiEndpoints } from '../lib/api/endpoints';
 import { client } from '../lib/api/client';
 
 const bridge = new CapacitorHealthBridge();
 
-type ActiveTab = 'catalog' | 'categories' | 'more';
+type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'more';
 
 export default function AndroidPage() {
   const t = useT();
@@ -217,6 +219,8 @@ export default function AndroidPage() {
   const tabs: { id: ActiveTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
     { id: 'catalog', label: t('catalog.products'), icon: 'package' },
     { id: 'categories', label: t('categories.title'), icon: 'tag' },
+    { id: 'purchasing', label: 'Purchasing', icon: 'shopping-cart' },
+    { id: 'pos', label: 'POS', icon: 'credit-card' },
     { id: 'more', label: t('more.title'), icon: 'more' },
   ];
 
@@ -225,6 +229,8 @@ export default function AndroidPage() {
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(var(--space-16) + env(safe-area-inset-bottom, 0px))' }}>
         {activeTab === 'catalog' && <ProductListPage />}
         {activeTab === 'categories' && <CategoryTreePage />}
+        {activeTab === 'purchasing' && <PurchaseOrderListPage />}
+        {activeTab === 'pos' && <PosScreen />}
         {activeTab === 'more' && (
           <div className="page">
             <h1 className="page-title">{t('more.title')}</h1>

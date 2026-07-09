@@ -26,15 +26,28 @@ export interface StockTransfer {
     id: string;
     fromWarehouseId: string;
     toWarehouseId: string;
-    lines: { productVariantId: string; quantity: number }[];
-    status: 'pending' | 'approved' | 'shipped' | 'received' | 'cancelled';
+    lines: { id: string; productId: string; variantId?: string | null; batchId?: string | null; quantityRequested: number; quantityShipped: number; quantityReceived: number }[];
+    status: 'draft' | 'pending_approval' | 'approved' | 'shipped' | 'received' | 'cancelled';
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateTransferInput {
     fromWarehouseId: string;
     toWarehouseId: string;
-    lines: { productVariantId: string; quantity: number }[];
+    lines: { productId: string; variantId?: string | null; batchId?: string | null; quantityRequested: number }[];
+    notes?: string;
+}
+
+export interface Warehouse {
+    id: string;
+    companyId: string;
+    name: string;
+    address?: string | null;
+    isDefault: boolean;
+    isActive: boolean;
+    managerId?: string | null;
+    isDeleted: boolean;
 }
 
 export interface StockMovementsParams {
@@ -46,6 +59,7 @@ export interface InventoryState {
     movements: StockMovement[];
     transfers: StockTransfer[];
     currentTransfer: StockTransfer | null;
+    warehouses: Warehouse[];
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
 }
@@ -54,6 +68,7 @@ const initialState: InventoryState = {
     movements: [],
     transfers: [],
     currentTransfer: null,
+    warehouses: [],
     status: 'idle',
     error: null,
 };
@@ -177,6 +192,65 @@ export const fetchStockMovements = createAsyncThunk<
     }
 });
 
+export const submitTransfer = createAsyncThunk<
+    StockTransfer,
+    string,
+    { rejectValue: string }
+>('inventory/submitTransfer', async (id, thunkAPI) => {
+    try {
+        const endpoint = buildEndpoint(ApiEndpoints.StockTransferSubmit, { id });
+        const response = await client.post(endpoint);
+        return response.data.data as StockTransfer;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(
+                (error.response as { data?: { error?: { message?: string } } })?.data?.error?.message ||
+                error.message,
+            );
+        }
+        return thunkAPI.rejectWithValue('Failed to submit transfer');
+    }
+});
+
+export const cancelTransfer = createAsyncThunk<
+    StockTransfer,
+    string,
+    { rejectValue: string }
+>('inventory/cancelTransfer', async (id, thunkAPI) => {
+    try {
+        const endpoint = buildEndpoint(ApiEndpoints.StockTransferCancel, { id });
+        const response = await client.post(endpoint);
+        return response.data.data as StockTransfer;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(
+                (error.response as { data?: { error?: { message?: string } } })?.data?.error?.message ||
+                error.message,
+            );
+        }
+        return thunkAPI.rejectWithValue('Failed to cancel transfer');
+    }
+});
+
+export const fetchWarehouses = createAsyncThunk<
+    Warehouse[],
+    void,
+    { rejectValue: string }
+>('inventory/fetchWarehouses', async (_, thunkAPI) => {
+    try {
+        const response = await client.get(ApiEndpoints.Warehouses);
+        return (response.data.data ?? []) as Warehouse[];
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return thunkAPI.rejectWithValue(
+                (error.response as { data?: { error?: { message?: string } } })?.data?.error?.message ||
+                error.message,
+            );
+        }
+        return thunkAPI.rejectWithValue('Failed to fetch warehouses');
+    }
+});
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const inventorySlice = createSlice({
@@ -231,6 +305,11 @@ const inventorySlice = createSlice({
             .addCase(receiveTransfer.fulfilled, transferFulfilled)
             .addCase(fetchStockMovements.fulfilled, (state, action) => {
                 state.movements = action.payload;
+            })
+            .addCase(submitTransfer.fulfilled, transferFulfilled)
+            .addCase(cancelTransfer.fulfilled, transferFulfilled)
+            .addCase(fetchWarehouses.fulfilled, (state, action) => {
+                state.warehouses = action.payload;
             });
     },
 });
