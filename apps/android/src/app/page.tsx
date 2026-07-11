@@ -21,12 +21,18 @@ import { ProductListPage } from '../features/catalog/ProductListPage';
 import { CategoryTreePage } from '../features/categories/CategoryTreePage';
 import { PurchaseOrderListPage } from '../features/purchasing/PurchaseOrderListPage';
 import { PosScreen } from '../features/pos/PosScreen';
+import { CustomerListPage } from '../features/customers/CustomerListPage';
+import { SupplierListPage } from '../features/suppliers/SupplierListPage';
+import { DiscountRulesPage } from '../features/promotions/DiscountRulesPage';
+import { CouponsPage } from '../features/promotions/CouponsPage';
+import { TaxRulesPage } from '../features/pricing/TaxRulesPage';
+import { PriceChangesPage } from '../features/pricing/PriceChangesPage';
 import { ApiEndpoints } from '../lib/api/endpoints';
 import { client } from '../lib/api/client';
 
 const bridge = new CapacitorHealthBridge();
 
-type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'more';
+type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing';
 
 export default function AndroidPage() {
   const t = useT();
@@ -221,77 +227,24 @@ export default function AndroidPage() {
     { id: 'categories', label: t('categories.title'), icon: 'tag' },
     { id: 'purchasing', label: 'Purchasing', icon: 'shopping-cart' },
     { id: 'pos', label: 'POS', icon: 'credit-card' },
-    { id: 'more', label: t('more.title'), icon: 'more' },
+    { id: 'customers', label: 'Customers', icon: 'users' },
+    { id: 'suppliers', label: 'Suppliers', icon: 'box' },
+    { id: 'discounts', label: 'Discounts', icon: 'tag' },
+    { id: 'pricing', label: 'Pricing', icon: 'percent' },
   ];
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg-base)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(var(--space-16) + env(safe-area-inset-bottom, 0px))' }}>
-        {activeTab === 'catalog' && <ProductListPage />}
-        {activeTab === 'categories' && <CategoryTreePage />}
-        {activeTab === 'purchasing' && <PurchaseOrderListPage />}
-        {activeTab === 'pos' && <PosScreen />}
-        {activeTab === 'more' && (
-          <div className="page">
-            <h1 className="page-title">{t('more.title')}</h1>
-
-            <div className="card">
-              <p className="section-label">{t('more.device')}</p>
-              <div className="status-row">
-                <span className="status-label">{t('more.status')}</span>
-                {system.registeredDevice ? (
-                  <StatusBadge status="active">{t('more.deviceRegistered')}: {system.registeredDevice.deviceFingerprint}</StatusBadge>
-                ) : (
-                  <span className="status-value" style={{ color: 'var(--color-text-secondary)' }}>{t('more.deviceNotRegistered')}</span>
-                )}
-              </div>
-              <button className="btn btn-primary btn-block" style={{ marginTop: 'var(--space-4)' }} onClick={handleRegisterDevice}>
-                <Icon name="smartphone" size={16} />
-                {system.registeredDevice ? t('system.reregister') : t('system.registerDevice')}
-              </button>
-            </div>
-
-            <button className="btn btn-secondary btn-block" style={{ marginTop: 'var(--space-4)' }} onClick={() => { setShowPinPad((v) => !v); setPinDigits(''); setPinError(null); }}>
-              <Icon name="lock" size={16} />
-              {t('more.offlinePin')}
-            </button>
-
-            {showPinPad && (
-              <div className="card">
-                <p style={{ fontWeight: 700, textAlign: 'center', marginBlockEnd: 'var(--space-3)' }}>{t('more.enterPin')}</p>
-                <p style={{ textAlign: 'center', letterSpacing: '0.5em', fontSize: 'var(--font-size-xl)', minHeight: 32, marginBlockEnd: 'var(--space-3)' }}>
-                  {'●'.repeat(pinDigits.length)}
-                </p>
-                {pinError && <div className="error-banner" style={{ marginBlockEnd: 'var(--space-3)' }}>{pinError}</div>}
-                <div className="pin-grid">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((key) => (
-                    <button key={key} type="button" className="pin-btn" onClick={() => handlePinKey(key)}>{key}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {system.subscription && (
-              <div className="card" style={{ marginTop: 'var(--space-4)' }}>
-                <p className="section-label">{t('more.subscription')}</p>
-                <div className="status-row">
-                  <span className="status-label">{t('more.status')}</span>
-                  <StatusBadge status={system.subscription.status} />
-                </div>
-                <div className="status-row" style={{ borderBottom: 'none' }}>
-                  <span className="status-label">{t('system.plan')}</span>
-                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>{system.subscription.planId ?? 'Free Trial'}</span>
-                </div>
-              </div>
-            )}
-
-            <button className="btn btn-danger btn-block" style={{ marginTop: 'var(--space-4)' }} onClick={() => void dispatch(logout())}>
-              <Icon name="log-out" size={16} />
-              {t('common.logout')}
-            </button>
-          </div>
-        )}
-      </div>
+         {activeTab === 'catalog' && <ProductListPage />}
+         {activeTab === 'categories' && <CategoryTreePage />}
+          {activeTab === 'purchasing' && <PurchaseOrderListPage />}
+          {activeTab === 'pos' && <PosScreen />}
+          {activeTab === 'customers' && <CustomerListPage />}
+          {activeTab === 'suppliers' && <SupplierListPage />}
+         {activeTab === 'discounts' && <DiscountRulesPage />}
+         {activeTab === 'pricing' && <PriceChangesPage />}
+       </div>
 
       <nav className="tab-bar-bottom" aria-label={t('nav.main')}>
         {tabs.map((tab) => (

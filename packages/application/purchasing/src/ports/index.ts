@@ -33,3 +33,10 @@ export interface SupplierInvoiceRepository {
   findByPurchaseOrder(purchaseOrderId: string): Promise<SupplierInvoice[]>;
   save(invoice: SupplierInvoice): Promise<void>;
 }
+
+export type {
+  SupplierFilter,
+  SupplierRepository,
+  SupplierLedgerEntryRepository,
+  SupplierPriceHistoryRepository,
+} from './suppliers';

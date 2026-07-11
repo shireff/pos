@@ -11,7 +11,7 @@ export class CreditLedger {
   public readonly companyId: string;
   public readonly customerId: string;
   public balancePiasters: number;
-  public readonly creditLimitPiasters: number;
+  public creditLimitPiasters: number;
 
   private constructor(props: CreditLedgerProps) {
     this.companyId = props.companyId;

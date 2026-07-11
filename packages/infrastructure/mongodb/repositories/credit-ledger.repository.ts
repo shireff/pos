@@ -1,7 +1,5 @@
-import {
-  CreditLedger,
-  CreditLedgerBalanceRepository,
-} from '@packages/application-crm';
+import { CreditLedger } from '@packages/domain-crm';
+import { CreditLedgerBalanceRepository } from '@packages/application-crm';
 import { getMongoDb } from '../src/mongo-connection';
 
 export class MongoCreditLedgerBalanceRepository implements CreditLedgerBalanceRepository {

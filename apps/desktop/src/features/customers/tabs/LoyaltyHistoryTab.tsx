@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { LoyaltyEvent } from '../../lib/store/customersSlice';
+import { client } from '../../../lib/api/client';
+import { ApiEndpoints, buildEndpoint } from '../../../lib/api/endpoints';
+import { LoyaltyEvent } from '../../../lib/store/customersSlice';
 
 export interface LoyaltyHistoryTabProps {
   customerId: string;
@@ -19,16 +21,12 @@ export function LoyaltyHistoryTab({ customerId, companyId, page, onPageChange }:
     const load = async () => {
       setLoading(true);
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
-        const response = await fetch(
-          `${baseUrl}/api/v1/customers/${customerId}/loyalty/history?companyId=${companyId}&limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`,
-          {
-            headers: { Authorization: `Bearer ${(await import('../../storage/secureStorage')).getAuthSession().then(s => s?.token ?? '')}` },
-          },
-        );
-        const data = await response.json();
-        setEvents(data.data ?? []);
-        setTotal(data.total ?? 0);
+        const endpoint = buildEndpoint(ApiEndpoints.CustomerLoyaltyHistory, { id: customerId });
+        const response = await client.get(endpoint, {
+          params: { companyId, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE },
+        });
+        setEvents(response.data.data ?? []);
+        setTotal(response.data.total ?? 0);
       } catch {
         setEvents([]);
         setTotal(0);

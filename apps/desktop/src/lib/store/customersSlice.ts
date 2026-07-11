@@ -16,7 +16,7 @@ export interface Customer {
   loyaltyBalance: number;
   creditLimitPiasters: number;
   creditBalance: number;
-  isActive: boolean;
+  status: 'active' | 'inactive';
   notes?: string;
   createdAt: string;
   updatedAt: string;

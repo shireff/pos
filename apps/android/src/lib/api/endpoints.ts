@@ -80,6 +80,19 @@ export enum ApiEndpoints {
     Customers = '/api/v1/customers',
     CustomerById = '/api/v1/customers/:id',
     CustomerLoyaltyRedeem = '/api/v1/customers/:id/loyalty/redeem',
+    CustomerLoyaltyHistory = '/api/v1/customers/:id/loyalty/history',
+    CustomerCreditPayments = '/api/v1/customers/:id/credit/payments',
+    CustomerCreditHistory = '/api/v1/customers/:id/credit/history',
+    CustomerMerge = '/api/v1/customers/merge',
+
+    // ── Suppliers ─────────────────────────────────────────────────
+    Suppliers = '/api/v1/suppliers',
+    SupplierById = '/api/v1/suppliers/:id',
+    SupplierLedger = '/api/v1/suppliers/:id/ledger',
+    SupplierPayments = '/api/v1/suppliers/:id/payments',
+    SupplierCreditNotes = '/api/v1/suppliers/:id/credit-notes',
+    SupplierPerformance = '/api/v1/suppliers/:id/performance',
+    SupplierPriceHistory = '/api/v1/suppliers/:id/price-history',
 
     // ── Reports ───────────────────────────────────────────────────
     ReportsDailySales = '/api/v1/reports/daily-sales',
@@ -91,11 +104,27 @@ export enum ApiEndpoints {
     AiHealthScore = '/api/v1/ai/health-score',
     AiInsightFeedback = '/api/v1/ai/insights/:id/feedback',
 
-    // ── Sync ──────────────────────────────────────────────────────
-    SyncPush = '/api/v1/sync/push',
-    SyncPull = '/api/v1/sync/pull',
-    SyncConflicts = '/api/v1/sync/conflicts',
-    SyncConflictResolve = '/api/v1/sync/conflicts/:id/resolve',
+  // ── Sync ──────────────────────────────────────────────────────
+  SyncPush = '/api/v1/sync/push',
+  SyncPull = '/api/v1/sync/pull',
+  SyncConflicts = '/api/v1/sync/conflicts',
+  SyncConflictResolve = '/api/v1/sync/conflicts/:id/resolve',
+
+  // ── Promotions ────────────────────────────────────────────────
+  DiscountRules = '/api/v1/discount-rules',
+  DiscountRuleById = '/api/v1/discount-rules/:id',
+  DiscountRuleDeactivate = '/api/v1/discount-rules/:id/deactivate',
+  Coupons = '/api/v1/coupons',
+  CouponValidate = '/api/v1/coupons/validate',
+
+  // ── Tax ───────────────────────────────────────────────────────
+  TaxRules = '/api/v1/tax-rules',
+  TaxRuleApplicable = '/api/v1/tax-rules/applicable',
+
+  // ── Pricing ───────────────────────────────────────────────────
+  PriceChanges = '/api/v1/price-changes',
+  PriceChangeApprove = '/api/v1/price-changes/:id/approve',
+  PriceChangeReject = '/api/v1/price-changes/:id/reject',
 }
 
 export function buildEndpoint(

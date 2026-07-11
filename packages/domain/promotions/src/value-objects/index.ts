@@ -2,23 +2,34 @@ export type DiscountType =
   | 'item'
   | 'cart'
   | 'category'
-  | 'customer_specific'
+  | 'customer'
   | 'membership'
   | 'time_based'
   | 'buy_x_get_y'
   | 'quantity_break';
 
 export type CouponType = 'percentage' | 'fixed';
+export type CouponScopeType = 'global' | 'product' | 'category';
 
-/** Rule JSON stored in discounts.rule_json — drives the rule engine without code changes. */
 export interface DiscountRuleJson {
   type: DiscountType;
-  value: number; // percentage (0–100) or fixed piasters
-  minQuantity?: number; // for quantity_break and buy_x_get_y
-  freeQuantity?: number; // for buy_x_get_y
-  validFrom?: string; // ISO UTC — for time_based
-  validTo?: string; // ISO UTC — for time_based
-  categoryIds?: string[]; // for category scoping
-  membershipTiers?: string[]; // for membership discounts
-  customerIds?: string[]; // for customer_specific
+  discountType: 'percentage' | 'fixed';
+  amount: number;
+  productIds?: string[];
+  minimumTotal?: number;
+  categoryIds?: string[];
+  customerIds?: string[];
+  tierIds?: string[];
+  membershipLevel?: string;
+  dayOfWeek?: number[];
+  timeRange?: { start: string; end: string };
+  validFrom?: string;
+  validTo?: string;
+  buyProductId?: string;
+  buyQuantity?: number;
+  getProductId?: string;
+  getQuantity?: number;
+  getDiscountPercent?: number;
+  quantityProductId?: string;
+  tiers: Array<{ minQuantity: number; discountPercent: number }>;
 }

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RedeemLoyaltyPointsCommand } from '@packages/application-crm';
-import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
-import { handleApiError, ValidationError } from '../../../../../lib/errors';
+import { assertCustomersPermission } from '../../../../../../../lib/customers-permissions';
+import { handleApiError, ValidationError } from '../../../../../../../lib/errors';
 import {
   MongoLoyaltyAccountRepository,
   MongoLoyaltyEventRepository,
 } from '@packages/infrastructure-mongodb';
-import { RedeemLoyaltySchema } from '../../customers/customers.schemas';
+import { RedeemLoyaltySchema } from '../../../customers.schemas';
 
 export async function POST(
   request: NextRequest,

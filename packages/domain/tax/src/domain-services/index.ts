@@ -7,9 +7,11 @@ import { TaxRuleSet } from '../aggregates';
  */
 export class TaxCalculationService {
   private readonly ruleSet: TaxRuleSet;
+  private readonly mode: 'additive' | 'compound';
 
-  public constructor(ruleSet: TaxRuleSet) {
+  public constructor(ruleSet: TaxRuleSet, mode: 'additive' | 'compound' = 'additive') {
     this.ruleSet = ruleSet;
+    this.mode = mode;
   }
 
   /**
@@ -28,6 +30,7 @@ export class TaxCalculationService {
         line.subtotalPiasters,
         line.productVariantId,
         line.categoryId,
+        this.mode,
       );
       result.set(line.productVariantId, tax);
     }
@@ -50,6 +53,7 @@ export class TaxCalculationService {
         line.subtotalPiasters,
         line.productVariantId,
         line.categoryId,
+        this.mode,
       );
     }
     return total;

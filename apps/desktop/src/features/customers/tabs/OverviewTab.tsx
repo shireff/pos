@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '@packages/ui-components';
-import { CustomerDetail } from '../../lib/store/customersSlice';
+import { CustomerDetail } from '../../../lib/store/customersSlice';
 
 export interface OverviewTabProps {
   detail: CustomerDetail;
@@ -22,7 +22,7 @@ export function OverviewTab({ detail }: OverviewTabProps): React.ReactElement {
         </div>
         <div className="stat-card">
           <span className="stat-label">Status</span>
-          <span className="stat-value">{detail.isActive ? 'Active' : 'Inactive'}</span>
+          <span className="stat-value">{detail.status === 'active' ? 'Active' : 'Inactive'}</span>
         </div>
       </div>
       <div className="card">

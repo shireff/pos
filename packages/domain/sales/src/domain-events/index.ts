@@ -1,5 +1,5 @@
 import { DomainEventBase } from '@packages/shared-kernel';
-import { ReturnStatus, ShiftStatus } from '../value-objects';
+import { ReturnStatus, ShiftStatus, TenderType } from '../value-objects';
 
 export class OrderCompleted extends DomainEventBase {
   public readonly companyId: string;
@@ -181,5 +181,53 @@ export class ShiftSessionClosed extends DomainEventBase {
     this.cashierId = props.cashierId;
     this.closingCashPiasters = props.closingCashPiasters;
     this.status = props.status;
+  }
+}
+
+export class PaymentCompleted extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly orderId: string;
+  public readonly tenderType: TenderType;
+  public readonly amountPiasters: number;
+  public readonly externalReference: string | null;
+
+  public constructor(props: {
+    transactionId: string;
+    companyId: string;
+    orderId: string;
+    tenderType: TenderType;
+    amountPiasters: number;
+    externalReference?: string | null;
+  }) {
+    super(props.transactionId, 'PaymentTransaction');
+    this.companyId = props.companyId;
+    this.orderId = props.orderId;
+    this.tenderType = props.tenderType;
+    this.amountPiasters = props.amountPiasters;
+    this.externalReference = props.externalReference ?? null;
+  }
+}
+
+export class PaymentRefunded extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly orderId: string;
+  public readonly tenderType: TenderType;
+  public readonly amountPiasters: number;
+  public readonly reason: string | null;
+
+  public constructor(props: {
+    transactionId: string;
+    companyId: string;
+    orderId: string;
+    tenderType: TenderType;
+    amountPiasters: number;
+    reason?: string | null;
+  }) {
+    super(props.transactionId, 'PaymentTransaction');
+    this.companyId = props.companyId;
+    this.orderId = props.orderId;
+    this.tenderType = props.tenderType;
+    this.amountPiasters = props.amountPiasters;
+    this.reason = props.reason ?? null;
   }
 }

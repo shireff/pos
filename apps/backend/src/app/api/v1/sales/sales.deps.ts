@@ -6,6 +6,11 @@ import {
   MongoStockItemRepository,
   MongoBatchRepository,
   MongoWarehouseRepository,
+  MongoPaymentTransactionRepository,
+  MongoPaymentMethodRepository,
+  MongoDiscountRepository,
+  MongoCouponRepository,
+  MongoTaxRuleRepository,
 } from '@packages/infrastructure-mongodb';
 
 export interface SalesRepos {
@@ -16,14 +21,13 @@ export interface SalesRepos {
   stockItemRepo: MongoStockItemRepository;
   batchRepo: MongoBatchRepository;
   warehouseRepo: MongoWarehouseRepository;
+  paymentTransactionRepo: MongoPaymentTransactionRepository;
+  paymentMethodRepo: MongoPaymentMethodRepository;
+  discountRepo: MongoDiscountRepository;
+  couponRepo: MongoCouponRepository;
+  taxRuleRepo: MongoTaxRuleRepository;
 }
 
-/**
- * Constructs the MongoDB-backed repositories used by the sales API.
- * Loyalty and bundle-resolution ports are intentionally left null here; they
- * are supplied by the CRM (Phase 08) and Catalog (Phase 05) bounded contexts
- * when those integrations are wired up.
- */
 export function getSalesRepos(): SalesRepos {
   return {
     orderRepo: new MongoOrderRepository(),
@@ -33,6 +37,11 @@ export function getSalesRepos(): SalesRepos {
     stockItemRepo: new MongoStockItemRepository(),
     batchRepo: new MongoBatchRepository(),
     warehouseRepo: new MongoWarehouseRepository(),
+    paymentTransactionRepo: new MongoPaymentTransactionRepository(),
+    paymentMethodRepo: new MongoPaymentMethodRepository(),
+    discountRepo: new MongoDiscountRepository(),
+    couponRepo: new MongoCouponRepository(),
+    taxRuleRepo: new MongoTaxRuleRepository(),
   };
 }
 

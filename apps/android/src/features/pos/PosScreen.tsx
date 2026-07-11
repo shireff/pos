@@ -8,8 +8,11 @@ import {
     closeShift,
     fetchCurrentShift,
     type TenderType,
-    type OrderLine,
+    type Order,
 } from '../../lib/store/salesSlice';
+import { DigitalReceiptModal, type DigitalReceiptLine } from '@packages/ui-components';
+import { getReceiptPrinter, getCashDrawer, createCameraBarcodeScanner } from '../../lib/hardware';
+import { PrinterNotAvailableError } from '@packages/infrastructure-hardware';
 
 interface CartItem {
     key: string;
@@ -60,7 +63,18 @@ export function PosScreen() {
     const [showSheet, setShowSheet] = useState(false);
     const [closingCash, setClosingCash] = useState('');
     const [showShiftClose, setShowShiftClose] = useState(false);
+    const [showCustomerSheet, setShowCustomerSheet] = useState(false);
+    const [customerQuery, setCustomerQuery] = useState('');
+    const [customerResults, setCustomerResults] = useState<Array<{ id: string; name: string; phone: string }>>([]);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+    const [selectedCustomerName, setSelectedCustomerName] = useState('');
+    const [showDigitalReceipt, setShowDigitalReceipt] = useState(false);
+    const [receiptLines, setReceiptLines] = useState<DigitalReceiptLine[]>([]);
+    const [receiptOrderId, setReceiptOrderId] = useState('');
+    const [drawerPrompt, setDrawerPrompt] = useState(false);
+    const [scanning, setScanning] = useState(false);
     const barcodeRef = useRef<HTMLInputElement>(null);
+    const scannerRef = useRef<{ onScan: (h: (code: string) => void) => () => void; stop: () => Promise<void> } | null>(null);
 
     useEffect(() => {
         void dispatch(fetchCurrentShift({}));
@@ -129,17 +143,72 @@ export function PosScreen() {
         setSearchResults(resp?.data?.data ?? []);
     }, []);
 
+    const runCustomerSearch = useCallback(async (q: string) => {
+        if (!q.trim()) {
+            setCustomerResults([]);
+            return;
+        }
+        try {
+            const resp = await client.get(ApiEndpoints.Customers, { params: { query: q, limit: 10 } });
+            setCustomerResults((resp?.data?.data ?? []).map((c: any) => ({ id: c.id, name: c.name, phone: c.phone })));
+        } catch {
+            setCustomerResults([]);
+        }
+    }, []);
+
+    const printReceipt = async (order: Order) => {
+        const lines: DigitalReceiptLine[] = cart.map((i) => ({
+            name: i.name,
+            qty: i.quantity,
+            unitPricePiasters: i.unitPricePiasters,
+            lineTotalPiasters: i.unitPricePiasters * i.quantity - i.discountPiasters,
+        }));
+        setReceiptLines(lines);
+        setReceiptOrderId(order.id);
+
+        const printer = getReceiptPrinter();
+        try {
+            if (!(await printer.isAvailable())) {
+                setShowDigitalReceipt(true);
+                return;
+            }
+            const res = await printer.print({
+                orderId: order.id,
+                lines,
+                grandTotalPiasters,
+                companyName: 'Smart Retail OS',
+                branchName: currentShift?.id ?? 'Branch',
+                cashierId: currentShift?.cashierId ?? 'cashier',
+            });
+            if (res.fallbackRequired) setShowDigitalReceipt(true);
+        } catch (err) {
+            if (err instanceof PrinterNotAvailableError) {
+                setShowDigitalReceipt(true);
+            } else {
+                throw err;
+            }
+        }
+    };
+
+    const pulseDrawer = async () => {
+        try {
+            await getCashDrawer().open();
+        } catch {
+            setDrawerPrompt(true);
+        }
+    };
+
     const handleCompleteSale = async () => {
         if (cart.length === 0) return;
         const effectivePayments = payments.length
             ? payments
             : [{ tenderType: 'cash' as TenderType, amountPiasters: grandTotalPiasters }];
-        await dispatch(
+        const result = await dispatch(
             createOrder({
                 branchId: 'branch-1',
                 clientTxnId: `pos-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 shiftSessionId: currentShift?.id ?? null,
-                customerId: null,
+                customerId: selectedCustomerId,
                 lines: cart.map((i) => ({
                     productVariantId: i.productVariantId,
                     productId: i.productId,
@@ -150,17 +219,55 @@ export function PosScreen() {
                 payments: effectivePayments,
             }),
         );
+        if (createOrder.fulfilled.match(result)) {
+            const order = result.payload;
+            await printReceipt(order);
+            if (effectivePayments.some((p) => p.tenderType === 'cash')) {
+                void pulseDrawer();
+            }
+        }
         setCart([]);
         setPayments([]);
         setScanned('');
+        setSearch('');
+        setSearchResults([]);
+        setSelectedCustomerId(null);
+        setSelectedCustomerName('');
         setShowSheet(false);
     };
+
+    // Android camera-based barcode scanning (Hardware.md §3) as an alternative
+    // to the HID wedge. The scanner plugin is optional and loaded lazily.
+    const handleCameraScan = useCallback(async () => {
+        try {
+            const scanner = createCameraBarcodeScanner();
+            scannerRef.current = scanner as unknown as { onScan: (h: (code: string) => void) => () => void; stop: () => Promise<void> };
+            scanner.onScan((code) => {
+                void handleScan(code);
+                setScanning(false);
+                void (scanner as unknown as { stop: () => Promise<void> }).stop().catch(() => undefined);
+            });
+            await (scanner as unknown as { start: () => Promise<void> }).start();
+            setScanning(true);
+        } catch {
+            setScanning(false);
+        }
+    }, [handleScan]);
 
     return (
         <div className="pos-register" style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
             <header className="row" style={{ justifyContent: 'space-between', padding: 'var(--space-3)', borderBottom: '1px solid var(--color-border)' }}>
-                <strong>POS</strong>
+                <div>
+                    <strong>POS</strong>
+                    {selectedCustomerId && <span className="section-label" style={{ marginRight: 'var(--space-2)' }}>Customer: {selectedCustomerName}</span>}
+                </div>
                 <div className="row" style={{ gap: 'var(--space-2)' }}>
+                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => void handleCameraScan()} disabled={scanning}>
+                        {scanning ? 'Scanning…' : 'Scan'}
+                    </button>
+                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => setShowCustomerSheet(true)}>
+                        Customer
+                    </button>
                     <button type="button" className="btn btn-sm btn-secondary" disabled={Boolean(currentShift)} onClick={() => void dispatch(openShift({ branchId: 'branch-1', openingCashPiasters: 0 }))}>Open Shift</button>
                     <button type="button" className="btn btn-sm" disabled={!currentShift || currentShift.status !== 'open'} onClick={() => setShowShiftClose(true)}>Close</button>
                 </div>
@@ -220,6 +327,11 @@ export function PosScreen() {
                     <span>Total</span>
                     <span className="num">{formatEgp(grandTotalPiasters)} EGP</span>
                 </div>
+                {drawerPrompt && (
+                    <p className="section-label" role="status" style={{ color: 'var(--color-warning)' }}>
+                        Please open the cash drawer manually.
+                    </p>
+                )}
                 <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 'var(--space-3)' }} disabled={cart.length === 0 || salesStatus === 'loading'} onClick={() => setShowSheet(true)}>
                     {salesStatus === 'loading' ? 'Processing…' : 'Charge'}
                 </button>
@@ -251,7 +363,32 @@ export function PosScreen() {
                 </div>
             )}
 
-            {showShiftClose && (
+             {showCustomerSheet && (
+                 <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowCustomerSheet(false)}>
+                     <div className="sheet-bottom" onClick={(e) => e.stopPropagation()}>
+                         <h3 style={{ marginTop: 0 }}>Search Customer</h3>
+                         <input
+                             className="form-input"
+                             placeholder="Search by phone or name…"
+                             value={customerQuery}
+                             onChange={(e) => { setCustomerQuery(e.target.value); runCustomerSearch(e.target.value); }}
+                         />
+                         {customerResults.length > 0 && (
+                             <div style={{ marginTop: 'var(--space-2)', maxHeight: 200, overflowY: 'auto' }}>
+                                 {customerResults.map((r) => (
+                                     <div key={r.id} className="card" style={{ padding: 'var(--space-2)', marginBlockEnd: 'var(--space-2)', cursor: 'pointer' }} onClick={() => { setSelectedCustomerId(r.id); setSelectedCustomerName(r.name); setShowCustomerSheet(false); setCustomerQuery(''); }}>
+                                         <strong>{r.name}</strong>
+                                         <span className="section-label" style={{ marginRight: 'var(--space-2)' }}>{r.phone}</span>
+                                     </div>
+                                 ))}
+                             </div>
+                         )}
+                         <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 'var(--space-2)' }} onClick={() => setShowCustomerSheet(false)}>Close</button>
+                     </div>
+                 </div>
+             )}
+
+             {showShiftClose && (
                 <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowShiftClose(false)}>
                     <div className="card" style={{ maxWidth: 360, margin: 'auto', padding: 'var(--space-4)' }} onClick={(e) => e.stopPropagation()}>
                         <h3 style={{ marginTop: 0 }}>Close Shift</h3>
@@ -264,6 +401,20 @@ export function PosScreen() {
                     </div>
                 </div>
             )}
+
+            <DigitalReceiptModal
+                open={showDigitalReceipt}
+                onClose={() => setShowDigitalReceipt(false)}
+                orderId={receiptOrderId}
+                companyName="Smart Retail OS"
+                branchName={currentShift?.id ?? 'Branch'}
+                cashierId={currentShift?.cashierId ?? 'cashier'}
+                lines={receiptLines}
+                subtotalPiasters={subtotalPiasters}
+                discountPiasters={discountPiasters}
+                taxPiasters={0}
+                grandTotalPiasters={grandTotalPiasters}
+            />
         </div>
     );
 }

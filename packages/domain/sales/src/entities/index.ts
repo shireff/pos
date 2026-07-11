@@ -227,3 +227,6 @@ export class Return {
     this._updatedAt = new Date().toISOString();
   }
 }
+
+export { PaymentMethod, type PaymentMethodProps } from './payment-method.entity';
+export { PaymentTransaction, type PaymentTransactionProps } from './payment-transaction.entity';

@@ -7,12 +7,8 @@ import { assertCustomersPermission, getActorId } from '../../../../lib/customers
 import { handleApiError, ValidationError } from '../../../../lib/errors';
 import {
   MongoCustomerRepository,
-  MongoLoyaltyAccountRepository,
-  MongoLoyaltyEventRepository,
-  MongoCreditLedgerBalanceRepository,
-  MongoCreditLedgerEntryRepository,
 } from '@packages/infrastructure-mongodb';
-import { CreateCustomerSchema, SearchCustomersSchema } from '../customers/customers.schemas';
+import { CreateCustomerSchema, SearchCustomersSchema } from './customers.schemas';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -22,7 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const companyId = url.searchParams.get('companyId') ?? 'company-1';
     const parsed = SearchCustomersSchema.safeParse({
       query: url.searchParams.get('query') ?? undefined,
-      isActive: url.searchParams.get('isActive') ? url.searchParams.get('isActive') === 'true' : undefined,
+      status: url.searchParams.get('status') ?? undefined,
       limit: url.searchParams.get('limit') ? Number(url.searchParams.get('limit')) : undefined,
       offset: url.searchParams.get('offset') ? Number(url.searchParams.get('offset')) : undefined,
     });
@@ -36,7 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const result = await query.execute({
       companyId,
       query: parsed.data.query ?? '',
-      isActive: parsed.data.isActive,
+      status: parsed.data.status,
       limit: parsed.data.limit ?? 50,
       offset: parsed.data.offset ?? 0,
     });

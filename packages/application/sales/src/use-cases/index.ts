@@ -33,7 +33,12 @@ import {
   StockMovementEventRepository,
   StockItemRepository,
   BatchRepository,
+  DiscountRepository,
+  CouponRepository,
+  TaxRuleRepository,
 } from '../ports';
+import { DiscountEngine, CartContext, LineItem, Discount } from '@packages/domain-promotions';
+import { TaxRuleSet, TaxCalculationService } from '@packages/domain-tax';
 
 // ─── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -189,8 +194,11 @@ export class CreateSaleCommand {
     private readonly stockMovementRepo: StockMovementEventRepository,
     private readonly stockItemRepo: StockItemRepository,
     private readonly batchRepo: BatchRepository,
-    private readonly bundlePort: BundleResolutionPort | null,
-    private readonly loyaltyPort: LoyaltyPort | null,
+    private readonly bundlePort: BundleResolutionPort | null = null,
+    private readonly loyaltyPort: LoyaltyPort | null = null,
+    private readonly discountRepo: DiscountRepository | null = null,
+    private readonly couponRepo: CouponRepository | null = null,
+    private readonly taxRuleRepo: TaxRuleRepository | null = null,
   ) {}
 
   async execute(input: CreateSaleInput): Promise<CreateSaleResult> {
@@ -202,9 +210,76 @@ export class CreateSaleCommand {
     IdempotencyService.assertUnique(existing, input.clientTxnId);
 
     // 2. Totals
-    const subtotal = input.lines.reduce((s, l) => s + l.unitPricePiasters * l.quantity, 0);
-    const discountTotal = input.lines.reduce((s, l) => s + (l.discountAmountPiasters ?? 0), 0);
-    const taxTotal = input.lines.reduce((s, l) => s + (l.taxAmountPiasters ?? 0), 0);
+    let subtotal = input.lines.reduce((s, l) => s + l.unitPricePiasters * l.quantity, 0);
+
+    let lineDiscounts: number[] = input.lines.map((l) => l.discountAmountPiasters ?? 0);
+    let lineTaxes: number[] = input.lines.map((l) => l.taxAmountPiasters ?? 0);
+
+    if (this.discountRepo || this.couponRepo || this.taxRuleRepo) {
+      if (this.discountRepo && input.discountRuleIds && input.discountRuleIds.length > 0) {
+        const activeDiscounts = await this.discountRepo.findByCompany(input.companyId, undefined, true);
+        const applicableDiscounts = DiscountEngine.filterApplicable(activeDiscounts);
+        const ruleDiscounts = applicableDiscounts.filter((d) => input.discountRuleIds!.includes(d.id));
+
+        const cartContext: CartContext = {
+          lines: input.lines.map((l) => ({
+            productVariantId: l.productVariantId,
+            categoryId: null,
+            productId: l.productId,
+            quantity: l.quantity,
+            unitPricePiasters: l.unitPricePiasters,
+          })),
+          customerId: input.customerId ?? null,
+          customerTierIds: [],
+          membershipLevel: null,
+          currentDateTime: new Date(),
+        };
+
+        const lineDiscountMap = DiscountEngine.evaluateLineItemDiscounts(ruleDiscounts, cartContext);
+        lineDiscounts = input.lines.map((_, idx) => {
+          const discounts = lineDiscountMap.get(idx) ?? [];
+          return discounts.reduce((s, d) => s + d.discountAmountPiasters, 0);
+        });
+      }
+
+      if (this.couponRepo && input.couponCode) {
+        const coupon = await this.couponRepo.findByCode(input.couponCode, input.companyId);
+        if (coupon && coupon.isValid()) {
+          let discountAmount = 0;
+          if (coupon.discountType === 'percentage') {
+            discountAmount = Math.round(subtotal * (coupon.amount / 100));
+          } else {
+            discountAmount = Math.min(coupon.amount, subtotal);
+          }
+          if (discountAmount > 0) {
+            const perLine = Math.round(discountAmount / input.lines.length);
+            const firstLineExtra = discountAmount - perLine * input.lines.length;
+            lineDiscounts = input.lines.map((_, idx) =>
+              idx === 0 ? perLine + firstLineExtra : perLine,
+            );
+          }
+        }
+      }
+
+      if (this.taxRuleRepo) {
+        const activeTaxRules = await this.taxRuleRepo.findByCompany(input.companyId, { isActive: true });
+        const ruleSet = new TaxRuleSet(activeTaxRules);
+        const taxService = new TaxCalculationService(ruleSet, 'additive');
+
+        lineTaxes = input.lines.map((l) => {
+          const lineSubtotal = l.unitPricePiasters * l.quantity;
+          const discountedSubtotal = Math.max(0, lineSubtotal - (lineDiscounts[input.lines.indexOf(l)] || 0));
+          return taxService.calculateTotal([{
+            productVariantId: l.productVariantId,
+            categoryId: null,
+            subtotalPiasters: discountedSubtotal,
+          }]);
+        });
+      }
+    }
+
+    const discountTotal = lineDiscounts.reduce((s, d) => s + d, 0);
+    const taxTotal = lineTaxes.reduce((s, t) => s + t, 0);
     const grandTotal = Math.max(0, subtotal - discountTotal + taxTotal);
 
     // 3. Split-tender validation (BR-SAL-003)
@@ -230,13 +305,13 @@ export class CreateSaleCommand {
       warehouseId: input.warehouseId,
     };
 
-    const orderLines = input.lines.map((l) => ({
+    const orderLines = input.lines.map((l, idx) => ({
       productVariantId: l.productVariantId,
       batchId: l.batchId ?? null,
       quantity: l.quantity,
       unitPricePiasters: l.unitPricePiasters,
-      discountAmountPiasters: l.discountAmountPiasters ?? 0,
-      taxAmountPiasters: l.taxAmountPiasters ?? 0,
+      discountAmountPiasters: lineDiscounts[idx] ?? 0,
+      taxAmountPiasters: lineTaxes[idx] ?? 0,
       costSnapshotPiasters: l.costSnapshotPiasters ?? 0,
     }));
 

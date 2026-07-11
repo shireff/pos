@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "supplier_id", "product_id", "unit_price_piasters", "effective_date", "recorded_at", "created_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "supplier_id": { "bsonType": "string", "minLength": 1 },
+    "product_id": { "bsonType": "string", "minLength": 1 },
+    "variant_id": { "bsonType": "string" },
+    "unit_price_piasters": { "bsonType": "int", "minimum": 0 },
+    "effective_date": { "bsonType": "date" },
+    "recorded_at": { "bsonType": "date" },
+    "purchase_order_id": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GetCreditHistoryQuery } from '@packages/application-crm';
-import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
-import { handleApiError } from '../../../../../lib/errors';
+import { assertCustomersPermission } from '../../../../../../../lib/customers-permissions';
+import { handleApiError } from '../../../../../../../lib/errors';
 import { MongoCreditLedgerEntryRepository } from '@packages/infrastructure-mongodb';
 
 export async function GET(

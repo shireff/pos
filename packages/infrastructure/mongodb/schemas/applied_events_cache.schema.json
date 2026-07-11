@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "applied_events_cache",
+  "bsonType": "object",
+  "required": ["_id", "event_id", "company_id", "device_id", "applied_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "event_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "device_id": { "bsonType": "string", "minLength": 1 },
+    "applied_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

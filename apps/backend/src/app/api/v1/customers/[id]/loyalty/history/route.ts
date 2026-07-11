@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GetLoyaltyHistoryQuery } from '@packages/application-crm';
-import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
-import { handleApiError } from '../../../../../lib/errors';
+import { assertCustomersPermission } from '../../../../../../../lib/customers-permissions';
+import { handleApiError } from '../../../../../../../lib/errors';
 import { MongoLoyaltyEventRepository } from '@packages/infrastructure-mongodb';
 
 export async function GET(

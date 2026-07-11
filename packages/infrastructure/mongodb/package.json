@@ -13,7 +13,9 @@
     "refresh": "npm run migrate && npm run seed"
   },
   "dependencies": {
+    "@packages/application-crm": "*",
     "@packages/application-sales": "*",
+    "@packages/domain-crm": "*",
     "@packages/domain-inventory": "*",
     "@packages/domain-purchasing": "*",
     "@packages/domain-sales": "*",

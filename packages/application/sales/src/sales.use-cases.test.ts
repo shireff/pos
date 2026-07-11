@@ -10,7 +10,7 @@ import {
   StockMovementEventRepository,
   StockItemRepository,
   BatchRepository,
-} from '../ports';
+} from './ports';
 import { Order } from '@packages/domain-sales';
 import { TenderType } from '@packages/domain-sales';
 import { StockItem } from '@packages/domain-inventory';
@@ -123,6 +123,8 @@ describe('CreateSaleCommand', () => {
       branchId: 'b1',
       cashierId: 'k1',
       clientTxnId: 'txn-1',
+      customerId: null,
+      shiftSessionId: null,
       subtotalPiasters: 10000,
       discountTotalPiasters: 0,
       taxTotalPiasters: 0,
@@ -153,6 +155,7 @@ describe('ProcessReturnCommand (BR-SAL-005)', () => {
       cashierId: 'k1',
       clientTxnId: 'txn-r',
       customerId: 'cust-1',
+      shiftSessionId: null,
       subtotalPiasters: 10000,
       discountTotalPiasters: 0,
       taxTotalPiasters: 0,

@@ -77,23 +77,23 @@ Standard envelope:
 
 ### 4.2 Sales
 
-- `POST /v1/orders` — create a sale.
-  - Request:
+- `POST /v1/orders` — create a sale. Body: `{ companyId, branchId, cashierId, clientTxnId, warehouseId, lines[], payments[], customerId?, shiftSessionId?, discountRuleIds?, couponCode? }`. Requires `sales.create`.
+  - `clientTxnId` makes the endpoint idempotent — replaying an offline-queued event returns the same order.
+  - Split-tender enforced: sum of `payments[].amountPiasters` must equal the computed `grandTotalPiasters` (BR-SAL-003).
+  - Expired batch guard: if any line references an expired batch, returns 422 `BUSINESS_RULE_VIOLATION` with code `BR-INV-008`.
+  - Bundle lines: `isBundle: true` triggers atomic component deduction; missing components stock returns `STOCK_INSUFFICIENT`.
+  - Response: full order object with computed totals, tax, and receipt payload.
+  - Errors: `STOCK_INSUFFICIENT`, `BUSINESS_RULE_VIOLATION`, `TRIAL_EXPIRED` / `ACCOUNT_SUSPENDED`.
+- `GET /v1/orders` — paginated list. Query: `?page=&pageSize=&branchId=&cashierId=&status=&dateFrom=&dateTo=`. Requires `sales.view`.
+- `GET /v1/orders/{id}` — full order detail with lines, payments, and return history. Requires `sales.view`.
+- `POST /v1/orders/{id}/returns` — initiate a return. Body: `{ returnedByUserId, reason (min 5), warehouseId?, refundMethod?, refundApprovalThresholdPiasters?, lines[] }`. `lines[]` requires `orderLineId`, `productVariantId`, `productId`, `returnQuantity` (positive), `refundAmountPiasters`. Auto-approves below threshold, otherwise `pending_approval`. Requires `sales.return.create`.
+- `POST /v1/orders/{id}/returns/{returnId}/approve` — approve a pending return. Restores stock inward, reverses loyalty points (BR-SAL-007), transitions return to `approved`. Requires `sales.refund.approve`.
+- `POST /v1/orders/{id}/void` — void a completed order. Body: `{ voidedByUserId?, reason (min 5), currentShiftSessionId, warehouseId? }`. Same-session restriction enforced: void only within the order's shift session (BR-SAL-006). Reverses inventory outward events and loyalty accrual. Requires `sales.void`.
+- `POST /v1/shifts` — open a new cashier shift. Body: `{ companyId, branchId, cashierId, openingCashPiasters }`. Requires `sales.shift.open_close`.
+- `POST /v1/shifts/current/close` — close the current shift. Body: `{ companyId, branchId, cashierId, shiftSessionId, closingCashPiasters }`. Requires `sales.shift.open_close`.
+- `GET /v1/shifts/current` — current shift state for the authenticated cashier. Requires `sales.view`.
 
-```json
-{
-  "branchId": "...",
-  "lines": [{ "productVariantId": "...", "quantity": 2, "unitPrice": 1500 }],
-  "payments": [{ "tenderType": "cash", "amount": 3000 }],
-  "customerId": null,
-  "clientTxnId": "uuid-generated-offline"
-}
-```
-
-- `clientTxnId` makes the endpoint idempotent — critical for offline queued syncs replaying after reconnect.
-- Response: full order object with computed totals, tax, and receipt payload.
-- Errors: `STOCK_INSUFFICIENT`, `BUSINESS_RULE_VIOLATION` (e.g., expired batch), `TRIAL_EXPIRED`/`ACCOUNT_SUSPENDED` when locked (§4.8).
-- `POST /v1/orders/{id}/returns` — process a return; may require `refund.approve` permission depending on threshold config.
+Sales sync classifications: `orders`, `order_lines`, `payments`, `returns`, `return_lines` are **Class A** (append-only, never overwritten). `shift_sessions` is **Class B** (field-level HLC merge). See `packages/application-sales/src/sales-sync-classification.ts`.
 
 ### 4.3 Inventory
 
@@ -161,32 +161,73 @@ Sync classes: `purchase_orders` and `supplier_invoices` are **Class B** (field-l
 - `POST /v1/subscription/upgrade` — body: `{ planId, billingCycle }` — tier change / trial-to-paid conversion request; routes to payment flow (out of scope for this API doc's detail — see future Billing Integration doc). A successful upgrade transitions `status` to `active` and immediately lifts the write-lock, including for any devices that were locally self-locked while offline (they unlock on next successful sync/pull).
 - `POST /v1/devices/register` — bind a new device to the company license.
 
+### 4.9 Discounts, Coupons & Taxes (Phase 11)
+
+All endpoints below require the permissions noted per operation.
+
+#### Discount Rules
+
+- `GET /v1/discount-rules?companyId=&type=&isActive=` — list active discount rules. Supports filtering by `type` (`item` | `cart` | `category` | `customer` | `membership` | `time_based` | `buy_x_get_y` | `quantity_break`) and `isActive`. Requires `promotions.discount.view`.
+- `POST /v1/discount-rules` — create a discount rule. Body: `{ companyId, name, type, ruleJson, validFrom?, validUntil?, priority?, isExclusive? }`. `ruleJson` is a type-discriminated object that defines the rule parameters (e.g., `productIds`, `categoryIds`, `discountType`, `amount`, `tiers[]`, `timeRange`, etc.). Requires `promotions.discount.create`.
+- `PATCH /v1/discount-rules/{id}` — partial update. Body accepts any of `{ name, ruleJson, priority, isExclusive }`. Requires `promotions.discount.edit`.
+- `POST /v1/discount-rules/{id}/deactivate` — sets `isActive = false`. Requires `promotions.discount.edit`.
+
+#### Coupons
+
+- `GET /v1/coupons?companyId=` — list all coupons for the company. Requires `promotions.coupon.view`.
+- `POST /v1/coupons` — create a coupon. Body: `{ companyId, code, discountType, amount, isMultiUse?, usageLimit?, expiresAt?, scopeType, scopeIds[] }`. `discountType` is `percentage` or `fixed`; `scopeType` is `global` | `product` | `category`. Requires `promotions.coupon.create`.
+- `POST /v1/coupons/validate` — validate a coupon against a cart context. Body: `{ code, companyId, cartTotalPiasters, customerId?, lineItems? }`. Response: `{ valid, couponId, discountAmountPiasters, reason? }`. No permission required (used at checkout).
+
+#### Tax Rules
+
+- `GET /v1/tax-rules?companyId=` — list active tax rules, sorted by `priority`. Requires `tax.rules.view`.
+- `POST /v1/tax-rules` — create a tax rule. Body: `{ companyId, name, rateBasisPoints, appliesTo, scopeIds[], priority? }`. `rateBasisPoints` is stored internally; `ratePercent = rateBasisPoints / 100`. `appliesTo` is `all` | `category` | `product`. Requires `tax.rules.edit`.
+
+#### Price Changes
+
+- `POST /v1/price-changes` — request a price change. Body: `{ companyId, productId, variantId?, oldPricePiasters, newPricePiasters, notes?, autoApproveThresholdPiasters? }`. When `abs(newPricePiasters - oldPricePiasters) <= autoApproveThresholdPiasters`, the change is auto-approved; otherwise status is `pending_approval`. Requires `pricing.change`.
+- `POST /v1/price-changes/{id}/approve` — approve a pending price change. Requires `pricing.change.approve`.
+- `POST /v1/price-changes/{id}/reject` — reject a pending price change. Requires `pricing.change.approve`.
+
+Sync classes: `discount_rules`, `coupons`, and `tax_rules` are **Class B** (field-level HLC merge). `coupon_usages` is **Class A** (append-only, never overwritten). `price_changes` is **Class B**.
+
+---
+
 ## 5. Sync APIs
 
-### 5.1 Push local events to server
+### 5.1 Event push / pull (transport layer)
 
-`POST /v1/sync/push`
+Outbound and inbound event propagation is performed by the sync **transport layer**
+(`packages/infrastructure/sync`), not by a REST `push`/`pull` endpoint. The engine
+selects the best available transport automatically (see Sync Architecture.md §5):
+
+- **LAN transport** — mDNS device discovery on the local network plus a direct WebSocket peer channel, delivering events with zero cloud round-trip.
+- **Supabase Realtime transport** — publish/subscribe on a company-scoped channel when devices are on different networks.
+- **WebSocket fallback** — a standard WebSocket relay to the backend when Supabase Realtime is unavailable, with auto-reconnect and exponential backoff.
+
+The outbox/inbox pattern makes every event idempotent by `eventId`: a replayed,
+already-applied event is a no-op and a duplicate outbox entry is never created.
+(The earlier REST `POST /v1/sync/push` + `GET /v1/sync/pull` contract was superseded
+by this transport model during implementation; the design intent — idempotent
+duplicate handling and bounded paginated backlog pull for offline catch-up — is
+preserved by the inbox processor and the `BacklogPaginator`.)
+
+### 5.2 Status
+
+`GET /v1/sync/status?companyId=`
+
+Returns the current sync state of the caller's company:
 
 ```json
-{
-  "deviceId": "...",
-  "events": [
-    { "aggregateType": "StockMovementEvent", "aggregateId": "...", "sequenceNo": 1042, "payload": {...} }
-  ]
-}
+{ "success": true, "data": { "companyId": "...", "pendingOutbox": 0, "pendingInbox": 0, "lastSyncedAt": null, "transportType": "websocket", "offline": false } }
 ```
 
-Response confirms which events were accepted, which were duplicates (idempotent by `sequenceNo` + `deviceId`), and which triggered a conflict record. When the caller's subscription is `trial_expired` or `suspended`, the entire push is rejected with `403 TRIAL_EXPIRED`/`403 ACCOUNT_SUSPENDED` rather than partially applied — a locked account never accumulates further server-side state via sync while locked.
-
-### 5.2 Pull remote events
-
-`GET /v1/sync/pull?since=<lastAcknowledgedSequence>&deviceId=...`
-Returns an ordered batch of events from other devices/the server the caller hasn't yet applied, paginated for large backlogs (e.g., a device offline for weeks). Pull always remains available even when locked (§4.8), since it is read-only from the calling device's perspective and is how a device learns its current `subscriptionStatus` in the first place.
+`transportType` is `supabase_realtime` when `SUPABASE_URL` is configured, otherwise `websocket`. `offline` is always `false` server-side (the relay is reachable); the client's own offline state is tracked locally.
 
 ### 5.3 Conflict resolution
 
-- `GET /v1/sync/conflicts?status=pending`
-- `POST /v1/sync/conflicts/{id}/resolve` — `{ resolution: "keep_local"|"keep_remote"|"merged", mergedPayload }`
+- `GET /v1/sync/conflicts?companyId=&limit=20&offset=0` — paginated unresolved conflicts. Response: `{ success, data: [{ id, companyId, entityType, entityId, field, localValue, remoteValue, status, createdAt }], pagination: { limit, offset } }`.
+- `POST /v1/sync/conflicts/{id}/resolve` — body `{ "winner": "local" | "remote" | "merge", "resolvedValue"?: <any> }`. Applies the winning value back to the owning entity, records the resolution in the conflict's audit trail (the resolving user is taken from the `x-actor-id` request header), and returns `{ success, data: { id, status, field, auditTrail } }`. Resolving an already-resolved conflict returns `404`.
 
 ### 5.4 WebSocket channel
 

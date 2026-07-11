@@ -103,3 +103,11 @@ export class OcrStubService {
     return hash;
   }
 }
+
+export {
+  SupplierLedgerBalanceProjection,
+} from './supplier-ledger-balance.service';
+
+export {
+  SupplierPerformanceService,
+} from './supplier-performance.service';

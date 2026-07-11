@@ -8,8 +8,11 @@ import {
     closeShift,
     fetchCurrentShift,
     type TenderType,
-    type OrderLine,
+    type Order,
 } from '../../lib/store/salesSlice';
+import { DigitalReceiptModal, type DigitalReceiptLine } from '@packages/ui-components';
+import { getReceiptPrinter, getCashDrawer } from '../../lib/hardware';
+import { PrinterNotAvailableError } from '@packages/infrastructure-hardware';
 
 interface CartItem {
     key: string;
@@ -51,7 +54,6 @@ function formatEgp(piasters: number): string {
 export function PosRegisterPage() {
     const dispatch = useAppDispatch();
     const currentShift = useAppSelector((s) => s.sales.currentShift);
-    const currentOrder = useAppSelector((s) => s.sales.currentOrder);
     const salesStatus = useAppSelector((s) => s.sales.status);
     const salesError = useAppSelector((s) => s.sales.error);
 
@@ -62,7 +64,14 @@ export function PosRegisterPage() {
     const [payments, setPayments] = useState<SplitPayment[]>([]);
     const [showShiftClose, setShowShiftClose] = useState(false);
     const [closingCash, setClosingCash] = useState('');
-    const [lastReceipt, setLastReceipt] = useState<OrderLine[] | null>(null);
+    const [showDigitalReceipt, setShowDigitalReceipt] = useState(false);
+    const [receiptLines, setReceiptLines] = useState<DigitalReceiptLine[]>([]);
+    const [receiptOrderId, setReceiptOrderId] = useState('');
+    const [drawerPrompt, setDrawerPrompt] = useState(false);
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [customerResults, setCustomerResults] = useState<Array<{ id: string; name: string; phone: string }>>([]);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+    const [selectedCustomerName, setSelectedCustomerName] = useState('');
 
     const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -136,6 +145,64 @@ export function PosRegisterPage() {
         setSearchResults(resp?.data?.data ?? []);
     }, []);
 
+    const runCustomerSearch = useCallback(async (q: string) => {
+        if (!q.trim()) {
+            setCustomerResults([]);
+            return;
+        }
+        try {
+            const resp = await client.get(ApiEndpoints.Customers, { params: { query: q, limit: 10 } });
+            setCustomerResults((resp?.data?.data ?? []).map((c: any) => ({ id: c.id, name: c.name, phone: c.phone })));
+        } catch {
+            setCustomerResults([]);
+        }
+    }, []);
+
+    const printReceipt = async (order: Order) => {
+        const lines: DigitalReceiptLine[] = cart.map((i) => ({
+            name: i.name,
+            qty: i.quantity,
+            unitPricePiasters: i.unitPricePiasters,
+            lineTotalPiasters: i.unitPricePiasters * i.quantity - i.discountPiasters,
+        }));
+        setReceiptLines(lines);
+        setReceiptOrderId(order.id);
+
+        const printer = getReceiptPrinter();
+        try {
+            if (!(await printer.isAvailable())) {
+                setShowDigitalReceipt(true);
+                return;
+            }
+            const res = await printer.print({
+                orderId: order.id,
+                lines,
+                grandTotalPiasters,
+                companyName: 'Smart Retail OS',
+                branchName: currentShift?.id ?? 'Branch',
+                cashierId: currentShift?.cashierId ?? 'cashier',
+            });
+            if (res.fallbackRequired) setShowDigitalReceipt(true);
+        } catch (err) {
+            if (err instanceof PrinterNotAvailableError) {
+                // Sale already completed — fall back to on-screen receipt.
+                setShowDigitalReceipt(true);
+            } else {
+                throw err;
+            }
+        }
+    };
+
+    // Cash-drawer pulse after a cash-tender sale. Failure must NOT block the
+    // sale; the cashier is prompted to open the drawer manually (Hardware.md §4).
+    const pulseDrawer = async () => {
+        try {
+            await getCashDrawer().open();
+        } catch {
+            setDrawerPrompt(true);
+        }
+    };
+
     const handleCompleteSale = async () => {
         if (cart.length === 0) return;
         const effectivePayments = payments.length
@@ -147,7 +214,7 @@ export function PosRegisterPage() {
                 branchId: 'branch-1',
                 clientTxnId: `pos-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 shiftSessionId: currentShift?.id ?? null,
-                customerId: null,
+                customerId: selectedCustomerId,
                 lines: cart.map((i) => ({
                     productVariantId: i.productVariantId,
                     productId: i.productId,
@@ -159,12 +226,18 @@ export function PosRegisterPage() {
             }),
         );
         if (createOrder.fulfilled.match(result)) {
-            setLastReceipt(currentOrder?.lines ?? []);
+            const order = result.payload;
+            await printReceipt(order);
+            if (effectivePayments.some((p) => p.tenderType === 'cash')) {
+                void pulseDrawer();
+            }
             setCart([]);
             setPayments([]);
             setScanned('');
             setSearch('');
             setSearchResults([]);
+            setSelectedCustomerId(null);
+            setSelectedCustomerName('');
         }
     };
 
@@ -350,17 +423,41 @@ export function PosRegisterPage() {
                         {salesStatus === 'loading' ? 'Processing…' : 'Complete Sale'}
                     </button>
 
-                    {lastReceipt && (
-                        <div className="card" style={{ padding: 'var(--space-3)' }}>
-                            <strong>Receipt</strong>
-                            <ul style={{ margin: 'var(--space-2) 0 0', paddingInlineStart: 'var(--space-4)' }}>
-                                {lastReceipt.map((l: any) => (
-                                    <li key={l.id}>{l.productVariantId} × {l.quantity}</li>
-                                ))}
-                            </ul>
+                    {drawerPrompt && (
+                        <div className="error-banner" role="status">
+                            Please open the cash drawer manually.
                         </div>
                     )}
                 </aside>
+            </div>
+
+            <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <input
+                    className="form-input"
+                    placeholder="Search customer by phone or name…"
+                    value={customerSearch}
+                    onChange={(e) => { setCustomerSearch(e.target.value); runCustomerSearch(e.target.value); }}
+                />
+                {selectedCustomerId && <span className="section-label">Customer: {selectedCustomerName}</span>}
+                {customerResults.length > 0 && (
+                    <select className="form-select" value="" onChange={(e) => {
+                        const selected = customerResults.find((r) => r.id === e.target.value);
+                        if (selected) {
+                            setSelectedCustomerId(selected.id);
+                            setSelectedCustomerName(selected.name);
+                            setCustomerResults([]);
+                            setCustomerSearch('');
+                        }
+                    }}>
+                        <option value="">Select customer…</option>
+                        {customerResults.map((r) => (
+                            <option key={r.id} value={r.id}>{r.name} — {r.phone}</option>
+                        ))}
+                    </select>
+                )}
+                {selectedCustomerId && (
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setSelectedCustomerId(null); setSelectedCustomerName(''); }}>Clear</button>
+                )}
             </div>
 
             {showShiftClose && (
@@ -389,6 +486,20 @@ export function PosRegisterPage() {
                     </div>
                 </div>
             )}
+
+            <DigitalReceiptModal
+                open={showDigitalReceipt}
+                onClose={() => setShowDigitalReceipt(false)}
+                orderId={receiptOrderId}
+                companyName="Smart Retail OS"
+                branchName={currentShift?.id ?? 'Branch'}
+                cashierId={currentShift?.cashierId ?? 'cashier'}
+                lines={receiptLines}
+                subtotalPiasters={subtotalPiasters}
+                discountPiasters={discountPiasters}
+                taxPiasters={0}
+                grandTotalPiasters={grandTotalPiasters}
+            />
         </div>
     );
 }

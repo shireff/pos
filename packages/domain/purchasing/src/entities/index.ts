@@ -187,3 +187,6 @@ export class SupplierInvoice {
     this._updatedAt = new Date().toISOString();
   }
 }
+
+export { SupplierLedgerEntry } from './supplier-ledger-entry.entity';
+export { SupplierPriceHistory } from './supplier-price-history.entity';

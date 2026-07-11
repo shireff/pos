@@ -29,6 +29,8 @@ const COLLECTIONS: Array<{ name: string; schema: Schema; indexes?: IndexDefiniti
         credit_limit_piasters: { bsonType: 'int', minimum: 0 },
         is_active: { bsonType: 'bool' },
         notes: { bsonType: 'string' },
+        sync_version: { bsonType: 'int' },
+        hlc_timestamp: { bsonType: 'string' },
         created_at: { bsonType: 'date' },
         updated_at: { bsonType: 'date' },
       },

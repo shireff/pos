@@ -1,5 +1,5 @@
 import { Identifier } from '@packages/shared-kernel';
-import { SyncApplyStatus, ConflictResolutionStatus } from '../value-objects';
+import { SyncApplyStatus } from '../value-objects';
 
 // ─── SyncOutboxEntry ──────────────────────────────────────────────────────────
 
@@ -131,85 +131,9 @@ export class SyncInboxEntry {
   }
 }
 
-// ─── SyncConflict ─────────────────────────────────────────────────────────────
-
-export interface SyncConflictProps {
-  id: string;
-  entityType: string;
-  entityId: string;
-  localVersionJson: string;
-  remoteVersionJson: string;
-  conflictingFieldsJson: string;
-  resolutionStatus: ConflictResolutionStatus;
-  resolvedByUserId: string | null;
-  resolvedAt: string | null;
-  createdAt: string;
-}
-
-export class SyncConflict {
-  public readonly id: string;
-  public readonly entityType: string;
-  public readonly entityId: string;
-  public readonly localVersionJson: string;
-  public readonly remoteVersionJson: string;
-  public readonly conflictingFieldsJson: string;
-  private _resolutionStatus: ConflictResolutionStatus;
-  private _resolvedByUserId: string | null;
-  private _resolvedAt: string | null;
-  public readonly createdAt: string;
-
-  private constructor(props: SyncConflictProps) {
-    this.id = props.id;
-    this.entityType = props.entityType;
-    this.entityId = props.entityId;
-    this.localVersionJson = props.localVersionJson;
-    this.remoteVersionJson = props.remoteVersionJson;
-    this.conflictingFieldsJson = props.conflictingFieldsJson;
-    this._resolutionStatus = props.resolutionStatus;
-    this._resolvedByUserId = props.resolvedByUserId;
-    this._resolvedAt = props.resolvedAt;
-    this.createdAt = props.createdAt;
-  }
-
-  public static detect(
-    props: Omit<
-      SyncConflictProps,
-      'id' | 'resolutionStatus' | 'resolvedByUserId' | 'resolvedAt' | 'createdAt'
-    >,
-  ): SyncConflict {
-    return new SyncConflict({
-      id: Identifier.generate(),
-      resolutionStatus: 'pending',
-      resolvedByUserId: null,
-      resolvedAt: null,
-      createdAt: new Date().toISOString(),
-      ...props,
-    });
-  }
-
-  public static reconstitute(props: SyncConflictProps): SyncConflict {
-    return new SyncConflict(props);
-  }
-
-  public get resolutionStatus(): ConflictResolutionStatus {
-    return this._resolutionStatus;
-  }
-  public get resolvedByUserId(): string | null {
-    return this._resolvedByUserId;
-  }
-  public get resolvedAt(): string | null {
-    return this._resolvedAt;
-  }
-
-  public resolveManually(resolvedByUserId: string): void {
-    if (this._resolutionStatus !== 'pending') throw new Error('Conflict is already resolved');
-    this._resolutionStatus = 'manual_resolved';
-    this._resolvedByUserId = resolvedByUserId;
-    this._resolvedAt = new Date().toISOString();
-  }
-
-  public resolveAuto(): void {
-    this._resolutionStatus = 'auto_resolved';
-    this._resolvedAt = new Date().toISOString();
-  }
-}
+export { SyncConflict } from './sync-conflict.entity';
+export type {
+  SyncConflictProps,
+  SyncConflictStatus,
+  ConflictAuditEntry,
+} from './sync-conflict.entity';

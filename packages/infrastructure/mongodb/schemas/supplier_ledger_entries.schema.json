@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "supplier_id", "event_type", "amount_piasters", "occurred_at", "created_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "supplier_id": { "bsonType": "string", "minLength": 1 },
+    "event_type": { "bsonType": "string", "enum": ["invoice", "payment", "credit_note", "return_debit", "adjustment"] },
+    "amount_piasters": { "bsonType": "int" },
+    "reference_type": { "bsonType": "string" },
+    "reference_id": { "bsonType": "string" },
+    "notes": { "bsonType": "string" },
+    "occurred_at": { "bsonType": "date" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

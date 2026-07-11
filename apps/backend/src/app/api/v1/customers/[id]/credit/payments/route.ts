@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RecordCreditPaymentCommand } from '@packages/application-crm';
-import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
-import { handleApiError, ValidationError } from '../../../../../lib/errors';
+import { assertCustomersPermission } from '../../../../../../../lib/customers-permissions';
+import { handleApiError, ValidationError } from '../../../../../../../lib/errors';
 import {
   MongoCreditLedgerBalanceRepository,
   MongoCreditLedgerEntryRepository,
 } from '@packages/infrastructure-mongodb';
-import { RecordCreditPaymentSchema } from '../../customers/customers.schemas';
+import { RecordCreditPaymentSchema } from '../../../customers.schemas';
 
 export async function POST(
   request: NextRequest,

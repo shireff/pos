@@ -282,6 +282,19 @@ export const ar: Dict = {
   'qr.download': 'تنزيل الرمز',
   'qr.notAvailable': 'الرمز غير متوفر.',
   'qr.generated': 'تم توليد الرمز',
+
+  // ── POS / Receipt ──
+  'pos.receipt.title': 'الإيصال الرقمي',
+  'pos.receipt.printerUnavailable': 'طابعة الإيصالات غير متوفرة — يُعرض الإيصال رقمياً.',
+  'pos.receipt.order': 'الطلب',
+  'pos.receipt.branch': 'الفرع',
+  'pos.receipt.cashier': 'الكاشير',
+  'pos.receipt.subtotal': 'المجموع الفرعي',
+  'pos.receipt.discount': 'الخصم',
+  'pos.receipt.tax': 'الضريبة',
+  'pos.receipt.total': 'الإجمالي',
+  'pos.receipt.copy': 'نسخ الإيصال',
+  'pos.receipt.close': 'إغلاق',
 };
 
 export const en: Dict = {
@@ -541,4 +554,17 @@ export const en: Dict = {
   'qr.download': 'Download code',
   'qr.notAvailable': 'Code not available.',
   'qr.generated': 'Code generated',
+
+  // ── POS / Receipt ──
+  'pos.receipt.title': 'Digital Receipt',
+  'pos.receipt.printerUnavailable': 'Receipt printer unavailable — showing digital receipt.',
+  'pos.receipt.order': 'Order',
+  'pos.receipt.branch': 'Branch',
+  'pos.receipt.cashier': 'Cashier',
+  'pos.receipt.subtotal': 'Subtotal',
+  'pos.receipt.discount': 'Discount',
+  'pos.receipt.tax': 'Tax',
+  'pos.receipt.total': 'Total',
+  'pos.receipt.copy': 'Copy receipt',
+  'pos.receipt.close': 'Close',
 };

@@ -11,6 +11,26 @@ export class DiscountRuleCreated extends DomainEventBase {
   }
 }
 
+export class DiscountRuleUpdated extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly discountType: string;
+
+  public constructor(props: { discountId: string; companyId: string; discountType: string }) {
+    super(props.discountId, 'Discount');
+    this.companyId = props.companyId;
+    this.discountType = props.discountType;
+  }
+}
+
+export class DiscountRuleDeactivated extends DomainEventBase {
+  public readonly companyId: string;
+
+  public constructor(props: { discountId: string; companyId: string }) {
+    super(props.discountId, 'Discount');
+    this.companyId = props.companyId;
+  }
+}
+
 export class CouponCreated extends DomainEventBase {
   public readonly companyId: string;
   public readonly code: string;
@@ -22,13 +42,17 @@ export class CouponCreated extends DomainEventBase {
   }
 }
 
-export class CampaignLaunched extends DomainEventBase {
+export class CouponValidated extends DomainEventBase {
   public readonly companyId: string;
-  public readonly name: string;
+  public readonly code: string;
+  public readonly valid: boolean;
+  public readonly discountPiasters: number;
 
-  public constructor(props: { campaignId: string; companyId: string; name: string }) {
-    super(props.campaignId, 'Campaign');
+  public constructor(props: { couponId: string; companyId: string; code: string; valid: boolean; discountPiasters: number }) {
+    super(props.couponId, 'Coupon');
     this.companyId = props.companyId;
-    this.name = props.name;
+    this.code = props.code;
+    this.valid = props.valid;
+    this.discountPiasters = props.discountPiasters;
   }
 }

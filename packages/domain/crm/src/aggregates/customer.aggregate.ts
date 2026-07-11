@@ -10,7 +10,7 @@ export interface CustomerProps {
   loyaltyCode: string;
   loyaltyTierId: LoyaltyTier;
   creditLimitPiasters: number;
-  isActive: boolean;
+  status: CustomerStatus;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -19,27 +19,27 @@ export interface CustomerProps {
 export class Customer {
   public readonly id: string;
   public readonly companyId: string;
-  public readonly name: string;
   public readonly phone: string;
-  public readonly email: string | null;
+  public name: string;
+  public email: string | null;
   public readonly loyaltyCode: string;
-  public readonly loyaltyTierId: LoyaltyTier;
-  public readonly creditLimitPiasters: number;
-  public readonly isActive: boolean;
-  public readonly notes: string | null;
+  public loyaltyTierId: LoyaltyTier;
+  public creditLimitPiasters: number;
+  public status: CustomerStatus;
+  public notes: string | null;
   public readonly createdAt: string;
   private _updatedAt: string;
 
   private constructor(props: CustomerProps) {
     this.id = props.id;
     this.companyId = props.companyId;
-    this.name = props.name;
     this.phone = props.phone;
+    this.name = props.name;
     this.email = props.email;
     this.loyaltyCode = props.loyaltyCode;
     this.loyaltyTierId = props.loyaltyTierId;
     this.creditLimitPiasters = props.creditLimitPiasters;
-    this.isActive = props.isActive;
+    this.status = props.status;
     this.notes = props.notes;
     this.createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
@@ -64,7 +64,7 @@ export class Customer {
       loyaltyCode,
       loyaltyTierId: 'bronze',
       creditLimitPiasters: props.creditLimitPiasters ?? 0,
-      isActive: true,
+      status: CustomerStatus.Active,
       notes: props.notes ?? null,
       createdAt: now,
       updatedAt: now,
@@ -101,7 +101,7 @@ export class Customer {
   }
 
   public deactivate(): void {
-    this.isActive = false;
+    this.status = CustomerStatus.Inactive;
     this._updatedAt = new Date().toISOString();
   }
 

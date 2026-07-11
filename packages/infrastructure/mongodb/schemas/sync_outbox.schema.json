@@ -1,21 +1,28 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sync_outbox",
   "bsonType": "object",
   "required": [
     "_id",
-    "aggregate_type",
-    "aggregate_id",
-    "event_payload_json",
-    "created_at",
-    "device_id"
+    "event_id",
+    "event_type",
+    "payload",
+    "company_id",
+    "device_id",
+    "status",
+    "hlc_timestamp",
+    "created_at"
   ],
   "properties": {
     "_id": { "bsonType": "string" },
-    "aggregate_type": { "bsonType": "string" },
-    "aggregate_id": { "bsonType": "string" },
-    "event_payload_json": { "bsonType": "string" },
-    "created_at": { "bsonType": "date" },
-    "sent_at": { "bsonType": "date" },
-    "device_id": { "bsonType": "string" }
-  }
+    "event_id": { "bsonType": "string" },
+    "event_type": { "bsonType": "string", "minLength": 1 },
+    "payload": { "bsonType": "object" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "device_id": { "bsonType": "string", "minLength": 1 },
+    "status": { "bsonType": "string", "enum": ["pending", "sent", "acknowledged"] },
+    "hlc_timestamp": { "bsonType": "string" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
 }

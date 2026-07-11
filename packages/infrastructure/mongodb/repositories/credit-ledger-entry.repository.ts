@@ -1,7 +1,5 @@
-import {
-  CreditLedger,
-  CreditLedgerRepository,
-} from '@packages/application-crm';
+import { CreditLedger, CreditLedgerEntry } from '@packages/domain-crm';
+import { CreditLedgerRepository } from '@packages/application-crm';
 import { getMongoDb } from '../src/mongo-connection';
 
 export class MongoCreditLedgerEntryRepository implements CreditLedgerRepository {
@@ -14,7 +12,7 @@ export class MongoCreditLedgerEntryRepository implements CreditLedgerRepository 
     companyId: string,
     limit: number,
     offset: number,
-  ): Promise<import('@packages/domain-crm').CreditLedgerEntry[]> {
+  ): Promise<CreditLedgerEntry[]> {
     const db = await getMongoDb();
     const docs = await db
       .collection<any>('credit_ledger_entries')
@@ -26,7 +24,7 @@ export class MongoCreditLedgerEntryRepository implements CreditLedgerRepository 
     return docs.map((d) => this.reconstitute(d));
   }
 
-  async append(entry: import('@packages/domain-crm').CreditLedgerEntry): Promise<void> {
+  async append(entry: CreditLedgerEntry): Promise<void> {
     const db = await getMongoDb();
     const snap = entry as any;
     await db.collection<any>('credit_ledger_entries').insertOne({
@@ -49,8 +47,16 @@ export class MongoCreditLedgerEntryRepository implements CreditLedgerRepository 
     return db.collection<any>('credit_ledger_entries').countDocuments({ customer_id: customerId, company_id: companyId });
   }
 
-  private reconstitute(doc: any): import('@packages/domain-crm').CreditLedgerEntry {
-    return import('@packages/domain-crm').CreditLedgerEntry.reconstitute({
+  async update(_id: string, _patch: Record<string, unknown>): Promise<void> {
+    throw new Error('credit_ledger_entries is append-only: UPDATE is not permitted');
+  }
+
+  async delete(_id: string): Promise<void> {
+    throw new Error('credit_ledger_entries is append-only: DELETE is not permitted');
+  }
+
+  private reconstitute(doc: any): CreditLedgerEntry {
+    return CreditLedgerEntry.reconstitute({
       id: doc._id.toString(),
       companyId: doc.company_id,
       customerId: doc.customer_id,

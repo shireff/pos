@@ -394,3 +394,5 @@ export class GoodsReceipt {
     this._updatedAt = new Date().toISOString();
   }
 }
+
+export { Supplier } from './supplier.aggregate';

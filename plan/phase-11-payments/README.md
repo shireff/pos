@@ -39,9 +39,13 @@ A working pricing engine where:
 - `packages/domain/tax` — full tax rule engine
 - `packages/application/promotions/*`
 - `packages/application/tax/*`
-- `packages/infrastructure/mongodb/migrations/011_discounts_taxes_schema.ts`
-- `apps/backend/src/http/discounts/*`
-- `apps/backend/src/http/taxes/*`
-- `packages/ui-components/src/discounts/*`
+- `packages/infrastructure/mongodb/migrations/010_discounts_taxes_price_changes_schema.ts`
+- `apps/backend/src/app/api/v1/discount-rules/*`
+- `apps/backend/src/app/api/v1/coupons/*`
+- `apps/backend/src/app/api/v1/tax-rules/*`
+- `apps/backend/src/app/api/v1/price-changes/*`
+- `packages/ui-components/src/` (shared Modal, Field, StatusBadge, Icon)
 - `apps/desktop/src/features/discounts/*`
-- `apps/android/src/features/discounts/*`
+- `apps/desktop/src/features/pricing/*`
+- `apps/android/src/features/promotions/*`
+- `apps/android/src/features/pricing/*`

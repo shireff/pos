@@ -1,7 +1,5 @@
-import {
-  LoyaltyAccount,
-  LoyaltyAccountRepository,
-} from '@packages/application-crm';
+import { LoyaltyAccount } from '@packages/domain-crm';
+import { LoyaltyAccountRepository } from '@packages/application-crm';
 import { getMongoDb } from '../src/mongo-connection';
 
 export class MongoLoyaltyAccountRepository implements LoyaltyAccountRepository {

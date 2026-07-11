@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { ForbiddenError } from '../errors';
-import { getAuthContext } from '../auth';
+import { ForbiddenError } from './errors';
+import { getAuthContext } from './auth';
 
 export async function assertCustomersPermission(
   request: NextRequest,

@@ -224,7 +224,7 @@ describe('POST /api/v1/purchase-orders/:id/receive', () => {
       ctx(createdJson.data.id),
     );
     const json = (await res.json()) as {
-      data: { purchaseOrder: { status: string }; discrepancies: Array<{ expectedQuantity: number; actualQuantity: number }> };
+      data: { purchaseOrder: { status: string }; discrepancies: Array<{ expectedQuantity: number; actualQuantity: number; type: string }> };
     };
     expect(json.data.purchaseOrder.status).toBe('partially_received');
     expect(json.data.discrepancies.length).toBe(1);

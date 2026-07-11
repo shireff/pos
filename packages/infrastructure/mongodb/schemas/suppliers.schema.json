@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "company_id", "name", "phone", "is_active", "created_at", "updated_at"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "name": {
+      "bsonType": "object",
+      "required": ["ar"],
+      "properties": {
+        "ar": { "bsonType": "string", "minLength": 1 },
+        "en": { "bsonType": "string" }
+      }
+    },
+    "phone": { "bsonType": "string", "minLength": 1 },
+    "email": { "bsonType": "string" },
+    "address": { "bsonType": "string" },
+    "tax_id": { "bsonType": "string" },
+    "payment_terms_days": { "bsonType": "int", "minimum": 0 },
+    "currency": { "bsonType": "string", "minLength": 3, "maxLength": 3 },
+    "is_active": { "bsonType": "bool" },
+    "contacts": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "required": ["name", "phone"],
+        "properties": {
+          "name": { "bsonType": "string", "minLength": 1 },
+          "phone": { "bsonType": "string", "minLength": 1 },
+          "email": { "bsonType": "string" },
+          "role": { "bsonType": "string" }
+        }
+      }
+    },
+    "hlc_timestamp": { "bsonType": "string" },
+    "sync_version": { "bsonType": "int" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

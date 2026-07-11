@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   Order,
   TenderType,
+  Payment,
+  PaymentMethod,
+  PaymentTransaction,
 } from './index';
 import {
   IdempotencyService,
@@ -9,9 +12,9 @@ import {
   ReturnApprovalPolicy,
   VoidPolicy,
   LoyaltyReversalService,
-  TenderValidator,
 } from './domain-services';
 import { ShiftSession } from './aggregates';
+import { SplitTender } from './value-objects';
 
 describe('Sales domain — business rules', () => {
   describe('Order.complete (split-tender validation)', () => {
@@ -39,6 +42,8 @@ describe('Sales domain — business rules', () => {
           branchId: 'b1',
           cashierId: 'k1',
           clientTxnId: 'txn-1',
+          customerId: null,
+          shiftSessionId: null,
           subtotalPiasters: 10000,
           discountTotalPiasters: 0,
           taxTotalPiasters: 0,
@@ -55,6 +60,8 @@ describe('Sales domain — business rules', () => {
         branchId: 'b1',
         cashierId: 'k1',
         clientTxnId: 'txn-2',
+        customerId: null,
+        shiftSessionId: null,
         subtotalPiasters: 10000,
         discountTotalPiasters: 0,
         taxTotalPiasters: 0,
@@ -115,6 +122,7 @@ describe('Sales domain — business rules', () => {
         branchId: 'b1',
         cashierId: 'k1',
         clientTxnId: 'txn-v',
+        customerId: null,
         shiftSessionId: 's1',
         subtotalPiasters: 10000,
         discountTotalPiasters: 0,
@@ -159,6 +167,102 @@ describe('Sales domain — business rules', () => {
       expect(cmd.customerId).toBe('cust-1');
       expect(cmd.originalOrderId).toBe('o1');
       expect(cmd.pointsToReverse).toBe(40);
+    });
+  });
+
+  describe('Payment entity', () => {
+    it('creates with positive amount', () => {
+      const p = Payment.create({
+        orderId: 'o1',
+        tenderType: 'cash',
+        amountPiasters: 5000,
+        providerReference: null,
+      });
+      expect(p.amountPiasters).toBe(5000);
+      expect(p.tenderType).toBe('cash');
+    });
+    it('throws on non-positive amount', () => {
+      expect(() =>
+        Payment.create({
+          orderId: 'o1',
+          tenderType: 'cash',
+          amountPiasters: 0,
+          providerReference: null,
+        }),
+      ).toThrow(/positive/);
+    });
+  });
+
+  describe('PaymentMethod entity', () => {
+    it('creates enabled method', () => {
+      const m = PaymentMethod.create({
+        companyId: 'c1',
+        tenderType: 'vodafone_cash',
+        isEnabled: true,
+        displayNameAr: 'فودافون كاش',
+        displayNameEn: 'Vodafone Cash',
+        configuration: null,
+      });
+      expect(m.tenderType).toBe('vodafone_cash');
+      expect(m.isEnabled).toBe(true);
+    });
+  });
+
+  describe('PaymentTransaction entity', () => {
+    it('creates completed transaction', () => {
+      const tx = PaymentTransaction.create({
+        companyId: 'c1',
+        orderId: 'o1',
+        tenderType: 'card',
+        amountPiasters: 10000,
+        providerId: null,
+        status: 'completed',
+        externalReference: 'CARD-1234',
+        processedAt: new Date().toISOString(),
+      });
+      expect(tx.isCompleted).toBe(true);
+      expect(tx.isRefundable).toBe(true);
+    });
+    it('marks refunded as non-refundable', () => {
+      const tx = PaymentTransaction.create({
+        companyId: 'c1',
+        orderId: 'o1',
+        tenderType: 'cash',
+        amountPiasters: 5000,
+        providerId: null,
+        status: 'refunded',
+        externalReference: null,
+        processedAt: new Date().toISOString(),
+      });
+      expect(tx.isRefundable).toBe(false);
+    });
+  });
+
+  describe('SplitTender value object', () => {
+    it('validates matching sum', () => {
+      const result = SplitTender.validate(
+        [
+          { tenderType: 'cash', amountPiasters: 5000 },
+          { tenderType: 'card', amountPiasters: 5000 },
+        ],
+        10000,
+      );
+      expect(result.isOk()).toBe(true);
+    });
+    it('rejects mismatched sum', () => {
+      const result = SplitTender.validate(
+        [{ tenderType: 'cash', amountPiasters: 5000 }],
+        10000,
+      );
+      expect(result.isFail()).toBe(true);
+      expect(result.getError()).toMatch(/must equal/);
+    });
+    it('rejects zero amount', () => {
+      const result = SplitTender.validate(
+        [{ tenderType: 'cash', amountPiasters: 0 }],
+        5000,
+      );
+      expect(result.isFail()).toBe(true);
     });
   });
 });

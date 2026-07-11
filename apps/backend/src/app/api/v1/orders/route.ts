@@ -60,6 +60,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       repos.batchRepo,
       null,
       null,
+      repos.discountRepo,
+      repos.couponRepo,
+      repos.taxRuleRepo,
     );
     const { order } = await command.execute({
       companyId,

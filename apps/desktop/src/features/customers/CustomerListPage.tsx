@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../lib/store/hooks';
+import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
   fetchCustomers,
   createCustomer,
   selectCustomer,
-} from '../lib/store/customersSlice';
-import { CustomerCard, LoyaltyRedemptionDialog } from '@packages/ui-components';
+  redeemLoyalty,
+} from '../../lib/store/customersSlice';
+import { CustomerCard, LoyaltyTierBadge, LoyaltyRedemptionDialog } from '@packages/ui-components';
 import { useToast } from '@packages/ui-components';
 import { Modal, Field } from '@packages/ui-components';
+import { CustomerProfilePage } from './CustomerProfilePage';
 
 const PAGE_SIZE = 50;
 
@@ -178,7 +180,7 @@ export function CustomerListPage(): React.ReactElement {
           customerId={redeemCustomerId}
           availablePoints={customers.find((c: any) => c.id === redeemCustomerId)?.loyaltyBalance ?? 0}
           onConfirm={async (points) => {
-            await dispatch(import('../lib/store/customersSlice').then(m => m.redeemLoyalty({ customerId: redeemCustomerId, points, orderId: null })));
+            await dispatch(redeemLoyalty({ customerId: redeemCustomerId, points, orderId: undefined }));
           }}
         />
       )}

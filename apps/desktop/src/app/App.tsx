@@ -13,8 +13,11 @@ import {
 import { CatalogPage } from '../features/catalog/CatalogPage';
 import { PurchasingPage } from '../features/purchasing/PurchasingPage';
 import { CustomerListPage } from '../features/customers/CustomerListPage';
+import { SupplierListPage } from '../features/suppliers/SupplierListPage';
 import { PosRegisterPage } from '../features/pos/PosRegisterPage';
 import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel';
+import { DiscountRuleBuilderPage, CouponManagementPage, DiscountsPage } from '../features/discounts';
+import { TaxRuleEditorPage, PriceChangePage, PricingPage } from '../features/pricing';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
 import { useAppDispatch, useAppSelector } from '../lib/store/hooks';
@@ -46,7 +49,7 @@ export default function App() {
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'pos'>('catalog');
+  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing'>('catalog');
   const [showMfaSetup, setShowMfaSetup] = useState(false);
   const [setupCode, setSetupCode] = useState('');
   const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
@@ -341,13 +344,34 @@ export default function App() {
               </button>
               <button
                 type="button"
+                className={`top-nav__item${activeView === 'suppliers' ? ' active' : ''}`}
+                onClick={() => setActiveView('suppliers')}
+              >
+                <Icon name="box" size={16} /> Suppliers
+              </button>
+              <button
+                type="button"
                 className={`top-nav__item${activeView === 'pos' ? ' active' : ''}`}
                 onClick={() => setActiveView('pos')}
               >
                 <Icon name="credit-card" size={16} /> POS
               </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'discounts' ? ' active' : ''}`}
+                onClick={() => setActiveView('discounts')}
+              >
+                <Icon name="tag" size={16} /> Discounts
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'pricing' ? ' active' : ''}`}
+                onClick={() => setActiveView('pricing')}
+              >
+                <Icon name="percent" size={16} /> Pricing
+              </button>
           </nav>
-          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'pos' ? <PosRegisterPage /> : <CustomerListPage />}
+          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'pricing' ? <PricingPage /> : <PosRegisterPage />}
           <HealthScreen {...status} />
         </>
       )}

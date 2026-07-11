@@ -1,38 +1,32 @@
 import { HybridLogicalClock } from '@packages/shared-kernel';
+import { HlcConcurrentDetector } from './hlc-concurrent-detector.service';
 
 /**
  * HLCMergeService implements per-field HLC merge for Class B entities.
- * Two changes are concurrent if neither HLC is derivable as causally after the other.
+ * Delegates to HlcConcurrentDetector for the causal/concurrency checks.
  */
 export class HLCMergeService {
   /**
    * Given two versions of the same field (each with an HLC timestamp),
    * returns the winning value or null to indicate a manual conflict.
-   *
-   * - If one HLC is causally after the other → winner is the later HLC.
-   * - If both HLCs are concurrent → returns null (manual conflict required).
    */
   public static mergeField<T>(
     local: { value: T; hlc: HybridLogicalClock },
     remote: { value: T; hlc: HybridLogicalClock },
   ): { value: T; conflict: false } | { value: null; conflict: true } {
-    const cmp = local.hlc.compare(remote.hlc);
-    if (cmp > 0) return { value: local.value, conflict: false }; // local is later
-    if (cmp < 0) return { value: remote.value, conflict: false }; // remote is later
-    // Exactly equal HLC AND same nodeId → idempotent, same value
-    if (local.hlc.nodeId === remote.hlc.nodeId) {
+    const remoteAfter = HlcConcurrentDetector.isCausallyAfter(remote.hlc, local.hlc);
+    const localAfter = HlcConcurrentDetector.isCausallyAfter(local.hlc, remote.hlc);
+
+    if (remoteAfter) return { value: remote.value, conflict: false };
+    if (localAfter) return { value: local.value, conflict: false };
+    if (HlcConcurrentDetector.isSameEvent(remote.hlc, local.hlc)) {
       return { value: local.value, conflict: false };
     }
-    // Concurrent edits from different nodes on the same field → conflict
     return { value: null, conflict: true };
   }
 
-  /**
-   * Detects whether two field-level changes are truly concurrent
-   * (neither device had seen the other's change at write time).
-   */
   public static areConcurrent(a: HybridLogicalClock, b: HybridLogicalClock): boolean {
-    return a.compare(b) === 0 && a.nodeId !== b.nodeId;
+    return HlcConcurrentDetector.isConcurrentConflict(a, b);
   }
 }
 
@@ -54,3 +48,13 @@ export class IdempotencyChecker {
     this.appliedIds.add(changeId);
   }
 }
+
+export { HlcConcurrentDetector } from './hlc-concurrent-detector.service';
+export { ClassAMergeService } from './class-a-merge.service';
+export type {
+  ClassAEvent,
+  ClassAEventType,
+  ClassAProjection,
+} from './class-a-merge.service';
+export { ClassBMergeService } from './class-b-merge.service';
+export type { FieldState, FieldConflict, ClassBMergeResult } from './class-b-merge.service';

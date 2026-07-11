@@ -58,3 +58,5 @@ export class Discrepancy {
     return this.expectedQuantity - this.actualQuantity;
   }
 }
+
+export { SupplierContact } from './supplier-contact.vo';

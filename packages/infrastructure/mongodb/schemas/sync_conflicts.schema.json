@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sync_conflicts",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "entity_type",
+    "entity_id",
+    "field",
+    "local_value",
+    "remote_value",
+    "local_hlc",
+    "remote_hlc",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "entity_type": { "bsonType": "string", "minLength": 1 },
+    "entity_id": { "bsonType": "string", "minLength": 1 },
+    "field": { "bsonType": "string", "minLength": 1 },
+    "local_value": {},
+    "remote_value": {},
+    "local_hlc": { "bsonType": "string" },
+    "remote_hlc": { "bsonType": "string" },
+    "status": {
+      "bsonType": "string",
+      "enum": ["unresolved", "resolved_local", "resolved_remote", "resolved_merge"]
+    },
+    "resolved_by": { "bsonType": ["string", "null"] },
+    "resolved_at": { "bsonType": ["date", "null"] },
+    "audit_trail": { "bsonType": "array" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

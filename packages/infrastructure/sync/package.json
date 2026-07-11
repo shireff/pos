@@ -1,0 +1,21 @@
+{
+  "name": "@packages/infrastructure-sync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/application-sync": "*",
+    "@packages/domain-sync": "*",
+    "@packages/shared-kernel": "*",
+    "mongodb": "^6.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -13,6 +13,7 @@
     "@packages/ui-components": "*",
     "@packages/infrastructure-mongodb": "*",
     "@packages/infrastructure-backup": "*",
+    "@packages/infrastructure-hardware": "*",
     "@tauri-apps/api": "^1.6.0",
     "axios": "^1.6.0",
     "react": "^18.3.1",

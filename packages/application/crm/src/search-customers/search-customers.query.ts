@@ -1,11 +1,12 @@
-import { Customer } from '@packages/domain-crm';
+import { Customer, CustomerStatus } from '@packages/domain-crm';
 import { CustomerRepository } from '../ports';
 
 export interface SearchCustomersInput {
   companyId: string;
   query: string;
-  isActive?: boolean;
+  status?: CustomerStatus;
   limit?: number;
+  offset?: number;
 }
 
 export interface SearchCustomersResult {
@@ -19,7 +20,9 @@ export class SearchCustomersQuery {
   async execute(input: SearchCustomersInput): Promise<SearchCustomersResult> {
     const customers = await this.customerRepo.findByCompany(input.companyId, {
       search: input.query,
-      isActive: input.isActive,
+      status: input.status,
+      limit: input.limit,
+      offset: input.offset,
     });
 
     return {

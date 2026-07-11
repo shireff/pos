@@ -2,6 +2,11 @@ import {
   Order,
   Return,
   ShiftSession,
+  Payment,
+  PaymentMethod,
+  PaymentTransaction,
+  TenderType,
+  PaymentTransactionStatus,
 } from '@packages/domain-sales';
 import {
   StockMovementEventRepository,
@@ -9,7 +14,9 @@ import {
   BatchRepository,
   WarehouseRepository,
 } from '@packages/application-inventory';
-import { TenderType } from '@packages/domain-sales';
+import { DiscountRepository } from '@packages/application-promotions';
+import { CouponRepository } from '@packages/application-promotions';
+import { TaxRuleRepository } from '@packages/application-tax';
 
 export type { StockMovementEventRepository, StockItemRepository, BatchRepository, WarehouseRepository };
 
@@ -41,6 +48,19 @@ export interface ShiftSessionRepository {
   findOpenForCashier(companyId: string, branchId: string, cashierId: string): Promise<ShiftSession | null>;
   findByCashier(companyId: string, cashierId: string): Promise<ShiftSession[]>;
   save(session: ShiftSession): Promise<void>;
+}
+
+export interface PaymentTransactionRepository {
+  findById(id: string): Promise<PaymentTransaction | null>;
+  findByOrder(orderId: string): Promise<PaymentTransaction[]>;
+  findByCompanyAndDateRange(companyId: string, from: string, to: string): Promise<PaymentTransaction[]>;
+  save(transaction: PaymentTransaction): Promise<void>;
+}
+
+export interface PaymentMethodRepository {
+  findByCompany(companyId: string): Promise<PaymentMethod[]>;
+  findById(id: string): Promise<PaymentMethod | null>;
+  save(method: PaymentMethod): Promise<void>;
 }
 
 /**
@@ -89,4 +109,27 @@ export interface CashDrawer {
   open(): Promise<{ success: boolean }>;
 }
 
-export type { Order, Return, ShiftSession, TenderType };
+/**
+ * BarcodeScanner emits a raw decoded string when a barcode is read. The scanner
+ * adapter's only job is to surface the decoded string; checksum validation and
+ * duplicate detection happen at the UI/application layer (Hardware.md §3).
+ */
+export type Unsubscribe = () => void;
+
+export interface BarcodeScanner {
+  /** Begin listening; returns an unsubscribe function. */
+  onScan(handler: (code: string) => void): Unsubscribe;
+}
+
+export type {
+  Order,
+  Return,
+  ShiftSession,
+  Payment,
+  PaymentMethod,
+  PaymentTransaction,
+  TenderType,
+  PaymentTransactionStatus,
+};
+
+export type { DiscountRepository, CouponRepository, TaxRuleRepository };

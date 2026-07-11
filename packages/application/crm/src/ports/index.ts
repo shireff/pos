@@ -4,11 +4,14 @@ import {
   LoyaltyEvent,
   CreditLedger,
   CreditLedgerEntry,
+  CustomerStatus,
 } from '@packages/domain-crm';
 
 export interface CustomerFilter {
   search?: string;
-  isActive?: boolean;
+  status?: CustomerStatus;
+  limit?: number;
+  offset?: number;
 }
 
 export interface CustomerRepository {

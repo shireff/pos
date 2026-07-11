@@ -1,48 +1,54 @@
 import { DomainEventBase } from '@packages/shared-kernel';
 
-export class TaxRuleChanged extends DomainEventBase {
+export class TaxRuleCreated extends DomainEventBase {
   public readonly companyId: string;
-  public readonly beforeJson: string;
-  public readonly afterJson: string;
+  public readonly name: string;
 
-  public constructor(props: {
-    taxRuleId: string;
-    companyId: string;
-    before: object;
-    after: object;
-  }) {
+  public constructor(props: { taxRuleId: string; companyId: string; name: string }) {
     super(props.taxRuleId, 'TaxRule');
     this.companyId = props.companyId;
-    this.beforeJson = JSON.stringify(props.before);
-    this.afterJson = JSON.stringify(props.after);
+    this.name = props.name;
   }
 }
 
-export class ETAModuleActivated extends DomainEventBase {
+export class TaxRuleUpdated extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly name: string;
+
+  public constructor(props: { taxRuleId: string; companyId: string; name: string }) {
+    super(props.taxRuleId, 'TaxRule');
+    this.companyId = props.companyId;
+    this.name = props.name;
+  }
+}
+
+export class PriceChangeRequested extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly productId: string;
+  public readonly newPricePiasters: number;
+
+  public constructor(props: { priceChangeId: string; companyId: string; productId: string; newPricePiasters: number }) {
+    super(props.priceChangeId, 'PriceChange');
+    this.companyId = props.companyId;
+    this.productId = props.productId;
+    this.newPricePiasters = props.newPricePiasters;
+  }
+}
+
+export class PriceChangeApproved extends DomainEventBase {
   public readonly companyId: string;
 
-  public constructor(props: { companyId: string }) {
-    super(props.companyId, 'Company');
+  public constructor(props: { priceChangeId: string; companyId: string }) {
+    super(props.priceChangeId, 'PriceChange');
     this.companyId = props.companyId;
   }
 }
 
-export class ETAInvoiceSubmitted extends DomainEventBase {
-  public readonly orderId: string;
-  public readonly etaUuid: string;
+export class PriceChangeRejected extends DomainEventBase {
+  public readonly companyId: string;
 
-  public constructor(props: { etaInvoiceId: string; orderId: string; etaUuid: string }) {
-    super(props.etaInvoiceId, 'ETAInvoice');
-    this.orderId = props.orderId;
-    this.etaUuid = props.etaUuid;
-  }
-}
-
-export class ETAInvoiceSubmissionFailed extends DomainEventBase {
-  public readonly orderId: string;
-
-  public constructor(props: { etaInvoiceId: string; orderId: string }) {
-    super(props.etaInvoiceId, 'ETAInvoice');
-    this.orderId = props.orderId;
+  public constructor(props: { priceChangeId: string; companyId: string }) {
+    super(props.priceChangeId, 'PriceChange');
+    this.companyId = props.companyId;
   }
 }

@@ -1,5 +1,5 @@
 import { Customer, LoyaltyAccount, LoyaltyEvent, CreditLedger, CreditLedgerEntry } from '@packages/domain-crm';
-import { CustomerRepository, LoyaltyAccountRepository, CreditLedgerBalanceRepository } from '../ports';
+import { CustomerRepository, LoyaltyAccountRepository, CreditLedgerBalanceRepository, LoyaltyEventRepository, CreditLedgerRepository } from '../ports';
 
 export interface GetCustomerInput {
   companyId: string;
@@ -19,8 +19,8 @@ export class GetCustomerQuery {
     private readonly customerRepo: CustomerRepository,
     private readonly loyaltyAccountRepo: LoyaltyAccountRepository,
     private readonly creditLedgerRepo: CreditLedgerBalanceRepository,
-    private readonly loyaltyEventRepo: { findByCustomer(customerId: string, companyId: string, limit: number): Promise<LoyaltyEvent[]> },
-    private readonly creditEntryRepo: { findByCustomer(customerId: string, companyId: string, limit: number): Promise<CreditLedgerEntry[]> },
+    private readonly loyaltyEventRepo: LoyaltyEventRepository,
+    private readonly creditEntryRepo: CreditLedgerRepository,
   ) {}
 
   async execute(input: GetCustomerInput): Promise<GetCustomerResult> {
@@ -31,8 +31,8 @@ export class GetCustomerQuery {
 
     const loyaltyAccount = await this.loyaltyAccountRepo.findByCustomer(input.customerId, input.companyId);
     const creditLedger = await this.creditLedgerRepo.findByCustomer(input.customerId, input.companyId);
-    const recentEvents = await this.loyaltyEventRepo.findByCustomer(input.customerId, input.companyId, 10);
-    const recentCreditEntries = await this.creditEntryRepo.findByCustomer(input.customerId, input.companyId, 10);
+    const recentEvents = await this.loyaltyEventRepo.findByCustomer(input.customerId, input.companyId, 10, 0);
+    const recentCreditEntries = await this.creditEntryRepo.findByCustomer(input.customerId, input.companyId, 10, 0);
 
     return {
       customer,

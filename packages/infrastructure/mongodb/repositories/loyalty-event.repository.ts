@@ -1,7 +1,5 @@
-import {
-  LoyaltyEvent,
-  LoyaltyEventRepository,
-} from '@packages/application-crm';
+import { LoyaltyEvent } from '@packages/domain-crm';
+import { LoyaltyEventRepository } from '@packages/application-crm';
 import { getMongoDb } from '../src/mongo-connection';
 
 export class MongoLoyaltyEventRepository implements LoyaltyEventRepository {
@@ -45,6 +43,14 @@ export class MongoLoyaltyEventRepository implements LoyaltyEventRepository {
   async countByCustomer(customerId: string, companyId: string): Promise<number> {
     const db = await getMongoDb();
     return db.collection<any>('loyalty_events').countDocuments({ customer_id: customerId, company_id: companyId });
+  }
+
+  async update(_id: string, _patch: Record<string, unknown>): Promise<void> {
+    throw new Error('loyalty_events is append-only: UPDATE is not permitted');
+  }
+
+  async delete(_id: string): Promise<void> {
+    throw new Error('loyalty_events is append-only: DELETE is not permitted');
   }
 
   private reconstitute(doc: any): LoyaltyEvent {

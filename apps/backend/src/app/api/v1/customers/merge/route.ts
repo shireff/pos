@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MergeCustomersCommand } from '@packages/application-crm';
-import { assertCustomersPermission } from '../../../../lib/customers-permissions';
-import { handleApiError, ValidationError } from '../../../../lib/errors';
+import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
+import { handleApiError, ValidationError } from '../../../../../lib/errors';
 import { MongoCustomerRepository } from '@packages/infrastructure-mongodb';
-import { MergeCustomersSchema } from '../customers/customers.schemas';
+import { MergeCustomersSchema } from '../customers.schemas';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

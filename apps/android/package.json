@@ -13,10 +13,12 @@
     "cap:run": "cap run android"
   },
   "dependencies": {
+    "@capacitor-community/barcode-scanner": "^3.0.0",
     "@capacitor/android": "6.1.2",
     "@capacitor/core": "6.1.2",
     "@capacitor/preferences": "^6.0.4",
     "@packages/shared-kernel": "*",
+    "@packages/infrastructure-hardware": "*",
     "@packages/ui-components": "*",
     "@reduxjs/toolkit": "^1.9.5",
     "axios": "^1.6.0",

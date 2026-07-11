@@ -65,6 +65,29 @@ export type { LoyaltyRedemptionDialogProps } from './customers/LoyaltyRedemption
 export { CustomerSearchSheet } from './customers/CustomerSearchSheet';
 export type { CustomerSearchSheetProps, CustomerSearchResult } from './customers/CustomerSearchSheet';
 
+export { DigitalReceiptModal } from './pos/DigitalReceiptModal';
+export type { DigitalReceiptModalProps, DigitalReceiptLine } from './pos/DigitalReceiptModal';
+
+/* Sync (offline multi-device) components */
+export { SyncStatusIndicator } from './sync/SyncStatusIndicator';
+export type { SyncStatusIndicatorProps } from './sync/SyncStatusIndicator';
+export { ConflictResolutionPanel } from './sync/ConflictResolutionPanel';
+export type {
+  ConflictResolutionPanelProps,
+  ConflictWinner,
+} from './sync/ConflictResolutionPanel';
+export {
+  SyncStore,
+  syncStore,
+  useSyncStore,
+} from './stores/sync.store';
+export type {
+  SyncState,
+  SyncStatusView,
+  SyncConflictView,
+  SyncTransportType,
+} from './stores/sync.store';
+
 /* i18n + formatting */
 export { LocaleProvider, useLocale, useT, useTranslation, translate, DEFAULT_LOCALE, ARABIC_LOCALE } from './i18n/index';
 export type { Locale, Dict } from './i18n/index';

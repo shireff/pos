@@ -7,9 +7,13 @@ import salesReducer from './salesSlice';
 import inventoryReducer from './inventorySlice';
 import purchasingReducer from './purchasingSlice';
 import customersReducer from './customersSlice';
+import suppliersReducer from './suppliersSlice';
 import reportsReducer from './reportsSlice';
 import aiReducer from './aiSlice';
 import syncReducer from './syncSlice';
+import promotionsReducer from './promotionsSlice';
+import taxRulesReducer from './taxRulesSlice';
+import priceChangesReducer from './priceChangesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -21,9 +25,13 @@ export const store = configureStore({
     inventory: inventoryReducer,
     purchasing: purchasingReducer,
     customers: customersReducer,
+    suppliers: suppliersReducer,
     reports: reportsReducer,
     ai: aiReducer,
     sync: syncReducer,
+    promotions: promotionsReducer,
+    taxRules: taxRulesReducer,
+    priceChanges: priceChangesReducer,
   },
 });
 

@@ -3,8 +3,8 @@ import {
   GetCustomerQuery,
   UpdateCustomerCommand,
 } from '@packages/application-crm';
-import { assertCustomersPermission, getActorId } from '../../../../lib/customers-permissions';
-import { handleApiError, ValidationError } from '../../../../lib/errors';
+import { assertCustomersPermission, getActorId } from '../../../../../lib/customers-permissions';
+import { handleApiError, ValidationError } from '../../../../../lib/errors';
 import {
   MongoCustomerRepository,
   MongoLoyaltyAccountRepository,
@@ -12,7 +12,7 @@ import {
   MongoCreditLedgerBalanceRepository,
   MongoCreditLedgerEntryRepository,
 } from '@packages/infrastructure-mongodb';
-import { UpdateCustomerSchema } from '../customers/customers.schemas';
+import { UpdateCustomerSchema } from '../customers.schemas';
 
 export async function GET(
   request: NextRequest,

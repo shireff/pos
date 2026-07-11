@@ -77,3 +77,5 @@ export class SupplierInvoiceOCRExtracted extends DomainEventBase {
     this.fieldCount = props.fieldCount;
   }
 }
+
+export { SupplierCreated, SupplierPaymentRecorded } from './supplier-events';

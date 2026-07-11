@@ -25,3 +25,7 @@ export type ReturnStatus = 'pending_approval' | 'approved' | 'rejected';
 export type RefundMethod = TenderType | 'store_credit';
 
 export type ShiftStatus = 'open' | 'closed';
+
+export type PaymentTransactionStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'partially_refunded';
+
+export { SplitTender, type TenderInput } from './split-tender.vo';

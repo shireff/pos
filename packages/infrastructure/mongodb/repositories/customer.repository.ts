@@ -1,9 +1,6 @@
 import { Db } from 'mongodb';
-import {
-  Customer,
-  CustomerFilter,
-  CustomerRepository,
-} from '@packages/application-crm';
+import { Customer, CustomerStatus } from '@packages/domain-crm';
+import { CustomerFilter, CustomerRepository } from '@packages/application-crm';
 import { getMongoDb } from '../src/mongo-connection';
 
 export class MongoCustomerRepository implements CustomerRepository {
@@ -21,7 +18,7 @@ export class MongoCustomerRepository implements CustomerRepository {
   async findByCompany(companyId: string, filter?: CustomerFilter): Promise<Customer[]> {
     const db = await getMongoDb();
     const query: Record<string, unknown> = { company_id: companyId };
-    if (filter?.isActive !== undefined) query.is_active = filter.isActive;
+    if (filter?.status !== undefined) query.is_active = filter.status === CustomerStatus.Active;
     if (filter?.search) {
       const regex = new RegExp(filter.search, 'i');
       query.$or = [
@@ -31,7 +28,10 @@ export class MongoCustomerRepository implements CustomerRepository {
         { loyalty_code: regex },
       ];
     }
-    const docs = await db.collection<any>('customers').find(query).sort({ created_at: -1 }).toArray();
+    let cursor = db.collection<any>('customers').find(query).sort({ created_at: -1 });
+    if (filter?.limit) cursor = cursor.limit(filter.limit);
+    if (filter?.offset) cursor = cursor.skip(filter.offset);
+    const docs = await cursor.toArray();
     return docs.map((d) => this.reconstitute(d));
   }
 
@@ -57,7 +57,7 @@ export class MongoCustomerRepository implements CustomerRepository {
           loyalty_code: snap.loyaltyCode,
           loyalty_tier_id: snap.loyaltyTierId,
           credit_limit_piasters: snap.creditLimitPiasters,
-          is_active: snap.isActive,
+          is_active: snap.status === CustomerStatus.Active,
           notes: snap.notes,
           updated_at: now,
         },
@@ -77,7 +77,7 @@ export class MongoCustomerRepository implements CustomerRepository {
       loyaltyCode: doc.loyalty_code,
       loyaltyTierId: doc.loyalty_tier_id,
       creditLimitPiasters: doc.credit_limit_piasters ?? 0,
-      isActive: doc.is_active ?? true,
+      status: doc.is_active ? CustomerStatus.Active : CustomerStatus.Inactive,
       notes: doc.notes ?? null,
       createdAt: doc.created_at?.toISOString() || new Date().toISOString(),
       updatedAt: doc.updated_at?.toISOString() || new Date().toISOString(),

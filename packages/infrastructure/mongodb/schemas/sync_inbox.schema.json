@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sync_inbox",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "event_id",
+    "event_type",
+    "payload",
+    "company_id",
+    "source_device_id",
+    "status",
+    "hlc_timestamp",
+    "received_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "event_id": { "bsonType": "string" },
+    "event_type": { "bsonType": "string", "minLength": 1 },
+    "payload": { "bsonType": "object" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "source_device_id": { "bsonType": "string", "minLength": 1 },
+    "status": { "bsonType": "string", "enum": ["pending", "applied", "conflict"] },
+    "hlc_timestamp": { "bsonType": "string" },
+    "received_at": { "bsonType": "date" },
+    "applied_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}
