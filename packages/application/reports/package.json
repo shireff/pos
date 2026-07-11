@@ -1,0 +1,25 @@
+{
+  "type": "module",
+  "name": "@packages/application-reports",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/application-inventory": "*",
+    "@packages/application-purchasing": "*",
+    "@packages/application-sales": "*",
+    "@packages/domain-inventory": "*",
+    "@packages/domain-sales": "*",
+    "@packages/domain-purchasing": "*",
+    "@packages/domain-crm": "*",
+    "@packages/shared-kernel": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

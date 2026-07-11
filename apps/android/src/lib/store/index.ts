@@ -10,6 +10,7 @@ import suppliersReducer from './suppliersSlice';
 import promotionsReducer from './promotionsSlice';
 import taxRulesReducer from './taxRulesSlice';
 import priceChangesReducer from './priceChangesSlice';
+import reportsReducer from './reportsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     promotions: promotionsReducer,
     taxRules: taxRulesReducer,
     priceChanges: priceChangesReducer,
+    reports: reportsReducer,
   },
 });
 

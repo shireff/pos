@@ -97,6 +97,15 @@ export enum ApiEndpoints {
     // ── Reports ───────────────────────────────────────────────────
     ReportsDailySales = '/api/v1/reports/daily-sales',
     ReportsProfitLoss = '/api/v1/reports/profit-loss',
+    ReportsInventoryValuation = '/api/v1/reports/inventory-valuation',
+    ReportsStockMovements = '/api/v1/reports/stock-movements',
+    ReportsBranchComparison = '/api/v1/reports/branch-comparison',
+    ReportsEmployeePerformance = '/api/v1/reports/employee-performance',
+    ReportsCustomerLoyalty = '/api/v1/reports/customer-loyalty',
+    ReportsTax = '/api/v1/reports/tax',
+    ReportsSupplierPerformance = '/api/v1/reports/supplier-performance',
+    ReportsStoreHealth = '/api/v1/reports/store-health',
+    ReportsCashFlow = '/api/v1/reports/cash-flow',
 
     // ── AI ────────────────────────────────────────────────────────
     AiAssistantQuery = '/api/v1/ai/assistant/query',

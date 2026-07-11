@@ -27,12 +27,14 @@ import { DiscountRulesPage } from '../features/promotions/DiscountRulesPage';
 import { CouponsPage } from '../features/promotions/CouponsPage';
 import { TaxRulesPage } from '../features/pricing/TaxRulesPage';
 import { PriceChangesPage } from '../features/pricing/PriceChangesPage';
+import { ReportsScreen } from '../features/reports/ReportsScreen';
 import { ApiEndpoints } from '../lib/api/endpoints';
 import { client } from '../lib/api/client';
 
 const bridge = new CapacitorHealthBridge();
 
-type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing';
+type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing' | 'reports' | 'coupons' | 'tax-rules';
+
 
 export default function AndroidPage() {
   const t = useT();
@@ -191,7 +193,7 @@ export default function AndroidPage() {
 
         <div className="status-card" style={{ width: '100%', maxWidth: 360, marginTop: 'var(--space-4)' }}>
           <p className="section-label">{t('health.status')}</p>
-          {healthError && <div className="status-row"><span className="status-label">Error</span><span className="status-value" style={{ color: 'var(--color-danger)' }}>✕ {healthError}</span></div>}
+          {healthError && <div className="status-row"><span className="status-label">{t('common.error')}</span><span className="status-value" style={{ color: 'var(--color-danger)' }}>✕ {healthError}</span></div>}
           {!health && !healthError && <div className="status-row"><span className="status-label">…</span><span className="status-value" style={{ color: 'var(--color-warning)' }}>⏳</span></div>}
           {health && (
             <>
@@ -225,16 +227,41 @@ export default function AndroidPage() {
   const tabs: { id: ActiveTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
     { id: 'catalog', label: t('catalog.products'), icon: 'package' },
     { id: 'categories', label: t('categories.title'), icon: 'tag' },
-    { id: 'purchasing', label: 'Purchasing', icon: 'shopping-cart' },
-    { id: 'pos', label: 'POS', icon: 'credit-card' },
-    { id: 'customers', label: 'Customers', icon: 'users' },
-    { id: 'suppliers', label: 'Suppliers', icon: 'box' },
-    { id: 'discounts', label: 'Discounts', icon: 'tag' },
-    { id: 'pricing', label: 'Pricing', icon: 'percent' },
+    { id: 'purchasing', label: t('purchasing.title'), icon: 'shopping-cart' },
+    { id: 'pos', label: t('pos.title'), icon: 'credit-card' },
+    { id: 'customers', label: t('nav.customers'), icon: 'users' },
+    { id: 'suppliers', label: t('suppliers.title'), icon: 'box' },
+    { id: 'discounts', label: t('discounts.title'), icon: 'tag' },
+    { id: 'pricing', label: t('nav.pricing'), icon: 'percent' },
+    { id: 'reports', label: t('reports.title'), icon: 'bar-chart' },
+    { id: 'coupons', label: t('coupons.title'), icon: 'qr' },
+    { id: 'tax-rules', label: t('taxRules.title'), icon: 'receipt' },
   ];
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg-base)', display: 'flex', flexDirection: 'column' }}>
+      <header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 10, background: 'var(--color-bg-base)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', minWidth: 0 }}>
+          <Icon name="smartphone" size={20} />
+          <span className="app-header__title" style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{t('app.name')}</span>
+          {system.subscription?.status && <StatusBadge status={system.subscription.status} />}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowPinPad(true)}>
+            <Icon name="lock" size={16} />
+            {t('auth.offlinePin')}
+          </button>
+          <button type="button" className="btn btn-secondary btn-sm" disabled={isLoading} onClick={() => void handleRegisterDevice()}>
+            <Icon name="smartphone" size={16} />
+            {t('system.registerDevice')}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void dispatch(logout())}>
+            <Icon name="log-out" size={16} />
+            {t('common.logout')}
+          </button>
+        </div>
+      </header>
+
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(var(--space-16) + env(safe-area-inset-bottom, 0px))' }}>
          {activeTab === 'catalog' && <ProductListPage />}
          {activeTab === 'categories' && <CategoryTreePage />}
@@ -244,7 +271,11 @@ export default function AndroidPage() {
           {activeTab === 'suppliers' && <SupplierListPage />}
          {activeTab === 'discounts' && <DiscountRulesPage />}
          {activeTab === 'pricing' && <PriceChangesPage />}
+         {activeTab === 'reports' && <ReportsScreen />}
+         {activeTab === 'coupons' && <CouponsPage />}
+         {activeTab === 'tax-rules' && <TaxRulesPage />}
        </div>
+
 
       <nav className="tab-bar-bottom" aria-label={t('nav.main')}>
         {tabs.map((tab) => (
@@ -260,6 +291,42 @@ export default function AndroidPage() {
           </button>
         ))}
       </nav>
+
+      {showPinPad && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('auth.offlinePin')}
+          style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)' }}
+          onClick={() => setShowPinPad(false)}
+        >
+          <div
+            style={{ background: 'var(--color-bg-base)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-5)', width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="section-label" style={{ textAlign: 'center' }}>{t('auth.offlinePin')}</p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <span
+                  key={i}
+                  style={{ width: 12, height: 12, borderRadius: '50%', background: i < pinDigits.length ? 'var(--color-text-primary)' : 'var(--color-border)' }}
+                />
+              ))}
+            </div>
+            {pinError && <div className="error-banner">{pinError}</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)' }}>
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((k) => (
+                <button key={k} type="button" className="btn btn-secondary" style={{ fontSize: 18, padding: 'var(--space-3)' }} onClick={() => handlePinKey(k)}>
+                  {k}
+                </button>
+              ))}
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowPinPad(false)}>
+              {t('common.close')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

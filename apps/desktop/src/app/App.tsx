@@ -18,6 +18,7 @@ import { PosRegisterPage } from '../features/pos/PosRegisterPage';
 import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel';
 import { DiscountRuleBuilderPage, CouponManagementPage, DiscountsPage } from '../features/discounts';
 import { TaxRuleEditorPage, PriceChangePage, PricingPage } from '../features/pricing';
+import { OwnerDashboard, BranchManagerDashboard, CashierDashboard } from '../features/reports';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
 import { useAppDispatch, useAppSelector } from '../lib/store/hooks';
@@ -49,7 +50,7 @@ export default function App() {
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing'>('catalog');
+  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing' | 'reports' | 'discount-rules' | 'coupons' | 'tax-rules' | 'price-changes'>('catalog');
   const [showMfaSetup, setShowMfaSetup] = useState(false);
   const [setupCode, setSetupCode] = useState('');
   const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
@@ -370,8 +371,49 @@ export default function App() {
               >
                 <Icon name="percent" size={16} /> Pricing
               </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'reports' ? ' active' : ''}`}
+                onClick={() => setActiveView('reports')}
+              >
+                <Icon name="bar-chart" size={16} /> Reports
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'discount-rules' ? ' active' : ''}`}
+                onClick={() => setActiveView('discount-rules')}
+              >
+                <Icon name="tag" size={16} /> Discount Rules
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'coupons' ? ' active' : ''}`}
+                onClick={() => setActiveView('coupons')}
+              >
+                <Icon name="qr" size={16} /> Coupons
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'tax-rules' ? ' active' : ''}`}
+                onClick={() => setActiveView('tax-rules')}
+              >
+                <Icon name="receipt" size={16} /> Tax Rules
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'price-changes' ? ' active' : ''}`}
+                onClick={() => setActiveView('price-changes')}
+              >
+                <Icon name="wallet" size={16} /> Price Changes
+              </button>
           </nav>
-          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'pricing' ? <PricingPage /> : <PosRegisterPage />}
+          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'discount-rules' ? <DiscountRuleBuilderPage /> : activeView === 'coupons' ? <CouponManagementPage /> : activeView === 'pricing' ? <PricingPage /> : activeView === 'tax-rules' ? <TaxRuleEditorPage /> : activeView === 'price-changes' ? <PriceChangePage /> : activeView === 'reports' ? (() => {
+            const roles = auth.branchRoles ?? [];
+            if (roles.includes('reports.all_branches')) return <OwnerDashboard isOffline={isOffline} />;
+            if (roles.includes('reports.view.inventory')) return <BranchManagerDashboard isOffline={isOffline} />;
+            return <CashierDashboard isOffline={isOffline} />;
+          })() : <PosRegisterPage />}
+
           <HealthScreen {...status} />
         </>
       )}
