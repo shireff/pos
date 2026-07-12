@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ai_health_score_snapshots",
+  "bsonType": "object",
+  "required": ["_id", "companyId", "overallScore", "subScores", "narrativeSummary", "topRecommendations", "generatedAt", "source"],
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "companyId": { "bsonType": "string" },
+    "branchId": { "bsonType": ["string", "null"] },
+    "overallScore": { "bsonType": "int", "minimum": 0, "maximum": 100 },
+    "subScores": {
+      "bsonType": "object",
+      "required": ["sales", "inventory", "financial", "employee", "customer"],
+      "properties": {
+        "sales": { "bsonType": "int", "minimum": 0, "maximum": 100 },
+        "inventory": { "bsonType": "int", "minimum": 0, "maximum": 100 },
+        "financial": { "bsonType": "int", "minimum": 0, "maximum": 100 },
+        "employee": { "bsonType": "int", "minimum": 0, "maximum": 100 },
+        "customer": { "bsonType": "int", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "narrativeSummary": { "bsonType": "string" },
+    "topRecommendations": {
+      "bsonType": "array",
+      "items": { "bsonType": "string" }
+    },
+    "generatedAt": { "bsonType": "string" },
+    "source": { "bsonType": "string", "enum": ["local", "nara_router:kimi-k2.7-code-free", "nara_router:mistral-large", "nara_router:mistral-medium-3-5"] }
+  }
+}

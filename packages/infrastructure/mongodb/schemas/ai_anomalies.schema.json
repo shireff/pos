@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ai_anomalies",
+  "bsonType": "object",
+  "required": ["_id", "companyId", "anomalyType", "metricName", "value", "zScore", "generatedAt"],
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "companyId": { "bsonType": "string" },
+    "branchId": { "bsonType": ["string", "null"] },
+    "anomalyType": { "bsonType": "string" },
+    "metricName": { "bsonType": "string" },
+    "value": { "bsonType": "number" },
+    "zScore": { "bsonType": "number" },
+    "label": { "bsonType": "string" },
+    "generatedAt": { "bsonType": "string" }
+  }
+}

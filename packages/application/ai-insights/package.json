@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "name": "@packages/application-ai-insights",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/shared-kernel": "*",
+    "@packages/domain-ai-insights": "*",
+    "@packages/application-ai": "*",
+    "@packages/application-sales": "*",
+    "@packages/application-inventory": "*",
+    "@packages/application-crm": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

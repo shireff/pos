@@ -112,10 +112,10 @@ export enum ApiEndpoints {
   ReportsCashFlow = '/api/v1/reports/cash-flow',
 
   // ── AI ───────────────────────────────────────────────────────
-  AiAssistantQuery = '/api/v1/ai/assistant/query',
-  AiPredictionsSales = '/api/v1/ai/predictions/sales',
-  AiHealthScore = '/api/v1/ai/health-score',
+  AiAssistantQuery = '/api/v1/ai/assistant',
+  AiInsights = '/api/v1/ai/insights',
   AiInsightFeedback = '/api/v1/ai/insights/:id/feedback',
+  AiOcr = '/api/v1/ai/ocr',
 
   // ── Sync ─────────────────────────────────────────────────────
   SyncPush = '/api/v1/sync/push',

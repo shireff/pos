@@ -7,3 +7,4 @@ export * from './drawer/simulated-drawer.adapter';
 export * from './drawer/tauri-drawer.adapter';
 export * from './scanner/hid-scanner.adapter';
 export * from './scanner/capacitor-camera-scanner.adapter';
+export * from './scanner/capacitor-ocr-scanner.adapter';

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ai_insight_feedback",
+  "bsonType": "object",
+  "required": ["_id", "insightId", "accepted", "actingUserId", "occurredAt"],
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "insightId": { "bsonType": "string" },
+    "accepted": { "bsonType": "bool" },
+    "modifiedValue": { "bsonType": ["string", "null"] },
+    "actingUserId": { "bsonType": "string" },
+    "occurredAt": { "bsonType": "string" }
+  }
+}

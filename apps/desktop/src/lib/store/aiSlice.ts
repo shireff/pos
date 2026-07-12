@@ -85,7 +85,7 @@ export const fetchSalesPrediction = createAsyncThunk<
 >('ai/fetchSalesPrediction', async ({ branchId, horizon = 'week' }, thunkAPI) => {
     try {
         const response = await client.get(
-            `${ApiEndpoints.AiPredictionsSales}?branchId=${encodeURIComponent(branchId)}&horizon=${horizon}`,
+            `${ApiEndpoints.AiInsights}?type=sales_prediction&branchId=${encodeURIComponent(branchId)}&horizon=${encodeURIComponent(horizon)}`,
         );
         return response.data.data as AiSalesPrediction;
     } catch (error) {
@@ -106,7 +106,7 @@ export const fetchHealthScore = createAsyncThunk<
 >('ai/fetchHealthScore', async (companyId, thunkAPI) => {
     try {
         const response = await client.get(
-            `${ApiEndpoints.AiHealthScore}?companyId=${encodeURIComponent(companyId)}`,
+            `${ApiEndpoints.AiInsights}?type=health_score&companyId=${encodeURIComponent(companyId)}`,
         );
         return response.data.data as AiHealthScore;
     } catch (error) {

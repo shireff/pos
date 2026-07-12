@@ -114,3 +114,15 @@ export type {
   NotificationPriority,
   NotificationsState,
 } from './stores/notifications.store';
+
+/* AI (Phase 15) */
+export { AssistantPanel } from './ai/AssistantPanel';
+export type { AssistantPanelProps } from './ai/AssistantPanel';
+export { InsightCard } from './ai/InsightCard';
+export type { InsightCardProps } from './ai/InsightCard';
+export { InsightFeedback } from './ai/InsightFeedback';
+export type { InsightFeedbackProps } from './ai/InsightFeedback';
+export { AISourceBadge } from './ai/AISourceBadge';
+export type { AISourceBadgeProps } from './ai/AISourceBadge';
+export { OcrReviewPanel } from './ai/OcrReviewPanel';
+export type { OcrReviewPanelProps, OcrField } from './ai/OcrReviewPanel';

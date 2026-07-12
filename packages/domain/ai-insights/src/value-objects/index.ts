@@ -9,7 +9,11 @@ export type AIInsightType =
   | 'cash_flow_prediction'
   | 'branch_comparison'
   | 'supplier_suggestion'
-  | 'dynamic_pricing';
+  | 'dynamic_pricing'
+  | 'assistant_query'
+  | 'ocr_extraction'
+  | 'smart_alert'
+  | 'price_change';
 
 export type AIRecommendationState = 'generated' | 'presented' | 'accepted' | 'rejected' | 'expired';
 

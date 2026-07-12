@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ai_predictions",
+  "bsonType": "object",
+  "required": ["_id", "companyId", "insightType", "deterministicValue", "deterministicUnit", "narrativeText", "source", "generatedAt", "validUntil"],
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "companyId": { "bsonType": "string" },
+    "branchId": { "bsonType": ["string", "null"] },
+    "insightType": { "bsonType": "string", "enum": ["sales_prediction", "inventory_prediction", "fraud_alert", "dead_product", "health_score", "anomaly", "customer_segment", "cash_flow_prediction", "branch_comparison", "supplier_suggestion", "dynamic_pricing", "assistant_query", "ocr_extraction", "smart_alert", "price_change"] },
+    "deterministicValue": { "bsonType": "number" },
+    "deterministicUnit": { "bsonType": "string" },
+    "narrativeText": { "bsonType": "string" },
+    "source": { "bsonType": "string", "enum": ["local", "nara_router:kimi-k2.7-code-free", "nara_router:mistral-large", "nara_router:mistral-medium-3-5"] },
+    "generatedAt": { "bsonType": "string" },
+    "validUntil": { "bsonType": "string" }
+  }
+}
