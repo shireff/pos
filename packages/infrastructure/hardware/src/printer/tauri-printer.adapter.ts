@@ -64,4 +64,20 @@ export class TauriReceiptPrinter implements ReceiptPrinter {
       throw new PrinterNotAvailableError('Receipt print failed', err);
     }
   }
+
+  public async testPrint(): Promise<PrintResult> {
+    return this.print({
+      orderId: 'TEST',
+      lines: [{ name: 'Test', qty: 1, unitPricePiasters: 0 }],
+      grandTotalPiasters: 0,
+      companyName: 'Smart Retail OS',
+      branchName: 'TEST',
+      cashierId: 'SELF-TEST',
+    });
+  }
+
+  public async getStatus() {
+    const available = await this.transport.isAvailable().catch(() => false);
+    return { connected: available, isNoop: false } as const;
+  }
 }

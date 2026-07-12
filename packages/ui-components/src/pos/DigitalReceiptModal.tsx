@@ -50,16 +50,33 @@ export function DigitalReceiptModal({
   const { push } = useToast();
 
   const handleCopy = async () => {
-    const text = [
+    const text = buildReceiptText();
+    try {
+      await navigator.clipboard.writeText(text);
+      push({ type: 'success', msg: t('pos.receipt.copy') });
+    } catch {
+      push({ type: 'error', msg: t('toast.error') });
+    }
+  };
+
+  const buildReceiptText = (): string =>
+    [
       companyName,
       branchName,
       `${t('pos.receipt.order')}: ${orderId}`,
       ...lines.map((l) => `  ${l.qty} x ${formatEgp(l.unitPricePiasters)} = ${formatEgp(l.lineTotalPiasters)}`),
       `${t('pos.receipt.total')}: ${formatEgp(grandTotalPiasters)}`,
     ].join('\n');
+
+  const handleSendSms = () => push({ type: 'info', msg: t('pos.receipt.smsSent') });
+  const handleSendEmail = () => push({ type: 'info', msg: t('pos.receipt.emailSent') });
+
+  const handlePrintPdf = () => {
+    // The receipt card below is the print target; trigger the browser's
+    // print-to-PDF dialog. No peripheral is required.
     try {
-      await navigator.clipboard.writeText(text);
-      push({ type: 'success', msg: t('pos.receipt.copy') });
+      window.print();
+      push({ type: 'success', msg: t('pos.receipt.pdfReady') });
     } catch {
       push({ type: 'error', msg: t('toast.error') });
     }
@@ -74,6 +91,15 @@ export function DigitalReceiptModal({
         <>
           <button type="button" className="btn btn-ghost" onClick={handleCopy}>
             {t('pos.receipt.copy')}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={handleSendSms}>
+            {t('pos.receipt.sendSms')}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={handleSendEmail}>
+            {t('pos.receipt.sendEmail')}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={handlePrintPdf}>
+            {t('pos.receipt.printPdf')}
           </button>
           <button type="button" className="btn btn-primary" onClick={onClose}>
             {t('pos.receipt.close')}

@@ -19,8 +19,13 @@ describe('E2E Flow #1 — cash sale (e2e/flow-1-cash-sale.e2e.test.ts)', () => {
         printed.push(r);
         return { success: true, fallbackRequired: false };
       }),
+      testPrint: vi.fn(async () => ({ success: true, fallbackRequired: false })),
+      getStatus: vi.fn(async () => ({ connected: true, isNoop: false })),
     };
-    const drawer: CashDrawer = { open: vi.fn().mockResolvedValue({ success: true }) };
+    const drawer: CashDrawer = {
+      open: vi.fn().mockResolvedValue({ success: true }),
+      getStatus: vi.fn(async () => ({ connected: true, isNoop: false })),
+    };
 
     // "scan" → cart line → CreateSaleCommand (the thunk body)
     const cmd = new CreateSaleCommand(
@@ -73,6 +78,8 @@ describe('E2E Flow #1 — cash sale (e2e/flow-1-cash-sale.e2e.test.ts)', () => {
       print: vi.fn(async () => {
         throw new Error('no printer');
       }),
+      testPrint: vi.fn(async () => ({ success: false, fallbackRequired: true })),
+      getStatus: vi.fn(async () => ({ connected: false, isNoop: false, reason: 'no printer' })),
     };
     const { order } = await new CreateSaleCommand(
       repos.orderRepo,

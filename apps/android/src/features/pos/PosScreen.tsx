@@ -75,7 +75,7 @@ export function PosScreen() {
     const [drawerPrompt, setDrawerPrompt] = useState(false);
     const [scanning, setScanning] = useState(false);
     const barcodeRef = useRef<HTMLInputElement>(null);
-    const scannerRef = useRef<{ onScan: (h: (code: string) => void) => () => void; stop: () => Promise<void> } | null>(null);
+    const scannerRef = useRef<{ stopScan: () => void } | null>(null);
 
     useEffect(() => {
         void dispatch(fetchCurrentShift({}));
@@ -242,13 +242,13 @@ export function PosScreen() {
     const handleCameraScan = useCallback(async () => {
         try {
             const scanner = createCameraBarcodeScanner();
-            scannerRef.current = scanner as unknown as { onScan: (h: (code: string) => void) => () => void; stop: () => Promise<void> };
-            scanner.onScan((code) => {
-                void handleScan(code);
+            scannerRef.current = scanner as unknown as { stopScan: () => void };
+            scanner.onScanResult((result) => {
+                void handleScan(result.code);
                 setScanning(false);
-                void (scanner as unknown as { stop: () => Promise<void> }).stop().catch(() => undefined);
+                scanner.stopScan();
             });
-            await (scanner as unknown as { start: () => Promise<void> }).start();
+            scanner.startScan();
             setScanning(true);
         } catch {
             setScanning(false);

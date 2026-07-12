@@ -80,10 +80,11 @@ describe('HidBarcodeScanner (Hardware.md §3)', () => {
     } as unknown as HTMLInputElement;
     const scanner = new HidBarcodeScanner(input);
     const handler = vi.fn();
-    scanner.onScan(handler);
+    scanner.onScanResult(handler);
+    scanner.startScan();
     input.value = '123456789';
     listeners['keydown']?.({ key: 'Enter' } as unknown as KeyboardEvent);
-    expect(handler).toHaveBeenCalledWith('123456789');
-    scanner.dispose();
+    expect(handler).toHaveBeenCalledWith({ code: '123456789', timestamp: expect.any(Number) });
+    scanner.stopScan();
   });
 });

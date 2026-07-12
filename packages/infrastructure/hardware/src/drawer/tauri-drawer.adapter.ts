@@ -39,4 +39,13 @@ export class TauriCashDrawer implements CashDrawer {
       throw new DrawerOpenError('Cash drawer failed to open', err);
     }
   }
+
+  public async getStatus() {
+    try {
+      await this.transport.pulse();
+      return { connected: true, isNoop: false } as const;
+    } catch (err) {
+      return { connected: false, isNoop: false, reason: String((err as Error)?.message ?? err) } as const;
+    }
+  }
 }

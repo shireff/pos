@@ -91,34 +91,107 @@ export interface BundleResolutionPort {
   >;
 }
 
+/** Result returned by every print attempt (Hardware.md §2). */
+export interface PrintResult {
+  /** True when the physical (or simulated) print succeeded. */
+  success: boolean;
+  /** True when the caller should show a digital receipt instead. */
+  fallbackRequired: boolean;
+}
+
+/** Runtime status of a receipt printer (Hardware.md §2). */
+export interface PrinterStatus {
+  connected: boolean;
+  isNoop: boolean;
+  reason?: string;
+}
+
+/** Language-agnostic payload produced by the application/UI layer. */
+export interface ReceiptPayload {
+  orderId: string;
+  lines: Array<{ name: string; qty: number; unitPricePiasters: number }>;
+  grandTotalPiasters: number;
+  companyName: string;
+  branchName: string;
+  cashierId: string;
+  taxPiasters?: number;
+  discountPiasters?: number;
+  /** Egyptian tax registration number, printed on the receipt footer. */
+  taxRegistrationNumber?: string;
+  /** 'ar' switches the template to RTL + Arabic code page (Hardware.md §2). */
+  language?: 'ar' | 'en';
+  createdAt?: string;
+}
+
 /** Port: ReceiptPrinter — implemented in infrastructure/hardware */
 export interface ReceiptPrinter {
-  print(receipt: {
-    orderId: string;
-    lines: Array<{ name: string; qty: number; unitPricePiasters: number }>;
-    grandTotalPiasters: number;
-    companyName: string;
-    branchName: string;
-    cashierId: string;
-  }): Promise<{ success: boolean; fallbackRequired: boolean }>;
+  print(receipt: ReceiptPayload): Promise<PrintResult>;
+  /** Prints a self-test slip; same result contract as print(). */
+  testPrint(): Promise<PrintResult>;
+  /** Reports connectivity so the UI can surface a status badge. */
+  getStatus(): Promise<PrinterStatus>;
   isAvailable(): Promise<boolean>;
+}
+
+/** Result of a cash-drawer open pulse (Hardware.md §4). */
+export interface DrawerResult {
+  success: boolean;
+}
+
+/** Runtime status of a cash drawer (Hardware.md §4). */
+export interface DrawerStatus {
+  connected: boolean;
+  isNoop: boolean;
+  reason?: string;
 }
 
 /** Port: CashDrawer — implemented in infrastructure/hardware */
 export interface CashDrawer {
-  open(): Promise<{ success: boolean }>;
+  open(): Promise<DrawerResult>;
+  getStatus(): Promise<DrawerStatus>;
 }
 
 /**
- * BarcodeScanner emits a raw decoded string when a barcode is read. The scanner
- * adapter's only job is to surface the decoded string; checksum validation and
- * duplicate detection happen at the UI/application layer (Hardware.md §3).
+ * BarcodeScanner surfaces a decoded scan as a ScanResult. The scanner adapter's
+ * only job is to surface the decoded value; checksum validation and duplicate
+ * detection happen at the UI/application layer (Hardware.md §3).
  */
 export type Unsubscribe = () => void;
 
+export interface ScanResult {
+  code: string;
+  timestamp: number;
+}
+
+export interface ScanOptions {
+  /** Keystroke prefixes that mark the start of a HID wedge scan. */
+  prefixes?: string[];
+  /** Keystroke suffixes that terminate a HID wedge scan (default: Enter). */
+  suffixes?: string[];
+  /** Auto-stop after this many ms of inactivity. */
+  timeoutMs?: number;
+}
+
 export interface BarcodeScanner {
-  /** Begin listening; returns an unsubscribe function. */
-  onScan(handler: (code: string) => void): Unsubscribe;
+  startScan(options?: ScanOptions): void;
+  stopScan(): void;
+  onScanResult(callback: (result: ScanResult) => void): Unsubscribe;
+}
+
+/** A single weight reading from a scale (Hardware.md §5). */
+export interface WeightReading {
+  grams: number;
+  unit: string;
+  /** Stable readings are the only ones a sale should accept (BR-HW-004). */
+  isStable: boolean;
+}
+
+/** Port: Scale — implemented in infrastructure/hardware */
+export interface Scale {
+  /** Returns the latest reading, or null when the scale is disconnected. */
+  readWeight(): Promise<WeightReading | null>;
+  tare(): Promise<void>;
+  getStatus(): Promise<{ connected: boolean; isNoop: boolean }>;
 }
 
 export type {

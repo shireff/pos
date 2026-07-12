@@ -1,5 +1,3 @@
-import type { BarcodeScanner } from '@packages/application-sales';
-
 /**
  * CapacitorCameraOcrScanner is the Android (Capacitor) adapter for OCR camera capture.
  * It is loaded lazily so the package remains optional: if the plugin is not installed,

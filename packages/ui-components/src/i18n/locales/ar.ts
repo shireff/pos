@@ -312,6 +312,12 @@ export const ar: Dict = {
   'pos.receipt.tax': 'الضريبة',
   'pos.receipt.total': 'الإجمالي',
   'pos.receipt.copy': 'نسخ الإيصال',
+  'pos.receipt.sendSms': 'إرسال عبر SMS',
+  'pos.receipt.sendEmail': 'إرسال عبر البريد',
+  'pos.receipt.printPdf': 'طباعة PDF',
+  'pos.receipt.smsSent': 'تم إرسال الإيصال عبر الرسائل.',
+  'pos.receipt.emailSent': 'تم إرسال الإيصال عبر البريد.',
+  'pos.receipt.pdfReady': 'جاهز للطباعة.',
   'pos.receipt.close': 'إغلاق',
 
   // ── Purchasing ──
@@ -1246,6 +1252,12 @@ export const en: Dict = {
   'pos.receipt.tax': 'Tax',
   'pos.receipt.total': 'Total',
   'pos.receipt.copy': 'Copy receipt',
+  'pos.receipt.sendSms': 'Send via SMS',
+  'pos.receipt.sendEmail': 'Send via Email',
+  'pos.receipt.printPdf': 'Print to PDF',
+  'pos.receipt.smsSent': 'Receipt sent via SMS.',
+  'pos.receipt.emailSent': 'Receipt sent via email.',
+  'pos.receipt.pdfReady': 'Ready to print.',
   'pos.receipt.close': 'Close',
 
   // ── Purchasing ──
