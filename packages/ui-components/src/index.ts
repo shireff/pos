@@ -92,3 +92,25 @@ export type {
 export { LocaleProvider, useLocale, useT, useTranslation, translate, DEFAULT_LOCALE, ARABIC_LOCALE } from './i18n/index';
 export type { Locale, Dict } from './i18n/index';
 export { formatNumber, formatMoney, formatDate } from './utils/format';
+
+/* Notifications (Phase 14) */
+export { NotificationBell } from './notifications/NotificationBell';
+export type { NotificationBellProps } from './notifications/NotificationBell';
+export { NotificationList } from './notifications/NotificationList';
+export type { NotificationListProps } from './notifications/NotificationList';
+export { NotificationPreferences } from './notifications/NotificationPreferences';
+export type { NotificationPreferencesProps } from './notifications/NotificationPreferences';
+export {
+  NotificationsStore,
+  notificationsStore,
+  useNotificationsStore,
+} from './stores/notifications.store';
+export type {
+  NotificationView,
+  NotificationPreferenceView,
+  NotificationCategory,
+  NotificationChannel,
+  NotificationFrequency,
+  NotificationPriority,
+  NotificationsState,
+} from './stores/notifications.store';

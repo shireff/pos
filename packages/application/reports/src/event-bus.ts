@@ -1,24 +1,5 @@
-export type EventHandler<T = unknown> = (event: T) => Promise<void> | void;
-
-export class EventBus {
-  private handlers: Map<string, Set<EventHandler>> = new Map();
-
-  subscribe<T>(eventType: string, handler: EventHandler<T>): () => void {
-    if (!this.handlers.has(eventType)) {
-      this.handlers.set(eventType, new Set());
-    }
-    this.handlers.get(eventType)!.add(handler as EventHandler);
-    return () => {
-      this.handlers.get(eventType)?.delete(handler as EventHandler);
-    };
-  }
-
-  async publish<T>(eventType: string, event: T): Promise<void> {
-    const handlers = this.handlers.get(eventType);
-    if (!handlers || handlers.size === 0) return;
-    const results = Array.from(handlers).map((handler) => handler(event));
-    await Promise.all(results);
-  }
-}
-
-export const eventBus = new EventBus();
+// The internal EventBus now lives in shared-kernel so all workers (projection,
+// notification dispatcher) share a single in-process bus. This module re-exports
+// it for backward compatibility with the ProjectionWorker.
+export { EventBus, eventBus, ALL_EVENTS } from '@packages/shared-kernel';
+export type { EventHandler } from '@packages/shared-kernel';

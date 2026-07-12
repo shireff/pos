@@ -28,3 +28,17 @@ export class AuditEntryRecorded extends DomainEventBase {
     this.entityId = props.entityId;
   }
 }
+
+/**
+ * Emitted when a scheduled backup job fails, triggering a Critical alert to owners (Notifications.md §3).
+ */
+export class BackupFailed extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly reason: string;
+
+  public constructor(props: { backupId: string; companyId: string; reason: string }) {
+    super(props.backupId, 'Backup');
+    this.companyId = props.companyId;
+    this.reason = props.reason;
+  }
+}

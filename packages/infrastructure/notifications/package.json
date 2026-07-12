@@ -1,0 +1,21 @@
+{
+  "type": "module",
+  "name": "@packages/infrastructure-notifications",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/shared-kernel": "*",
+    "@packages/domain-notifications": "*",
+    "@packages/application-notifications": "*",
+    "@packages/infrastructure-mongodb": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -469,6 +469,7 @@ export class ProcessReturnCommand {
     const events: unknown[] = [
       new ReturnRequested({
         returnId: returnEntity.id,
+        companyId: order.companyId,
         originalOrderId: order.id,
         refundAmountPiasters: refundTotal,
         status: returnEntity.status,

@@ -9,6 +9,7 @@ import {
   Icon,
   Modal,
   Field,
+  NotificationBell,
 } from '@packages/ui-components';
 import { CatalogPage } from '../features/catalog/CatalogPage';
 import { PurchasingPage } from '../features/purchasing/PurchasingPage';
@@ -19,6 +20,9 @@ import { PlatformAdminPanel } from '../features/admin/PlatformAdminPanel';
 import { DiscountRuleBuilderPage, CouponManagementPage, DiscountsPage } from '../features/discounts';
 import { TaxRuleEditorPage, PriceChangePage, PricingPage } from '../features/pricing';
 import { OwnerDashboard, BranchManagerDashboard, CashierDashboard } from '../features/reports';
+import { NotificationsPage } from '../features/notifications/NotificationsPage';
+import { NotificationPreferencesPage } from '../features/notifications/NotificationPreferencesPage';
+import { notificationsApi } from '../lib/api/notifications';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
 import { useAppDispatch, useAppSelector } from '../lib/store/hooks';
@@ -50,7 +54,7 @@ export default function App() {
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing' | 'reports' | 'discount-rules' | 'coupons' | 'tax-rules' | 'price-changes'>('catalog');
+  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing' | 'reports' | 'discount-rules' | 'coupons' | 'tax-rules' | 'price-changes' | 'notifications' | 'notification-preferences'>('catalog');
   const [showMfaSetup, setShowMfaSetup] = useState(false);
   const [setupCode, setSetupCode] = useState('');
   const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
@@ -406,8 +410,24 @@ export default function App() {
               >
                 <Icon name="wallet" size={16} /> Price Changes
               </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'notifications' || activeView === 'notification-preferences' ? ' active' : ''}`}
+                onClick={() => setActiveView('notifications')}
+              >
+                <Icon name="bell" size={16} /> Notifications
+              </button>
+              <div className="top-nav__bell">
+                <NotificationBell
+                  onSelect={(n) => {
+                    if (n.actionUrl) window.location.href = n.actionUrl;
+                    void notificationsApi.load();
+                  }}
+                  onMarkAllRead={() => void notificationsApi.markAllRead()}
+                />
+              </div>
           </nav>
-          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'discount-rules' ? <DiscountRuleBuilderPage /> : activeView === 'coupons' ? <CouponManagementPage /> : activeView === 'pricing' ? <PricingPage /> : activeView === 'tax-rules' ? <TaxRuleEditorPage /> : activeView === 'price-changes' ? <PriceChangePage /> : activeView === 'reports' ? (() => {
+          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'discount-rules' ? <DiscountRuleBuilderPage /> : activeView === 'coupons' ? <CouponManagementPage /> : activeView === 'pricing' ? <PricingPage /> : activeView === 'tax-rules' ? <TaxRuleEditorPage /> : activeView === 'price-changes' ? <PriceChangePage /> : activeView === 'notifications' ? <NotificationsPage /> : activeView === 'notification-preferences' ? <NotificationPreferencesPage /> : activeView === 'reports' ? (() => {
             const roles = auth.branchRoles ?? [];
             if (roles.includes('reports.all_branches')) return <OwnerDashboard isOffline={isOffline} />;
             if (roles.includes('reports.view.inventory')) return <BranchManagerDashboard isOffline={isOffline} />;

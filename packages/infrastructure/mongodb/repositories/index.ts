@@ -726,3 +726,7 @@ export { MongoDiscountRepository } from './discount.repository';
 export { MongoCouponRepository } from './coupon.repository';
 export { MongoTaxRuleRepository } from './tax-rule.repository';
 export { MongoPriceChangeRepository } from './price-change.repository';
+export { MongoNotificationRepository } from './notification.repository';
+export { MongoNotificationPreferenceRepository, defaultPreferenceRows } from './notification-preference.repository';
+export { MongoRateLimitRepository } from './notification-rate-limit.repository';
+export { MongoDigestRepository } from './notification-digest.repository';

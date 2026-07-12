@@ -28,12 +28,15 @@ import { CouponsPage } from '../features/promotions/CouponsPage';
 import { TaxRulesPage } from '../features/pricing/TaxRulesPage';
 import { PriceChangesPage } from '../features/pricing/PriceChangesPage';
 import { ReportsScreen } from '../features/reports/ReportsScreen';
+import { NotificationsScreen } from '../features/notifications/NotificationsScreen';
+import { notificationsApi } from '../lib/api/notifications';
+import { NotificationBell } from '@packages/ui-components';
 import { ApiEndpoints } from '../lib/api/endpoints';
 import { client } from '../lib/api/client';
 
 const bridge = new CapacitorHealthBridge();
 
-type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing' | 'reports' | 'coupons' | 'tax-rules';
+type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing' | 'reports' | 'coupons' | 'tax-rules' | 'notifications';
 
 
 export default function AndroidPage() {
@@ -236,6 +239,7 @@ export default function AndroidPage() {
     { id: 'reports', label: t('reports.title'), icon: 'bar-chart' },
     { id: 'coupons', label: t('coupons.title'), icon: 'qr' },
     { id: 'tax-rules', label: t('taxRules.title'), icon: 'receipt' },
+    { id: 'notifications', label: t('notifications.title'), icon: 'bell' },
   ];
 
   return (
@@ -247,6 +251,10 @@ export default function AndroidPage() {
           {system.subscription?.status && <StatusBadge status={system.subscription.status} />}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <NotificationBell
+            onSelect={(n) => { if (n.actionUrl) window.location.href = n.actionUrl; void notificationsApi.load(); }}
+            onMarkAllRead={() => void notificationsApi.markAllRead()}
+          />
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowPinPad(true)}>
             <Icon name="lock" size={16} />
             {t('auth.offlinePin')}
@@ -274,6 +282,7 @@ export default function AndroidPage() {
          {activeTab === 'reports' && <ReportsScreen />}
          {activeTab === 'coupons' && <CouponsPage />}
          {activeTab === 'tax-rules' && <TaxRulesPage />}
+         {activeTab === 'notifications' && <NotificationsScreen />}
        </div>
 
 

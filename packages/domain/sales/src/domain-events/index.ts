@@ -47,17 +47,20 @@ export class OrderVoided extends DomainEventBase {
 }
 
 export class ReturnRequested extends DomainEventBase {
+  public readonly companyId: string;
   public readonly originalOrderId: string;
   public readonly refundAmountPiasters: number;
   public readonly status: ReturnStatus;
 
   public constructor(props: {
     returnId: string;
+    companyId: string;
     originalOrderId: string;
     refundAmountPiasters: number;
     status: ReturnStatus;
   }) {
     super(props.returnId, 'Return');
+    this.companyId = props.companyId;
     this.originalOrderId = props.originalOrderId;
     this.refundAmountPiasters = props.refundAmountPiasters;
     this.status = props.status;
@@ -65,17 +68,20 @@ export class ReturnRequested extends DomainEventBase {
 }
 
 export class ReturnApproved extends DomainEventBase {
+  public readonly companyId: string;
   public readonly originalOrderId: string;
   public readonly approvedByUserId: string;
   public readonly refundAmountPiasters: number;
 
   public constructor(props: {
     returnId: string;
+    companyId: string;
     originalOrderId: string;
     approvedByUserId: string;
     refundAmountPiasters: number;
   }) {
     super(props.returnId, 'Return');
+    this.companyId = props.companyId;
     this.originalOrderId = props.originalOrderId;
     this.approvedByUserId = props.approvedByUserId;
     this.refundAmountPiasters = props.refundAmountPiasters;
@@ -83,15 +89,18 @@ export class ReturnApproved extends DomainEventBase {
 }
 
 export class ReturnRejected extends DomainEventBase {
+  public readonly companyId: string;
   public readonly originalOrderId: string;
   public readonly rejectedByUserId: string;
 
   public constructor(props: {
     returnId: string;
+    companyId: string;
     originalOrderId: string;
     rejectedByUserId: string;
   }) {
     super(props.returnId, 'Return');
+    this.companyId = props.companyId;
     this.originalOrderId = props.originalOrderId;
     this.rejectedByUserId = props.rejectedByUserId;
   }
@@ -229,5 +238,36 @@ export class PaymentRefunded extends DomainEventBase {
     this.tenderType = props.tenderType;
     this.amountPiasters = props.amountPiasters;
     this.reason = props.reason ?? null;
+  }
+}
+
+/**
+ * Emitted when a sale applies a discount above the company's configured
+ * large-discount threshold, triggering a High-priority approval notification.
+ */
+export class LargeDiscountApplied extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly branchId: string;
+  public readonly orderId: string;
+  public readonly discountPiasters: number;
+  public readonly thresholdPiasters: number;
+  public readonly appliedByUserId: string;
+
+  public constructor(props: {
+    eventId: string;
+    companyId: string;
+    branchId: string;
+    orderId: string;
+    discountPiasters: number;
+    thresholdPiasters: number;
+    appliedByUserId: string;
+  }) {
+    super(props.eventId, 'Order');
+    this.companyId = props.companyId;
+    this.branchId = props.branchId;
+    this.orderId = props.orderId;
+    this.discountPiasters = props.discountPiasters;
+    this.thresholdPiasters = props.thresholdPiasters;
+    this.appliedByUserId = props.appliedByUserId;
   }
 }

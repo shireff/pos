@@ -38,17 +38,20 @@ export class SyncBatchPulled extends DomainEventBase {
 }
 
 export class SyncConflictDetected extends DomainEventBase {
+  public readonly companyId: string;
   public readonly entityType: string;
   public readonly entityId: string;
   public readonly conflictingFields: string[];
 
   public constructor(props: {
     conflictId: string;
+    companyId: string;
     entityType: string;
     entityId: string;
     conflictingFields: string[];
   }) {
     super(props.conflictId, 'SyncConflict');
+    this.companyId = props.companyId;
     this.entityType = props.entityType;
     this.entityId = props.entityId;
     this.conflictingFields = props.conflictingFields;

@@ -35,47 +35,60 @@ export class StockMovementRecorded extends DomainEventBase {
 }
 
 export class StockTransferRequested extends DomainEventBase {
+  public readonly companyId: string;
   public readonly fromWarehouseId: string;
   public readonly toWarehouseId: string;
 
   public constructor(props: {
     transferId: string;
+    companyId: string;
     fromWarehouseId: string;
     toWarehouseId: string;
   }) {
     super(props.transferId, 'StockTransfer');
+    this.companyId = props.companyId;
     this.fromWarehouseId = props.fromWarehouseId;
     this.toWarehouseId = props.toWarehouseId;
   }
 }
 
 export class StockTransferApproved extends DomainEventBase {
+  public readonly companyId: string;
   public readonly approvedByUserId: string;
 
-  public constructor(props: { transferId: string; approvedByUserId: string }) {
+  public constructor(props: { transferId: string; companyId: string; approvedByUserId: string }) {
     super(props.transferId, 'StockTransfer');
+    this.companyId = props.companyId;
     this.approvedByUserId = props.approvedByUserId;
   }
 }
 
 export class StockTransferShipped extends DomainEventBase {
-  public constructor(props: { transferId: string }) {
+  public readonly companyId: string;
+
+  public constructor(props: { transferId: string; companyId: string }) {
     super(props.transferId, 'StockTransfer');
+    this.companyId = props.companyId;
   }
 }
 
 export class StockTransferReceived extends DomainEventBase {
+  public readonly companyId: string;
   public readonly hasDiscrepancy: boolean;
 
-  public constructor(props: { transferId: string; hasDiscrepancy: boolean }) {
+  public constructor(props: { transferId: string; companyId: string; hasDiscrepancy: boolean }) {
     super(props.transferId, 'StockTransfer');
+    this.companyId = props.companyId;
     this.hasDiscrepancy = props.hasDiscrepancy;
   }
 }
 
 export class StockTransferCancelled extends DomainEventBase {
-  public constructor(props: { transferId: string }) {
+  public readonly companyId: string;
+
+  public constructor(props: { transferId: string; companyId: string }) {
     super(props.transferId, 'StockTransfer');
+    this.companyId = props.companyId;
   }
 }
 
@@ -104,6 +117,7 @@ export class AdjustmentApproved extends DomainEventBase {
 }
 
 export class ReorderPointReached extends DomainEventBase {
+  public readonly companyId: string;
   public readonly productId: string;
   public readonly warehouseId: string;
   public readonly quantityOnHand: number;
@@ -111,12 +125,14 @@ export class ReorderPointReached extends DomainEventBase {
 
   public constructor(props: {
     stockItemId: string;
+    companyId: string;
     productId: string;
     warehouseId: string;
     quantityOnHand: number;
     reorderPoint: number;
   }) {
     super(props.stockItemId, 'StockItem');
+    this.companyId = props.companyId;
     this.productId = props.productId;
     this.warehouseId = props.warehouseId;
     this.quantityOnHand = props.quantityOnHand;

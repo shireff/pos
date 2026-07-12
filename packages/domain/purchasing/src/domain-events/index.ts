@@ -12,28 +12,34 @@ export class PurchaseOrderCreated extends DomainEventBase {
 }
 
 export class PurchaseOrderSubmitted extends DomainEventBase {
+  public readonly companyId: string;
   public readonly autoApproved: boolean;
 
-  public constructor(props: { poId: string; autoApproved: boolean }) {
+  public constructor(props: { poId: string; companyId: string; autoApproved: boolean }) {
     super(props.poId, 'PurchaseOrder');
+    this.companyId = props.companyId;
     this.autoApproved = props.autoApproved;
   }
 }
 
 export class PurchaseOrderApproved extends DomainEventBase {
+  public readonly companyId: string;
   public readonly approvedByUserId: string;
 
-  public constructor(props: { poId: string; approvedByUserId: string }) {
+  public constructor(props: { poId: string; companyId: string; approvedByUserId: string }) {
     super(props.poId, 'PurchaseOrder');
+    this.companyId = props.companyId;
     this.approvedByUserId = props.approvedByUserId;
   }
 }
 
 export class PurchaseOrderRejected extends DomainEventBase {
+  public readonly companyId: string;
   public readonly reason: string;
 
-  public constructor(props: { poId: string; reason: string }) {
+  public constructor(props: { poId: string; companyId: string; reason: string }) {
     super(props.poId, 'PurchaseOrder');
+    this.companyId = props.companyId;
     this.reason = props.reason;
   }
 }
@@ -68,13 +74,38 @@ export class SupplierInvoiceRecorded extends DomainEventBase {
 }
 
 export class SupplierInvoiceOCRExtracted extends DomainEventBase {
-  public readonly ocrJobId: string;
-  public readonly fieldCount: number;
+  public readonly companyId: string;
+  public readonly supplierId: string;
 
-  public constructor(props: { supplierId: string; ocrJobId: string; fieldCount: number }) {
-    super(props.supplierId, 'Supplier');
-    this.ocrJobId = props.ocrJobId;
-    this.fieldCount = props.fieldCount;
+  public constructor(props: { invoiceId: string; companyId: string; supplierId: string }) {
+    super(props.invoiceId, 'SupplierInvoice');
+    this.companyId = props.companyId;
+    this.supplierId = props.supplierId;
+  }
+}
+
+/**
+ * Emitted by the nightly supplier-ledger check when a supplier payment is overdue,
+ * triggering an alert to the owner/accountant (Notifications.md §3).
+ */
+export class SupplierOverduePayment extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly supplierId: string;
+  public readonly overduePiasters: number;
+  public readonly daysOverdue: number;
+
+  public constructor(props: {
+    eventId: string;
+    companyId: string;
+    supplierId: string;
+    overduePiasters: number;
+    daysOverdue: number;
+  }) {
+    super(props.eventId, 'SupplierInvoice');
+    this.companyId = props.companyId;
+    this.supplierId = props.supplierId;
+    this.overduePiasters = props.overduePiasters;
+    this.daysOverdue = props.daysOverdue;
   }
 }
 

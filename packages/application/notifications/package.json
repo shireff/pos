@@ -1,0 +1,31 @@
+{
+  "type": "module",
+  "name": "@packages/application-notifications",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/shared-kernel": "*",
+    "@packages/domain-notifications": "*",
+    "@packages/domain-inventory": "*",
+    "@packages/domain-sales": "*",
+    "@packages/domain-purchasing": "*",
+    "@packages/domain-crm": "*",
+    "@packages/domain-tax": "*",
+    "@packages/domain-billing": "*",
+    "@packages/domain-promotions": "*",
+    "@packages/domain-identity": "*",
+    "@packages/domain-sync": "*",
+    "@packages/domain-platform-admin": "*",
+    "@packages/domain-ai-insights": "*",
+    "@packages/domain-audit": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

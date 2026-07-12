@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": ["_id", "user_id", "category", "channel", "is_enabled"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "user_id": { "bsonType": "string", "minLength": 1 },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "category": {
+      "bsonType": "string",
+      "enum": [
+        "INVENTORY",
+        "APPROVALS",
+        "SYNC",
+        "AI_INSIGHTS",
+        "BILLING_TRIAL",
+        "REPORTS",
+        "SECURITY",
+        "GENERAL"
+      ]
+    },
+    "channel": { "bsonType": "string", "enum": ["IN_APP", "PUSH", "EMAIL"] },
+    "frequency": {
+      "bsonType": "string",
+      "enum": ["IMMEDIATE", "HOURLY_DIGEST", "DAILY_DIGEST"]
+    },
+    "is_enabled": { "bsonType": "bool" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

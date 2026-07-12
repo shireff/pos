@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "user_id",
+    "category",
+    "window_starts_at",
+    "window_ends_at",
+    "count",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "user_id": { "bsonType": "string", "minLength": 1 },
+    "category": {
+      "bsonType": "string",
+      "enum": [
+        "INVENTORY",
+        "APPROVALS",
+        "SYNC",
+        "AI_INSIGHTS",
+        "BILLING_TRIAL",
+        "REPORTS",
+        "SECURITY",
+        "GENERAL"
+      ]
+    },
+    "window_starts_at": { "bsonType": "date" },
+    "window_ends_at": { "bsonType": "date" },
+    "count": { "bsonType": "int", "minimum": 0 },
+    "last_key": { "bsonType": "string" },
+    "last_key_at": { "bsonType": "date" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

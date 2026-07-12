@@ -191,6 +191,27 @@ All endpoints below require the permissions noted per operation.
 
 Sync classes: `discount_rules`, `coupons`, and `tax_rules` are **Class B** (field-level HLC merge). `coupon_usages` is **Class A** (append-only, never overwritten). `price_changes` is **Class B**.
 
+### 4.10 Notifications (Phase 14)
+
+- `GET /v1/notifications` — paginated, **unread-first** list for the authenticated user. Query: `?isRead=true|false`, `?category=` (`INVENTORY` | `APPROVALS` | `SYNC` | `AI_INSIGHTS` | `BILLING_TRIAL` | `REPORTS` | `SECURITY` | `GENERAL`), `?limit=` (default 50). Response: `{ success, data: SerializedNotification[] }` (newest first within unread-then-read ordering). `title`/`body` are rendered in the request locale from each notification's i18n keys.
+- `POST /v1/notifications/{id}/read` — mark a single notification read. Returns `{ success, data: { id, isRead: true } }`. `404` if the notification does not belong to the caller.
+- `GET /v1/notification-preferences` — current user's per-category/per-channel preference rows: `{ success, data: NotificationPreferenceRow[] }`.
+- `PUT /v1/notification-preferences` — replace preferences. Body is an array of `{ category, channel ('IN_APP'|'PUSH'|'EMAIL'), frequency ('IMMEDIATE'|'HOURLY_DIGEST'|'DAILY_DIGEST'), isEnabled }`. Returns the saved rows. Billing & Trial category cannot be muted in the final 4 days of trial (BR-NOT-004).
+
+`SerializedNotification`:
+
+```json
+{
+  "id": "string", "companyId": "string", "recipientUserId": "string",
+  "triggerCode": "string", "category": "string", "priority": "CRITICAL|HIGH|MEDIUM|LOW",
+  "title": "string", "body": "string", "actionUrl": "string|null",
+  "referenceType": "string|null", "referenceId": "string|null",
+  "isRead": false, "isDismissed": false, "createdAt": "ISO-8601"
+}
+```
+
+Notifications are **event-driven**: no feature code emits a notification directly — every notification is produced by the shared EventBus dispatcher (`packages/application/notifications`) in response to a domain event (BR-NOT-001). Priority gating (CRITICAL/HIGH immediate; MEDIUM → hourly digest; LOW → daily digest) and the rate limiter (duplicate suppression + per-user daily cap, with Billing & Trial exempt) live in that layer (see Notifications.md). The in-app record is the source of truth; a channel (push/email) delivery failure never removes it (BR-NOT-006).
+
 ---
 
 ## 5. Sync APIs
@@ -239,6 +260,7 @@ Server pushes new events in near-real-time when the device is online, instead of
 - Per-device: 600 requests/minute burst, 100/minute sustained — generous enough for a busy single register's sync traffic, protective against runaway retry loops.
 - AI endpoints rate-limited separately and more conservatively (per Pro/Enterprise tier quotas) since they proxy to paid-by-usage providers.
 - Platform Admin endpoints (§8) are rate-limited per admin account, far more conservatively (30 requests/minute), since they are low-volume, high-privilege operations — a burst here is itself a signal worth an alert (Security.md §11).
+- **Notification delivery** is rate-limited inside the EventBus dispatcher (§4.10), independent of the request limits above: identical notifications for the same user/category within a 10-minute window are de-duplicated; beyond a per-user daily cap the rest are folded into a single summary; **Billing & Trial** notifications are exempt from the cap (BR-NOT-004). CRITICAL/HIGH (safety) notifications always dispatch immediately and are never batched.
 
 ## 7. Pagination, Filtering, Versioning — Cross-Cutting Rules
 

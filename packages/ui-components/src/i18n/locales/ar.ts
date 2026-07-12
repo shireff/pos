@@ -924,6 +924,25 @@ export const ar: Dict = {
   'common.qtyAbbr': 'كمية',
   'common.days': 'يوم',
   'common.reference': 'المرجع',
+
+  // Notifications
+  'notifications.title': 'الإشعارات',
+  'notifications.empty': 'لا توجد إشعارات.',
+  'notifications.markAllRead': 'تحديد الكل كمقروء',
+  'notifications.unread': 'غير مقروء',
+  'notifications.bell': 'جرس الإشعارات',
+  'notifications.preferences': 'تفضيلات الإشعارات',
+  'notifications.category': 'التصنيف',
+  'notifications.channel': 'القناة',
+  'notifications.frequency': 'التكرار',
+  'notifications.inApp': 'داخل التطبيق',
+  'notifications.push': 'الدفع',
+  'notifications.email': 'البريد الإلكتروني',
+  'notifications.immediate': 'فوري',
+  'notifications.hourlyDigest': 'ملخص كل ساعة',
+  'notifications.dailyDigest': 'ملخص يومي',
+  'notifications.enabled': 'مفعّل',
+  'notifications.disabled': 'معطّل',
 };
 
 export const en: Dict = {
@@ -1504,7 +1523,7 @@ export const en: Dict = {
 
   'sync.offline': 'Offline',
   'sync.pendingOutbox': 'Pending outbox',
-  'sync.lastSync': 'Last sync',
+  'sync.lastSync': 'Last sync:',
   'sync.local': 'Local',
   'sync.remote': 'Remote',
   'sync.keepLocal': 'Keep Local',
@@ -1560,4 +1579,23 @@ export const en: Dict = {
   'common.qtyAbbr': 'Qty',
   'common.days': 'days',
   'common.reference': 'Reference',
+
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'No notifications.',
+  'notifications.markAllRead': 'Mark all as read',
+  'notifications.unread': 'Unread',
+  'notifications.bell': 'Notification bell',
+  'notifications.preferences': 'Notification preferences',
+  'notifications.category': 'Category',
+  'notifications.channel': 'Channel',
+  'notifications.frequency': 'Frequency',
+  'notifications.inApp': 'In-app',
+  'notifications.push': 'Push',
+  'notifications.email': 'Email',
+  'notifications.immediate': 'Immediate',
+  'notifications.hourlyDigest': 'Hourly digest',
+  'notifications.dailyDigest': 'Daily digest',
+  'notifications.enabled': 'Enabled',
+  'notifications.disabled': 'Disabled',
 };

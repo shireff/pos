@@ -138,6 +138,12 @@ export enum ApiEndpoints {
   PriceChanges = '/api/v1/price-changes',
   PriceChangeApprove = '/api/v1/price-changes/:id/approve',
   PriceChangeReject = '/api/v1/price-changes/:id/reject',
+
+  // ── Notifications (Phase 14) ─────────────────────────────────
+  Notifications = '/api/v1/notifications',
+  NotificationMarkRead = '/api/v1/notifications/:id/read',
+  NotificationsReadAll = '/api/v1/notifications/read-all',
+  NotificationPreferences = '/api/v1/notification-preferences',
 }
 
 export function buildEndpoint(

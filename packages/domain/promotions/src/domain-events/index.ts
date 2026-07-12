@@ -56,3 +56,20 @@ export class CouponValidated extends DomainEventBase {
     this.discountPiasters = props.discountPiasters;
   }
 }
+
+/**
+ * Emitted when a discount rule is created/updated above the auto-apply threshold
+ * and requires approver sign-off (Notifications.md §3 — Discount approval request).
+ */
+export class DiscountApprovalRequested extends DomainEventBase {
+  public readonly companyId: string;
+  public readonly discountId: string;
+  public readonly requestedByUserId: string;
+
+  public constructor(props: { discountId: string; companyId: string; requestedByUserId: string }) {
+    super(props.discountId, 'Discount');
+    this.companyId = props.companyId;
+    this.discountId = props.discountId;
+    this.requestedByUserId = props.requestedByUserId;
+  }
+}

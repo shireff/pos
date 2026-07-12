@@ -72,7 +72,7 @@ describe('POST /api/v1/sync/conflicts/:id/resolve', () => {
       body: JSON.stringify({ winner: 'remote' }),
     });
 
-    const response = await POST(request, { params: { id: conflict.id } });
+    const response = await POST(request, { params: Promise.resolve({ id: conflict.id }) });
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -90,7 +90,7 @@ describe('POST /api/v1/sync/conflicts/:id/resolve', () => {
       body: JSON.stringify({ winner: 'local' }),
     });
 
-    const response = await POST(request, { params: { id: conflict.id } });
+    const response = await POST(request, { params: Promise.resolve({ id: conflict.id }) });
     const body = await response.json();
     expect(body.data.status).toBe('resolved_local');
   });
@@ -105,7 +105,7 @@ describe('POST /api/v1/sync/conflicts/:id/resolve', () => {
       body: JSON.stringify({ winner: 'merge', resolvedValue: 110 }),
     });
 
-    const response = await POST(request, { params: { id: conflict.id } });
+    const response = await POST(request, { params: Promise.resolve({ id: conflict.id }) });
     const body = await response.json();
     expect(body.data.status).toBe('resolved_merge');
   });
@@ -120,7 +120,7 @@ describe('POST /api/v1/sync/conflicts/:id/resolve', () => {
       body: JSON.stringify({ winner: 'banana' }),
     });
 
-    const response = await POST(request, { params: { id: conflict.id } });
+    const response = await POST(request, { params: Promise.resolve({ id: conflict.id }) });
     expect(response.status).toBe(400);
   });
 
@@ -131,7 +131,7 @@ describe('POST /api/v1/sync/conflicts/:id/resolve', () => {
       body: JSON.stringify({ winner: 'local' }),
     });
 
-    const response = await POST(request, { params: { id: 'missing' } });
+    const response = await POST(request, { params: Promise.resolve({ id: 'missing' }) });
     expect(response.status).toBe(404);
   });
 });

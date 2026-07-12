@@ -3,6 +3,8 @@ export { DateTime } from './date-time';
 export { Identifier } from './identifier';
 export { Result } from './result';
 export { DomainEventBase } from './domain-event-base';
+export { EventBus, eventBus, ALL_EVENTS } from './event-bus';
+export type { EventHandler } from './event-bus';
 export { HybridLogicalClock } from './hlc';
 export { logger } from './logger';
 export type { LogLevel, LogContext } from './logger';

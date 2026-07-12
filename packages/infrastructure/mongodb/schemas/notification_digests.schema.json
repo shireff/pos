@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "recipient_user_id",
+    "frequency",
+    "category_counts",
+    "notification_ids",
+    "is_read",
+    "period_start",
+    "period_end",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "recipient_user_id": { "bsonType": "string", "minLength": 1 },
+    "frequency": { "bsonType": "string", "enum": ["HOURLY", "DAILY"] },
+    "category_counts": { "bsonType": "object" },
+    "notification_ids": { "bsonType": "array", "items": { "bsonType": "string" } },
+    "title_key": { "bsonType": "string" },
+    "body_key": { "bsonType": "string" },
+    "vars": { "bsonType": "object" },
+    "action_url": { "bsonType": "string" },
+    "is_read": { "bsonType": "bool" },
+    "period_start": { "bsonType": "date" },
+    "period_end": { "bsonType": "date" },
+    "created_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}

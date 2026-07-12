@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "bsonType": "object",
+  "required": [
+    "_id",
+    "company_id",
+    "recipient_user_id",
+    "trigger_code",
+    "category",
+    "priority",
+    "title_key",
+    "body_key",
+    "title",
+    "body",
+    "vars",
+    "is_read",
+    "created_at"
+  ],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "company_id": { "bsonType": "string", "minLength": 1 },
+    "recipient_user_id": { "bsonType": "string", "minLength": 1 },
+    "trigger_code": { "bsonType": "string", "minLength": 1 },
+    "category": {
+      "bsonType": "string",
+      "enum": [
+        "INVENTORY",
+        "APPROVALS",
+        "SYNC",
+        "AI_INSIGHTS",
+        "BILLING_TRIAL",
+        "REPORTS",
+        "SECURITY",
+        "GENERAL"
+      ]
+    },
+    "priority": { "bsonType": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"] },
+    "title_key": { "bsonType": "string", "minLength": 1 },
+    "body_key": { "bsonType": "string", "minLength": 1 },
+    "title": { "bsonType": "string", "minLength": 1 },
+    "body": { "bsonType": "string", "minLength": 1 },
+    "vars": { "bsonType": "object" },
+    "action_url": { "bsonType": "string" },
+    "reference_type": { "bsonType": "string" },
+    "reference_id": { "bsonType": "string" },
+    "is_read": { "bsonType": "bool" },
+    "is_dismissed": { "bsonType": "bool" },
+    "is_digested": { "bsonType": "bool" },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  },
+  "additionalProperties": false
+}
