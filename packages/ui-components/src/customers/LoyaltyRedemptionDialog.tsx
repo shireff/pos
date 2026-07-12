@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Field, useToast } from '../components/ui';
-import { Icon } from '../components/Icon';
+import { useT } from '../i18n';
 
 export interface LoyaltyRedemptionDialogProps {
   open: boolean;
@@ -17,6 +17,7 @@ export function LoyaltyRedemptionDialog({
   availablePoints,
   onConfirm,
 }: LoyaltyRedemptionDialogProps): React.ReactElement {
+  const t = useT();
   const [points, setPoints] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { push } = useToast();
@@ -24,17 +25,17 @@ export function LoyaltyRedemptionDialog({
   const handleConfirm = async () => {
     const parsed = Number(points);
     if (isNaN(parsed) || parsed <= 0) {
-      push({ type: 'error', msg: 'Please enter a valid number of points' });
+      push({ type: 'error', msg: t('customers.enterValidPoints') });
       return;
     }
     if (parsed > availablePoints) {
-      push({ type: 'error', msg: 'Not enough loyalty points' });
+      push({ type: 'error', msg: t('customers.notEnoughPoints') });
       return;
     }
     setIsSubmitting(true);
     try {
       await onConfirm(parsed);
-      push({ type: 'success', msg: `Redeemed ${parsed} points` });
+      push({ type: 'success', msg: t('customers.redeemedPoints', { count: parsed }) });
       setPoints('');
       onClose();
     } catch (err) {
@@ -50,11 +51,11 @@ export function LoyaltyRedemptionDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title="Redeem Loyalty Points"
+      title={t('customers.redeemLoyaltyPoints')}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -62,21 +63,21 @@ export function LoyaltyRedemptionDialog({
             onClick={handleConfirm}
             disabled={isSubmitting || !points}
           >
-            {isSubmitting ? 'Redeeming...' : 'Confirm Redemption'}
+            {isSubmitting ? t('customers.redeeming') : t('customers.confirmRedemption')}
           </button>
         </>
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
         <div className="stat-card" style={{ padding: 'var(--space-3)' }}>
-          <span className="stat-label">Available Points</span>
+          <span className="stat-label">{t('customers.availablePoints')}</span>
           <span className="stat-value">{availablePoints.toLocaleString()}</span>
         </div>
         <div className="stat-card" style={{ padding: 'var(--space-3)' }}>
-          <span className="stat-label">Redemption Rate</span>
-          <span className="stat-value">1 point = 1 EGP</span>
+          <span className="stat-label">{t('customers.redemptionRate')}</span>
+          <span className="stat-value">{t('customers.pointEquals')}</span>
         </div>
-        <Field label="Points to Redeem" required htmlFor="redeem-points">
+        <Field label={t('customers.pointsToRedeem')} required htmlFor="redeem-points">
           <input
             id="redeem-points"
             className="form-input"
@@ -90,7 +91,7 @@ export function LoyaltyRedemptionDialog({
         </Field>
         {Number(points) > 0 && (
           <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-            Redemption value: {redemptionValue.toLocaleString()} EGP
+            {t('customers.redemptionValue', { count: redemptionValue.toLocaleString() })}
           </div>
         )}
       </div>

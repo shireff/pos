@@ -7,6 +7,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const nextConfig = {
   // Keep Node.js-only packages out of the browser bundle
   serverExternalPackages: [
+    'puppeteer',
     'mongodb',
     'mongodb-client-encryption',
     'kerberos',
@@ -40,12 +41,12 @@ const nextConfig = {
   // Keep the native MongoDB driver packages out of every webpack build.
   webpack(config, { isServer, webpack: wp }) {
     const mongoPackages = [
+      'puppeteer',
       'mongodb',
       'mongodb-client-encryption',
       'kerberos',
       '@mongodb-js/zstd',
       '@aws-sdk/credential-providers',
-      'gcp-metadata',
       'snappy',
       'socks',
       'aws4',

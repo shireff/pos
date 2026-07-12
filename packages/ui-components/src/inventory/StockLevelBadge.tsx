@@ -1,4 +1,5 @@
 import React from 'react';
+import { useT } from '../i18n';
 
 export interface StockLevelBadgeProps {
     quantityOnHand: number;
@@ -15,6 +16,7 @@ export function StockLevelBadge({
     showAvailable = false,
     style,
 }: StockLevelBadgeProps): React.ReactElement {
+    const t = useT();
     const available = quantityOnHand - reservedQuantity;
     const isBelowReorder = quantityOnHand <= reorderPoint && reorderPoint > 0;
 
@@ -23,10 +25,10 @@ export function StockLevelBadge({
 
     if (quantityOnHand <= 0) {
         color = 'var(--color-danger)';
-        label = 'Out of stock';
+        label = t('inventory.outOfStock');
     } else if (isBelowReorder) {
         color = 'var(--color-warning)';
-        label = `Low (${quantityOnHand})`;
+        label = `${t('inventory.low')} (${quantityOnHand})`;
     } else {
         color = 'var(--color-success)';
     }
@@ -38,7 +40,7 @@ export function StockLevelBadge({
             </span>
             {showAvailable && (
                 <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>
-                    ({available} avail)
+                    ({available} {t('inventory.avail')})
                 </span>
             )}
         </div>

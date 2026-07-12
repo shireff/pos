@@ -13,11 +13,12 @@ import {
   fetchStoreHealth,
   fetchCashFlow,
 } from '../../lib/store/reportsSlice';
-import { Icon, type IconName } from '@packages/ui-components';
+import { Icon, useT, type IconName } from '@packages/ui-components';
 
 type ReportTab = 'daily-sales' | 'pnl' | 'inventory-valuation' | 'stock-movements' | 'branch-comparison' | 'employee-performance' | 'customer-loyalty' | 'tax' | 'supplier-performance' | 'store-health' | 'cash-flow';
 
 export function ReportsPage({ isOffline = false }: { isOffline?: boolean }): React.ReactElement {
+  const t = useT();
   const dispatch = useAppDispatch();
   const [tab, setTab] = useState<ReportTab>('daily-sales');
   const companyId = useAppSelector((state: any) => state.auth.user?.companyId ?? 'company-1');
@@ -111,33 +112,33 @@ export function ReportsPage({ isOffline = false }: { isOffline?: boolean }): Rea
     <div className="page">
       {isOffline && (
         <div className="offline-banner" style={{ padding: 'var(--space-2)', background: 'var(--color-warning)', color: 'var(--color-text-inverse)', marginBottom: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
-          Offline — data limited to local branch
+          {t('reports.offlineLimited')}
         </div>
       )}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Reports</h1>
-          <p className="page-subtitle">View and export business reports.</p>
+          <h1 className="page-title">{t('reports.title')}</h1>
+          <p className="page-subtitle">{t('reports.viewAndExportBusinessReports')}</p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button type="button" className="btn btn-secondary" onClick={() => handleExport('csv')}>Export CSV</button>
-          <button type="button" className="btn btn-secondary" onClick={() => handleExport('json')}>Export JSON</button>
+          <button type="button" className="btn btn-secondary" onClick={() => handleExport('csv')}>{t('reports.exportCsv')}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => handleExport('json')}>{t('reports.exportJson')}</button>
         </div>
       </div>
       <div className="reports-layout">
         <nav className="reports-sidebar" aria-label="Reports">
           {([
-            { key: 'daily-sales', label: 'Daily Sales', icon: 'clock' },
-            { key: 'pnl', label: 'P&L', icon: 'wallet' },
-            { key: 'inventory-valuation', label: 'Inventory Valuation', icon: 'package' },
-            { key: 'stock-movements', label: 'Stock Movements', icon: 'archive' },
-            { key: 'branch-comparison', label: 'Branch Comparison', icon: 'bar-chart' },
-            { key: 'employee-performance', label: 'Employee Performance', icon: 'users' },
-            { key: 'customer-loyalty', label: 'Customer Loyalty', icon: 'bell' },
-            { key: 'tax', label: 'Tax / ETA', icon: 'receipt' },
-            { key: 'supplier-performance', label: 'Supplier Performance', icon: 'box' },
-            { key: 'store-health', label: 'Store Health', icon: 'activity' },
-            { key: 'cash-flow', label: 'Cash Flow', icon: 'credit-card' },
+            { key: 'daily-sales', label: t('reports.dailySales'), icon: 'clock' },
+            { key: 'pnl', label: t('reports.profitLoss'), icon: 'wallet' },
+            { key: 'inventory-valuation', label: t('reports.inventoryValuation'), icon: 'package' },
+            { key: 'stock-movements', label: t('reports.stockMovements'), icon: 'archive' },
+            { key: 'branch-comparison', label: t('reports.branchComparison'), icon: 'bar-chart' },
+            { key: 'employee-performance', label: t('reports.employeePerformance'), icon: 'users' },
+            { key: 'customer-loyalty', label: t('reports.customerLoyalty'), icon: 'bell' },
+            { key: 'tax', label: t('reports.tax'), icon: 'receipt' },
+            { key: 'supplier-performance', label: t('reports.supplierPerformance'), icon: 'box' },
+            { key: 'store-health', label: t('reports.storeHealth'), icon: 'activity' },
+            { key: 'cash-flow', label: t('reports.cashFlow'), icon: 'credit-card' },
           ] as { key: ReportTab; label: string; icon: IconName }[]).map((item) => (
             <button
               key={item.key}

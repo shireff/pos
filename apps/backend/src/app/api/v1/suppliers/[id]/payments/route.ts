@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RecordSupplierPaymentCommand } from '@packages/application-purchasing';
-import { assertSuppliersPermission, getActorId } from '../../../../../../lib/suppliers-permissions';
+import { assertSuppliersPermission } from '../../../../../../lib/suppliers-permissions';
 import { handleApiError, ValidationError } from '../../../../../../lib/errors';
 import {
   MongoSupplierRepository,
@@ -10,9 +10,10 @@ import { RecordSupplierPaymentSchema } from '../../suppliers.schemas';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.ledger.record');
 
     const url = new URL(request.url);
@@ -29,7 +30,7 @@ export async function POST(
     const ledgerRepo = new MongoSupplierLedgerEntryRepository();
     const command = new RecordSupplierPaymentCommand(ledgerRepo, supplierRepo);
     const result = await command.execute({
-      supplierId: params.id,
+      supplierId: id,
       companyId,
       amountPiasters: data.amountPiasters,
       paymentMethod: data.paymentMethod,

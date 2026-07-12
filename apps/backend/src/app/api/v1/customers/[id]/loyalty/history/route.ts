@@ -6,9 +6,10 @@ import { MongoLoyaltyEventRepository } from '@packages/infrastructure-mongodb';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertCustomersPermission(request, 'customers.view');
 
     const url = new URL(request.url);
@@ -20,7 +21,7 @@ export async function GET(
     const query = new GetLoyaltyHistoryQuery(repo);
     const result = await query.execute({
       companyId,
-      customerId: params.id,
+      customerId: id,
       limit,
       offset,
     });

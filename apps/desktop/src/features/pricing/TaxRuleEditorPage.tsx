@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
-import { fetchTaxRules, createTaxRule, clearTaxRulesError } from '../../lib/store/taxRulesSlice';
-import { useToast } from '@packages/ui-components';
-import { Modal, Field } from '@packages/ui-components';
-import { Icon } from '@packages/ui-components';
+import { fetchTaxRules, createTaxRule } from '../../lib/store/taxRulesSlice';
+import { useToast, Modal, Field, useT, Icon } from '@packages/ui-components';
 
 export function TaxRuleEditorPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const { push } = useToast();
+  const t = useT();
   const { rules, status, error } = useAppSelector((state: any) => state.taxRules);
   const companyId = useAppSelector((state: any) => state.auth.user?.companyId ?? 'company-1');
 
@@ -38,7 +37,7 @@ export function TaxRuleEditorPage(): React.ReactElement {
         priority,
         companyId,
       })).unwrap();
-      push({ type: 'success', msg: 'Tax rule created' });
+      push({ type: 'success', msg: t('pricing.taxRuleCreated') });
       resetForm();
       setIsCreateOpen(false);
     } catch (err) {
@@ -52,34 +51,34 @@ export function TaxRuleEditorPage(): React.ReactElement {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Tax Rules</h1>
-          <p className="page-subtitle">Configure tax rates and applicability by priority.</p>
+          <h1 className="page-title">{t('taxRules.title')}</h1>
+          <p className="page-subtitle">{t('taxRules.subtitle')}</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={() => { resetForm(); setIsCreateOpen(true); }}>
-          <Icon name="plus" size={16} /> New Tax Rule
+          <Icon name="plus" size={16} /> {t('taxRules.createRule')}
         </button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
 
       {status === 'loading' && rules.length === 0 ? (
-        <div className="loading">Loading tax rules…</div>
+        <div className="loading">{t('pricing.loadingTaxRules')}</div>
       ) : rules.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-state-title">No tax rules</p>
-          <p>Create tax rules to calculate taxes on sales.</p>
+          <p className="empty-state-title">{t('pricing.noTaxRules')}</p>
+          <p>{t('pricing.createTaxRulesToCalculate')}</p>
         </div>
       ) : (
         <div className="table-container" style={{ marginBlockStart: 'var(--space-3)' }}>
           <table className="table">
             <thead>
               <tr>
-                <th>Priority</th>
-                <th>Name</th>
-                <th>Rate (%)</th>
-                <th>Applies To</th>
-                <th>Scope IDs</th>
-                <th>Status</th>
+                <th>{t('common.priority')}</th>
+                <th>{t('common.name')}</th>
+                <th>{t('pricing.rate')}</th>
+                <th>{t('pricing.appliesTo')}</th>
+                <th>{t('pricing.scopeIds')}</th>
+                <th>{t('common.status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -99,32 +98,32 @@ export function TaxRuleEditorPage(): React.ReactElement {
       )}
 
       {isCreateOpen && (
-        <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create Tax Rule" footer={
+        <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title={t('taxRules.createRule')} footer={
           <>
-            <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>Cancel</button>
-            <button type="submit" form="tax-form" className="btn btn-primary">Save</button>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>{t('common.cancel')}</button>
+            <button type="submit" form="tax-form" className="btn btn-primary">{t('common.save')}</button>
           </>
         }>
           <form id="tax-form" onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Field label="Name" required htmlFor="tr-name">
+            <Field label={t('common.name')} required htmlFor="tr-name">
               <input id="tr-name" className="form-input" value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
             <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-              <Field label="Rate (%)" required htmlFor="tr-rate">
+              <Field label={t('pricing.rate')} required htmlFor="tr-rate">
                 <input id="tr-rate" className="form-input num" type="number" min={0} max={100} step="0.01" value={ratePercent} onChange={(e) => setRatePercent(Number(e.target.value))} required />
               </Field>
-              <Field label="Priority" htmlFor="tr-priority">
+              <Field label={t('common.priority')} htmlFor="tr-priority">
                 <input id="tr-priority" className="form-input num" type="number" min={0} value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
               </Field>
             </div>
-            <Field label="Applies To" required htmlFor="tr-applies">
+            <Field label={t('pricing.appliesTo')} required htmlFor="tr-applies">
               <select id="tr-applies" className="form-input" value={appliesTo} onChange={(e) => setAppliesTo(e.target.value as any)}>
                 <option value="all">All Items</option>
                 <option value="category">By Category</option>
                 <option value="product">By Product</option>
               </select>
             </Field>
-            <Field label="Scope IDs (comma-separated)" htmlFor="tr-scope">
+            <Field label={t('pricing.scopeIds')} htmlFor="tr-scope">
               <input id="tr-scope" className="form-input" value={scopeIds} onChange={(e) => setScopeIds(e.target.value)} placeholder={appliesTo === 'all' ? 'Ignored for all' : 'cat-1, cat-2'} />
             </Field>
           </form>

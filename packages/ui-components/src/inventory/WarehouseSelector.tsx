@@ -1,4 +1,5 @@
 import React from 'react';
+import { useT } from '../i18n';
 
 export interface WarehouseSelectorProps {
     warehouses: Array<{ id: string; name: string; address?: string | null }>;
@@ -14,9 +15,11 @@ export function WarehouseSelector({
     value,
     onChange,
     label,
-    placeholder = 'Select warehouse',
+    placeholder,
     disabled,
 }: WarehouseSelectorProps): React.ReactElement {
+    const t = useT();
+    const resolvedPlaceholder = placeholder ?? t('inventory.selectWarehouse');
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
             {label && <label className="form-label">{label}</label>}
@@ -26,7 +29,7 @@ export function WarehouseSelector({
                 onChange={(e) => onChange(e.target.value)}
                 disabled={disabled}
             >
-                <option value="">{placeholder}</option>
+                <option value="">{resolvedPlaceholder}</option>
                 {warehouses.map((w) => (
                     <option key={w.id} value={w.id}>
                         {w.name}

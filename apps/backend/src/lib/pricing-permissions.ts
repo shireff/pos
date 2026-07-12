@@ -11,7 +11,5 @@ export async function assertPricingPermission(request: NextRequest, requiredPerm
   const headerPerms = new Set(header.split(',').map((c) => c.trim()).filter(Boolean));
   if (headerPerms.has(requiredPermission)) return;
 
-  const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-  (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
-  throw error;
+  throw new ForbiddenError(requiredPermission);
 }

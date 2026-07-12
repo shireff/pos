@@ -19,9 +19,7 @@ export async function assertPurchasingPermission(
     if (permissions.has(requiredPermission)) return;
     // Fall through to header check if JWT has no permissions (backwards compat)
     if (ctx.branchRoles && ctx.branchRoles.length > 0) {
-      const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-      (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
-      throw error;
+      throw new ForbiddenError(requiredPermission);
     }
   } catch (e) {
     // If it's a ForbiddenError we already decided — re-throw

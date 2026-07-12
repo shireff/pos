@@ -1,4 +1,8 @@
 # Phase 03 — Products (Catalog) TODO
+> ?? **STRICT i18n & LOCALIZATION WARNING FOR AI/DEVELOPERS:**
+> - **ALL UI text MUST use useT() / 	() with complete translation keys.** No hardcoded user-facing strings are allowed anywhere.
+> - **ALL backend errors/messages MUST use pps/backend/src/lib/errors.ts with localized messages.** No hardcoded English strings in route handlers or services.
+> - Missing or incomplete translations will be treated as a blocking bug.
 
 ## Current update — 2026-07-07
 
@@ -106,3 +110,4 @@
 - [x] `packages/domain/catalog/README.md` — documents aggregate contracts
 - [x] Added basic catalog UI documentation comments in the new screen and component files
 - [x] Update API.md if any endpoint contract was refined during implementation
+

@@ -1,5 +1,10 @@
 # Phase 01 — Foundation TODO
 
+> ⚠️ **STRICT i18n & LOCALIZATION WARNING FOR AI/DEVELOPERS:**
+> - **ALL UI text MUST use `useT()` / `t()` with complete translation keys.** No hardcoded user-facing strings are allowed anywhere.
+> - **ALL backend errors/messages MUST use `apps/backend/src/lib/errors.ts` with localized messages.** No hardcoded English strings in route handlers or services.
+> - Missing or incomplete translations will be treated as a blocking bug.
+
 > Legend: `[x]` = done, `[ ]` = requires manual verification (cannot be automated)
 
 ## 01 — Monorepo & Tooling

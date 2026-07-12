@@ -7,6 +7,12 @@ import { useEffect } from 'react';
 
 const DISCREPANCY_TYPES = ['quantity_shortage', 'quality_rejection', 'wrong_item'] as const;
 
+const DISCREPANCY_LABEL_KEYS: Record<string, string> = {
+  quantity_shortage: 'purchasing.discrepancy.quantityShortage',
+  quality_rejection: 'purchasing.discrepancy.qualityRejection',
+  wrong_item: 'purchasing.discrepancy.wrongItem',
+};
+
 export function GoodsReceiptScreen({
   purchaseOrder,
   onDone,
@@ -37,14 +43,14 @@ export function GoodsReceiptScreen({
   const submit = async () => {
     setError(null);
     if (!warehouseId) {
-      setError('Select a warehouse first.');
+      setError(t('purchasing.errSelectWarehouse'));
       return;
     }
     const lines = purchaseOrder.lines.map((l) => {
       const e = entries[l.id];
       const qty = Number(e.qty);
       if (!Number.isInteger(qty) || qty < 0) {
-        throw new Error('Received quantity must be a non-negative whole number.');
+        throw new Error(t('purchasing.errRcvQty'));
       }
       const flag = e.flag || (qty < l.orderedQuantity ? 'quantity_shortage' : null);
       return {
@@ -62,7 +68,7 @@ export function GoodsReceiptScreen({
       ).unwrap();
       onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to receive goods');
+      setError(e instanceof Error ? e.message : t('purchasing.errReceiveFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -74,8 +80,8 @@ export function GoodsReceiptScreen({
         warehouses={warehouses}
         value={warehouseId}
         onChange={setWarehouseId}
-        label="Receiving warehouse"
-        placeholder="Select warehouse"
+        label={t('purchasing.receivingWarehouse')}
+        placeholder={t('purchasing.selectWarehouse')}
       />
 
       <div className="receipt-lines">
@@ -85,7 +91,7 @@ export function GoodsReceiptScreen({
             <div className="receipt-line" key={l.id}>
               <div className="receipt-line__head">
                 <span>{l.productId}</span>
-                <span className="num">ordered {l.orderedQuantity}</span>
+                <span className="num">{t('purchasing.orderedLabel', { qty: l.orderedQuantity })}</span>
               </div>
               <div className="receipt-line__controls">
                 <input
@@ -93,7 +99,7 @@ export function GoodsReceiptScreen({
                   value={e.qty}
                   onChange={(ev) => update(l.id, { qty: ev.target.value })}
                   inputMode="numeric"
-                  aria-label="Received quantity"
+                  aria-label={t('purchasing.receivedQty')}
                 />
                 <label className="receipt-flag">
                   <input
@@ -101,7 +107,7 @@ export function GoodsReceiptScreen({
                     checked={Boolean(e.flag)}
                     onChange={(ev) => update(l.id, { flag: ev.target.checked ? 'quantity_shortage' : '' })}
                   />
-                  Discrepancy
+                  {t('purchasing.discrepancy')}
                 </label>
               </div>
               {e.flag && (
@@ -111,7 +117,7 @@ export function GoodsReceiptScreen({
                   onChange={(ev) => update(l.id, { flag: ev.target.value })}
                 >
                   {DISCREPANCY_TYPES.map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                    <option key={d} value={d}>{t(DISCREPANCY_LABEL_KEYS[d])}</option>
                   ))}
                 </select>
               )}
@@ -119,7 +125,7 @@ export function GoodsReceiptScreen({
                 className="form-input"
                 value={e.note}
                 onChange={(ev) => update(l.id, { note: ev.target.value })}
-                placeholder="Discrepancy notes"
+                placeholder={t('purchasing.discrepancyNotes')}
               />
             </div>
           );
@@ -127,12 +133,12 @@ export function GoodsReceiptScreen({
       </div>
 
       <div className="form-field">
-        <label className="form-label">Receipt notes</label>
+        <label className="form-label">{t('purchasing.receiptNotes')}</label>
         <textarea className="form-input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       <button className="btn btn-primary btn-block" onClick={submit} disabled={submitting}>
-        {submitting ? 'Saving…' : (<><Icon name="check" size={16} /> Confirm receipt</>)}
+        {submitting ? t('purchasing.saving') : (<><Icon name="check" size={16} /> {t('purchasing.confirmReceipt')}</>)}
       </button>
       {error && <div className="error-banner">{error}</div>}
     </div>

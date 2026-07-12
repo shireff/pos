@@ -10,9 +10,10 @@ import { RecordCreditPaymentSchema } from '../../../customers.schemas';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertCustomersPermission(request, 'customers.credit.record');
 
     const url = new URL(request.url);
@@ -29,7 +30,7 @@ export async function POST(
     const command = new RecordCreditPaymentCommand(balanceRepo, entryRepo);
     const result = await command.execute({
       companyId,
-      customerId: params.id,
+      customerId: id,
       amountPiasters: parsed.data.amountPiasters,
       paymentMethod: parsed.data.paymentMethod,
       referenceNumber: parsed.data.referenceNumber,

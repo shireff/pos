@@ -22,8 +22,7 @@ export async function assertCatalogPermission(
     if (permissions.has(requiredPermission)) return;
     // Fall through to header check if JWT has no permissions (backwards compat)
     if (ctx.branchRoles && ctx.branchRoles.length > 0) {
-      const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-      (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
+      const error = new ForbiddenError(requiredPermission);
       throw error;
     }
   } catch (e) {
@@ -39,8 +38,6 @@ export async function assertCatalogPermission(
   );
 
   if (!headerPerms.has(requiredPermission)) {
-    const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-    (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
-    throw error;
+    throw new ForbiddenError(requiredPermission);
   }
 }

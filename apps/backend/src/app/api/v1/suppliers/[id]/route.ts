@@ -4,7 +4,7 @@ import {
   UpdateSupplierCommand,
   DeactivateSupplierCommand,
 } from '@packages/application-purchasing';
-import { assertSuppliersPermission, getActorId } from '../../../../../lib/suppliers-permissions';
+import { assertSuppliersPermission } from '../../../../../lib/suppliers-permissions';
 import { handleApiError, ValidationError } from '../../../../../lib/errors';
 import {
   MongoSupplierRepository,
@@ -15,9 +15,10 @@ import { UpdateSupplierSchema } from '../suppliers.schemas';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.view');
 
     const url = new URL(request.url);
@@ -30,7 +31,7 @@ export async function GET(
     const query = new GetSupplierQuery(repo, ledgerRepo, priceHistoryRepo);
     const result = await query.execute({
       companyId,
-      supplierId: params.id,
+      supplierId: id,
     });
 
     return NextResponse.json({ success: true, data: result });
@@ -41,9 +42,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.edit');
 
     const url = new URL(request.url);
@@ -58,7 +60,7 @@ export async function PATCH(
     const repo = new MongoSupplierRepository();
     const command = new UpdateSupplierCommand(repo);
     const supplier = await command.execute({
-      supplierId: params.id,
+      supplierId: id,
       companyId,
       ...parsed.data,
     });
@@ -71,9 +73,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.edit');
 
     const url = new URL(request.url);
@@ -82,7 +85,7 @@ export async function DELETE(
     const repo = new MongoSupplierRepository();
     const command = new DeactivateSupplierCommand(repo);
     const supplier = await command.execute({
-      supplierId: params.id,
+      supplierId: id,
       companyId,
     });
 

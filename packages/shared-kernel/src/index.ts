@@ -23,6 +23,9 @@ export type {
 export { checkSelfLock, isActionBlocked, getLockMessage } from './commands/self-lock.command';
 export type { CachedSubscriptionState, SelfLockResult } from './commands/self-lock.command';
 
+// Locale
+export { getLocale, setLocale } from './locale';
+
 // API error i18n
 export { getApiErrorMessage } from './api-error-messages';
 export type { SupportedLocale } from './api-error-messages';

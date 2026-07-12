@@ -1,5 +1,4 @@
 import React from 'react';
-import { Icon } from '@packages/ui-components';
 import { CustomerDetail } from '../../../lib/store/customersSlice';
 
 export interface OverviewTabProps {

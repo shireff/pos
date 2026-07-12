@@ -21,6 +21,7 @@ export interface ModalProps {
   size?: 'md' | 'lg';
 }
 export function Modal({ open, onClose, title, children, footer, size = 'md' }: ModalProps) {
+  const t = useT();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -39,7 +40,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
         {title && (
           <div className="modal-header">
             <h2 className="modal-title">{title}</h2>
-            <button type="button" className="modal-close" aria-label="close" onClick={onClose}>
+            <button type="button" className="modal-close" aria-label={t('common.close')} onClick={onClose}>
               <Icon name="x" size={20} />
             </button>
           </div>
@@ -148,10 +149,11 @@ export function Sidebar({
   footer?: ReactNode;
   collapsed?: boolean;
 }) {
+  const t = useT();
   return (
     <aside className={`sidebar${collapsed ? ' is-collapsed' : ''}`}>
       {brand}
-      <nav className="sidebar__nav" aria-label="main">{children}</nav>
+      <nav className="sidebar__nav" aria-label={t('nav.main')}>{children}</nav>
       {footer && <div className="sidebar__footer">{footer}</div>}
     </aside>
   );

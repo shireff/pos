@@ -4,15 +4,12 @@ import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
   fetchCustomerById,
   clearCustomerDetail,
-  redeemLoyalty,
   CustomerDetail,
 } from '../../lib/store/customersSlice';
 import { OverviewTab } from './tabs/OverviewTab';
 import { LoyaltyHistoryTab } from './tabs/LoyaltyHistoryTab';
 import { CreditHistoryTab } from './tabs/CreditHistoryTab';
 import { PurchaseHistoryTab } from './tabs/PurchaseHistoryTab';
-import { LoyaltyRedemptionDialog } from '@packages/ui-components';
-import { useToast } from '@packages/ui-components';
 
 type TabKey = 'overview' | 'loyalty-history' | 'credit-history' | 'purchases';
 
@@ -38,7 +35,6 @@ export function CustomerProfilePage({
   const detail = useAppSelector((state: any) => state.customers.selectedCustomer as CustomerDetail | null);
   const detailStatus = useAppSelector((state: any) => state.customers.detailStatus);
   const companyId = useAppSelector((state: any) => state.auth.user?.companyId ?? 'company-1');
-  const { push } = useToast();
 
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [loyaltyPage, setLoyaltyPage] = useState(1);

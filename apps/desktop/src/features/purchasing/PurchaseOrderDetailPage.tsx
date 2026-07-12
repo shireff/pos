@@ -12,20 +12,20 @@ import {
 import { GoodsReceiptScreen } from './GoodsReceiptScreen';
 import { OcrUpload } from './OcrUpload';
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  pending_approval: 'Pending approval',
-  approved: 'Approved',
-  partially_received: 'Partially received',
-  fully_received: 'Fully received',
-  cancelled: 'Cancelled',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  draft: 'purchasing.draft',
+  pending_approval: 'purchasing.pendingApproval',
+  approved: 'purchasing.approved',
+  partially_received: 'purchasing.partiallyReceived',
+  fully_received: 'purchasing.fullyReceived',
+  cancelled: 'purchasing.cancelled',
 };
 
-const TIMELINE: Array<{ status: string; label: string }> = [
-  { status: 'draft', label: 'Created' },
-  { status: 'pending_approval', label: 'Submitted' },
-  { status: 'approved', label: 'Approved' },
-  { status: 'fully_received', label: 'Received' },
+const TIMELINE: Array<{ status: string; labelKey: string }> = [
+  { status: 'draft', labelKey: 'purchasing.created' },
+  { status: 'pending_approval', labelKey: 'purchasing.submitted' },
+  { status: 'approved', labelKey: 'purchasing.approved' },
+  { status: 'fully_received', labelKey: 'purchasing.received' },
 ];
 
 export function PurchaseOrderDetailPage({
@@ -52,8 +52,8 @@ export function PurchaseOrderDetailPage({
   if (!po || po.id !== purchaseOrderId) {
     return (
       <div className="page">
-        <button className="btn btn-ghost btn-sm" onClick={onBack}><Icon name="arrow-right" size={16} /> Back</button>
-        <p style={{ marginTop: 16 }}>Loading purchase order…</p>
+         <button className="btn btn-ghost btn-sm" onClick={onBack}><Icon name="arrow-right" size={16} /> {t('common.back')}</button>
+        <p style={{ marginTop: 16 }}>{t('purchasing.loading')}</p>
       </div>
     );
   }
@@ -82,77 +82,77 @@ export function PurchaseOrderDetailPage({
     <div className="page">
       <div className="page-header">
         <div>
-          <button className="btn btn-ghost btn-sm" onClick={onBack} style={{ marginBottom: 8 }}>
-            <Icon name="arrow-right" size={16} /> Back
-          </button>
+            <button className="btn btn-ghost btn-sm" onClick={onBack} style={{ marginBottom: 8 }}>
+              <Icon name="arrow-right" size={16} /> {t('common.back')}
+            </button>
           <h1 className="page-title">
-            {po.referenceNumber} <StatusBadge status={po.status}>{STATUS_LABELS[po.status] ?? po.status}</StatusBadge>
+            {po.referenceNumber} <StatusBadge status={po.status}>{t(STATUS_LABEL_KEYS[po.status] ?? po.status)}</StatusBadge>
           </h1>
           <p className="page-subtitle">
-            Supplier {po.supplierId} · Expected {new Date(po.expectedDeliveryDate).toLocaleDateString()}
+            {t('purchasing.supplierExpected', { supplier: po.supplierId, date: new Date(po.expectedDeliveryDate).toLocaleDateString() })}
           </p>
         </div>
         <div className="po-actions">
           {canSubmit && (
-            <button className="btn btn-primary btn-sm" onClick={() => dispatch(submitPurchaseOrder({ id: po.id }))}>
-              Submit
-            </button>
-          )}
-          {canApprove && (
-            <button className="btn btn-primary btn-sm" onClick={() => dispatch(approvePurchaseOrder(po.id))}>
-              Approve
-            </button>
-          )}
-          {canReceive && (
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowReceive(true)}>
-              <Icon name="package" size={14} /> Receive goods
-            </button>
-          )}
-          {canCancel && (
-            <button className="btn btn-danger btn-sm" onClick={() => setShowReason('cancel')}>
-              Cancel
-            </button>
-          )}
-          {po.status === 'pending_approval' && (
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowReason('reject')}>
-              Reject
-            </button>
-          )}
+              <button className="btn btn-primary btn-sm" onClick={() => dispatch(submitPurchaseOrder({ id: po.id }))}>
+               {t('purchasing.submit')}
+             </button>
+           )}
+           {canApprove && (
+             <button className="btn btn-primary btn-sm" onClick={() => dispatch(approvePurchaseOrder(po.id))}>
+               {t('purchasing.approve')}
+             </button>
+           )}
+           {canReceive && (
+             <button className="btn btn-secondary btn-sm" onClick={() => setShowReceive(true)}>
+               <Icon name="package" size={14} /> {t('purchasing.receiveGoods')}
+             </button>
+           )}
+           {canCancel && (
+             <button className="btn btn-danger btn-sm" onClick={() => setShowReason('cancel')}>
+               {t('purchasing.cancel')}
+             </button>
+           )}
+           {po.status === 'pending_approval' && (
+             <button className="btn btn-ghost btn-sm" onClick={() => setShowReason('reject')}>
+               {t('purchasing.reject')}
+             </button>
+           )}
         </div>
       </div>
 
-      {po.rejectedReason && (
-        <div className="info-banner">Rejected: {po.rejectedReason}</div>
-      )}
-      {po.cancelledReason && (
-        <div className="info-banner">Cancelled: {po.cancelledReason}</div>
-      )}
+       {po.rejectedReason && (
+         <div className="info-banner">{t('purchasing.rejectedBanner', { reason: po.rejectedReason })}</div>
+       )}
+       {po.cancelledReason && (
+         <div className="info-banner">{t('purchasing.cancelledBanner', { reason: po.cancelledReason })}</div>
+       )}
 
       <div className="po-timeline">
         {TIMELINE.map((step, i) => {
           const active = TIMELINE.findIndex((s) => s.status === po.status) >= i || po.status === 'cancelled';
           return (
             <div key={step.status} className={`po-timeline__step${active ? ' is-active' : ''}`}>
-              <span className="po-timeline__dot" />
-              <span>{step.label}</span>
+               <span className="po-timeline__dot" />
+               <span>{t(step.labelKey)}</span>
             </div>
           );
         })}
       </div>
 
       <div className="card">
-        <h3 className="section-label">Lines</h3>
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Ordered</th>
-                <th>Received</th>
-                <th>Unit price</th>
-                <th>Progress</th>
-              </tr>
-            </thead>
+         <h3 className="section-label">{t('purchasing.lines')}</h3>
+         <div className="table-container">
+           <table className="table">
+             <thead>
+               <tr>
+                 <th>{t('purchasing.product')}</th>
+                 <th>{t('purchasing.orderedQty')}</th>
+                 <th>{t('purchasing.receivedQty')}</th>
+                 <th>{t('purchasing.unitPrice')}</th>
+                 <th>{t('purchasing.progress')}</th>
+               </tr>
+             </thead>
             <tbody>
               {po.lines.map((l) => {
                 const pct = l.orderedQuantity ? Math.round((l.receivedQuantity / l.orderedQuantity) * 100) : 0;
@@ -165,7 +165,7 @@ export function PurchaseOrderDetailPage({
                     <td>
                       <div className="progress"><div className="progress__bar" style={{ width: `${pct}%` }} /></div>
                       {l.receivedQuantity < l.orderedQuantity && (
-                        <span className="badge badge-suspended">discrepancy</span>
+                        <span className="badge badge-suspended">{t('purchasing.discrepancy')}</span>
                       )}
                     </td>
                   </tr>
@@ -174,19 +174,19 @@ export function PurchaseOrderDetailPage({
             </tbody>
           </table>
         </div>
-        <div className="po-form__total">Total: {(po.totalAmountPiasters / 100).toFixed(2)} EGP</div>
-      </div>
+         <div className="po-form__total">{t('purchasing.total')}: {(po.totalAmountPiasters / 100).toFixed(2)} EGP</div>
+       </div>
 
-      <div className="card">
-        <h3 className="section-label">Invoice</h3>
+       <div className="card">
+         <h3 className="section-label">{t('purchasing.invoice')}</h3>
         <OcrUpload purchaseOrderId={po.id} companyId={companyId} />
       </div>
 
       <Modal
         open={showReceive}
         onClose={() => setShowReceive(false)}
-        title="Receive Goods"
-        footer={<button className="btn btn-ghost" onClick={() => setShowReceive(false)}>Close</button>}
+        title={t('purchasing.receiveGoods')}
+        footer={<button className="btn btn-ghost" onClick={() => setShowReceive(false)}>{t('purchasing.close')}</button>}
       >
         <GoodsReceiptScreen purchaseOrder={po} onDone={() => setShowReceive(false)} />
       </Modal>
@@ -194,21 +194,21 @@ export function PurchaseOrderDetailPage({
       <Modal
         open={showReason !== null}
         onClose={() => setShowReason(null)}
-        title={showReason === 'reject' ? 'Reject Purchase Order' : 'Cancel Purchase Order'}
+        title={showReason === 'reject' ? t('purchasing.rejectPo') : t('purchasing.cancelPo')}
         footer={
           <>
-            <button className="btn btn-ghost" onClick={() => setShowReason(null)}>Close</button>
+            <button className="btn btn-ghost" onClick={() => setShowReason(null)}>{t('purchasing.close')}</button>
             <button className="btn btn-danger" onClick={runReasonAction} disabled={reason.trim().length < 1}>
-              Confirm
+              {t('purchasing.confirm')}
             </button>
           </>
         }
       >
-        <Field label={showReason === 'reject' ? 'Rejection reason (min 10 chars)' : 'Cancellation reason'}>
+        <Field label={showReason === 'reject' ? t('purchasing.rejectionReasonHint') : t('purchasing.cancellationReason')}>
           <textarea className="form-input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
         {showReason === 'reject' && reason.trim().length < 10 && (
-          <p className="field-hint" style={{ color: 'var(--color-danger)' }}>Reason must be at least 10 characters.</p>
+           <p className="field-hint" style={{ color: 'var(--color-danger)' }}>{t('purchasing.reasonMinChars')}</p>
         )}
         {error && <div className="error-banner">{error}</div>}
       </Modal>

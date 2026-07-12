@@ -10,7 +10,7 @@ import {
     type TenderType,
     type Order,
 } from '../../lib/store/salesSlice';
-import { DigitalReceiptModal, type DigitalReceiptLine } from '@packages/ui-components';
+import { useT, DigitalReceiptModal, type DigitalReceiptLine } from '@packages/ui-components';
 import { getReceiptPrinter, getCashDrawer } from '../../lib/hardware';
 import { PrinterNotAvailableError } from '@packages/infrastructure-hardware';
 
@@ -74,6 +74,7 @@ export function PosRegisterPage() {
     const [selectedCustomerName, setSelectedCustomerName] = useState('');
 
     const barcodeRef = useRef<HTMLInputElement>(null);
+    const t = useT();
 
     useEffect(() => {
         void dispatch(fetchCurrentShift({}));
@@ -245,9 +246,9 @@ export function PosRegisterPage() {
         <div className="pos-register" style={{ display: 'grid', gridTemplateRows: 'auto 1fr', height: '100%' }}>
             <header className="pos-header row" style={{ justifyContent: 'space-between', padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
                 <div className="row" style={{ gap: 'var(--space-4)' }}>
-                    <strong>POS Register</strong>
+                    <strong>{t('pos.register')}</strong>
                     <span className="section-label">
-                        Shift: {currentShift ? currentShift.status : 'none'}
+                        {t('pos.shift')}: {currentShift ? currentShift.status : t('pos.none')}
                     </span>
                 </div>
                 <div className="row" style={{ gap: 'var(--space-2)' }}>
@@ -257,7 +258,7 @@ export function PosRegisterPage() {
                         onClick={() => void dispatch(openShift({ branchId: 'branch-1', openingCashPiasters: 0 }))}
                         disabled={Boolean(currentShift)}
                     >
-                        Open Shift
+                        {t('pos.openShift')}
                     </button>
                     <button
                         type="button"
@@ -265,7 +266,7 @@ export function PosRegisterPage() {
                         onClick={() => setShowShiftClose(true)}
                         disabled={!currentShift || currentShift.status !== 'open'}
                     >
-                        Close Shift
+                        {t('pos.closeShift')}
                     </button>
                 </div>
             </header>
@@ -276,7 +277,7 @@ export function PosRegisterPage() {
                         ref={barcodeRef}
                         autoFocus
                         className="form-input"
-                        placeholder="Scan barcode or type to search…"
+                        placeholder={t('pos.scanBarcode')}
                         value={scanned}
                         onChange={(e) => setScanned(e.target.value)}
                         onKeyDown={async (e) => {
@@ -289,12 +290,12 @@ export function PosRegisterPage() {
                     <div className="row" style={{ gap: 'var(--space-2)', marginBlock: 'var(--space-3)' }}>
                         <input
                             className="form-input"
-                            placeholder="Product search…"
+                            placeholder={t('pos.searchProduct')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                         <button type="button" className="btn btn-secondary btn-sm" onClick={() => runSearch(search)}>
-                            Search
+                            {t('pos.search')}
                         </button>
                     </div>
 
@@ -317,7 +318,7 @@ export function PosRegisterPage() {
                                             })
                                         }
                                     >
-                                        Add
+                                        {t('pos.addToCart')}
                                     </button>
                                 </li>
                             ))}
@@ -329,13 +330,13 @@ export function PosRegisterPage() {
 
                 <aside className="pos-cart" style={{ borderLeft: '1px solid var(--color-border)', padding: 'var(--space-4)', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                     <h3 style={{ margin: 0 }}>Cart</h3>
-                    {cart.length === 0 && <p className="section-label">No items scanned yet.</p>}
+                    {cart.length === 0 && <p className="section-label">{t('pos.noItems')}</p>}
                     {cart.map((item) => (
                         <div key={item.key} className="card" style={{ padding: 'var(--space-3)' }}>
                             <div className="row" style={{ justifyContent: 'space-between' }}>
                                 <strong>{item.name}</strong>
                                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCart((c) => c.filter((x) => x.key !== item.key))}>
-                                    ✕
+                                    {t('common.remove')}
                                 </button>
                             </div>
                             <div className="row" style={{ gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
@@ -348,7 +349,7 @@ export function PosRegisterPage() {
                                 <input
                                     className="form-input num"
                                     style={{ width: 90 }}
-                                    placeholder="discount"
+                                    placeholder={t('pos.amount')}
                                     onChange={(e) =>
                                         setCart((c) =>
                                             c.map((x) =>
@@ -365,19 +366,19 @@ export function PosRegisterPage() {
                     ))}
 
                     <div className="row" style={{ justifyContent: 'space-between' }}>
-                        <span>Subtotal</span>
+                        <span>{t('pos.subtotal')}</span>
                         <span className="num">{formatEgp(subtotalPiasters)} EGP</span>
                     </div>
                     <div className="row" style={{ justifyContent: 'space-between' }}>
-                        <span>Discount</span>
+                        <span>{t('pos.discount')}</span>
                         <span className="num">−{formatEgp(discountPiasters)} EGP</span>
                     </div>
                     <div className="row" style={{ justifyContent: 'space-between', fontWeight: 700 }}>
-                        <span>Total</span>
+                        <span>{t('pos.total')}</span>
                         <span className="num">{formatEgp(grandTotalPiasters)} EGP</span>
                     </div>
 
-                    <h4 style={{ marginBlockEnd: 0 }}>Payments</h4>
+                    <h4 style={{ marginBlockEnd: 0 }}>{t('pos.payments')}</h4>
                     <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--space-2)' }}>
                         {TENDER_TYPES.map((t) => (
                             <button
@@ -392,7 +393,7 @@ export function PosRegisterPage() {
                     </div>
                     {payments.map((p, idx) => (
                         <div key={idx} className="row" style={{ gap: 'var(--space-2)' }}>
-                            <span className="section-label" style={{ width: 110 }}>{p.tenderType}</span>
+                            <span className="section-label" style={{ width: 110 }}>                                {t(`pos.${p.tenderType}`)}</span>
                             <input
                                 className="form-input num"
                                 defaultValue={(p.amountPiasters / 100).toFixed(2)}
@@ -404,12 +405,12 @@ export function PosRegisterPage() {
                         </div>
                     ))}
                     <div className="row" style={{ justifyContent: 'space-between' }}>
-                        <span>Paid</span>
+                        <span>{t('pos.paid')}</span>
                         <span className="num">{formatEgp(paidPiasters)} EGP</span>
                     </div>
                     {changePiasters > 0 && (
                         <div className="row" style={{ justifyContent: 'space-between', color: 'var(--color-success)' }}>
-                            <span>Change</span>
+                            <span>{t('pos.change')}</span>
                             <span className="num">{formatEgp(changePiasters)} EGP</span>
                         </div>
                     )}
@@ -420,12 +421,12 @@ export function PosRegisterPage() {
                         disabled={cart.length === 0 || salesStatus === 'loading'}
                         onClick={handleCompleteSale}
                     >
-                        {salesStatus === 'loading' ? 'Processing…' : 'Complete Sale'}
+                        {salesStatus === 'loading' ? t('pos.processing') : t('pos.completeSale')}
                     </button>
 
                     {drawerPrompt && (
                         <div className="error-banner" role="status">
-                            Please open the cash drawer manually.
+                            {t('pos.pleaseOpenDrawer')}
                         </div>
                     )}
                 </aside>
@@ -434,11 +435,11 @@ export function PosRegisterPage() {
             <div style={{ padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
                 <input
                     className="form-input"
-                    placeholder="Search customer by phone or name…"
+                    placeholder={t('pos.searchCustomer')}
                     value={customerSearch}
                     onChange={(e) => { setCustomerSearch(e.target.value); runCustomerSearch(e.target.value); }}
                 />
-                {selectedCustomerId && <span className="section-label">Customer: {selectedCustomerName}</span>}
+                    {selectedCustomerId && <span className="section-label">{t('pos.customer')}: {selectedCustomerName}</span>}
                 {customerResults.length > 0 && (
                     <select className="form-select" value="" onChange={(e) => {
                         const selected = customerResults.find((r) => r.id === e.target.value);
@@ -449,27 +450,27 @@ export function PosRegisterPage() {
                             setCustomerSearch('');
                         }
                     }}>
-                        <option value="">Select customer…</option>
+                        <option value="">{t('pos.selectCustomer')}</option>
                         {customerResults.map((r) => (
                             <option key={r.id} value={r.id}>{r.name} — {r.phone}</option>
                         ))}
                     </select>
                 )}
-                {selectedCustomerId && (
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setSelectedCustomerId(null); setSelectedCustomerName(''); }}>Clear</button>
-                )}
+                    {selectedCustomerId && (
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setSelectedCustomerId(null); setSelectedCustomerName(''); }}>{t('pos.clearCustomer')}</button>
+                    )}
             </div>
 
             {showShiftClose && (
                 <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowShiftClose(false)}>
                     <div className="card" style={{ maxWidth: 360, margin: 'auto', padding: 'var(--space-4)' }} onClick={(e) => e.stopPropagation()}>
-                        <h3 style={{ marginTop: 0 }}>Close Shift</h3>
-                        <p className="section-label">Expected cash: {formatEgp(currentShift?.openingCashPiasters ?? 0)} EGP</p>
-                        <Field label="Actual cash count (EGP)">
+                        <h3 style={{ marginTop: 0 }}>{t('pos.closeShift')}</h3>
+                        <p className="section-label">{t('pos.openingCash')}: {formatEgp(currentShift?.openingCashPiasters ?? 0)} EGP</p>
+                        <Field label={t('pos.actualCash')}>
                             <input className="form-input num" value={closingCash} onChange={(e) => setClosingCash(e.target.value)} placeholder="0.00" />
                         </Field>
                         <div className="row" style={{ justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
-                            <button type="button" className="btn btn-ghost" onClick={() => setShowShiftClose(false)}>Cancel</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setShowShiftClose(false)}>{t('pos.cancel')}</button>
                             <button
                                 type="button"
                                 className="btn btn-primary"
@@ -480,7 +481,7 @@ export function PosRegisterPage() {
                                     setClosingCash('');
                                 }}
                             >
-                                Close
+                                {t('pos.close')}
                             </button>
                         </div>
                     </div>

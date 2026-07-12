@@ -4,6 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { getAuthSession, removeAuthSession } from '../storage/secureStorage';
+import { getLocale } from '@packages/shared-kernel';
 
 const baseURL: string = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
 const timeout: number = Number(import.meta.env.VITE_API_TIMEOUT ?? '30000');
@@ -22,6 +23,8 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  config.headers['Accept-Language'] = getLocale();
 
   return config;
 });

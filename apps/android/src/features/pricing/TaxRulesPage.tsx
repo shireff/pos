@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
-import { fetchTaxRules, createTaxRule, clearTaxRulesError } from '../../lib/store/taxRulesSlice';
+import { fetchTaxRules, createTaxRule } from '../../lib/store/taxRulesSlice';
 import { useToast } from '@packages/ui-components';
 import { Modal, Field } from '@packages/ui-components';
 import { Icon } from '@packages/ui-components';

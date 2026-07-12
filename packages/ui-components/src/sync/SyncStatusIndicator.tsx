@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Icon, type IconName } from '../components/Icon';
 import type { SyncStatusView, SyncTransportType } from '../stores/sync.store';
+import { useT } from '../i18n';
 
 export interface SyncStatusIndicatorProps {
   status: SyncStatusView;
@@ -8,10 +9,10 @@ export interface SyncStatusIndicatorProps {
   className?: string;
 }
 
-const TRANSPORT_META: Record<SyncTransportType, { icon: IconName; label: string }> = {
-  lan: { icon: 'wifi', label: 'LAN' },
-  supabase_realtime: { icon: 'globe', label: 'Cloud' },
-  websocket: { icon: 'monitor', label: 'WS' },
+const TRANSPORT_META: Record<SyncTransportType, { icon: IconName; key: string }> = {
+  lan: { icon: 'wifi', key: 'sync.lan' },
+  supabase_realtime: { icon: 'globe', key: 'sync.cloud' },
+  websocket: { icon: 'monitor', key: 'sync.ws' },
 };
 
 /**
@@ -20,6 +21,7 @@ const TRANSPORT_META: Record<SyncTransportType, { icon: IconName; label: string 
  * it reads from the external sync store.
  */
 export function SyncStatusIndicator({ status, onRefresh, className }: SyncStatusIndicatorProps) {
+  const t = useT();
   const transport = TRANSPORT_META[status.transportType];
   const lastSyncLabel = status.lastSyncedAt
     ? new Date(status.lastSyncedAt).toLocaleTimeString()
@@ -47,11 +49,11 @@ export function SyncStatusIndicator({ status, onRefresh, className }: SyncStatus
         <Icon name={transport.icon} size={16} />
       )}
 
-      <span>{status.offline ? 'Offline' : transport.label}</span>
+      <span>{status.offline ? t('sync.offline') : t(transport.key)}</span>
 
       {hasPending && (
         <span
-          title="Pending outbox"
+          title={t('sync.pendingOutbox')}
           style={{
             background: '#d64545',
             color: '#fff',
@@ -64,7 +66,7 @@ export function SyncStatusIndicator({ status, onRefresh, className }: SyncStatus
         </span>
       )}
 
-      <span style={{ opacity: 0.8 }}>Last sync: {lastSyncLabel}</span>
+      <span style={{ opacity: 0.8 }}>{t('sync.lastSync')} {lastSyncLabel}</span>
 
       {onRefresh && (
         <button

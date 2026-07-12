@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useT, Icon, StatusBadge, Modal, Field, WarehouseSelector } from '@packages/ui-components';
+import { useT, Icon, StatusBadge, Modal } from '@packages/ui-components';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
   fetchPurchaseOrders,
-  createPurchaseOrder,
   setFilter,
   clearOcrResult,
   type PurchaseOrder,
@@ -15,23 +14,23 @@ import { PurchaseOrderForm } from './PurchaseOrderForm';
 import { PurchaseOrderDetailPage } from './PurchaseOrderDetailPage';
 import '../../styles/purchasing.css';
 
-const STATUS_OPTIONS: Array<{ value: PurchaseOrderFilter['status']; label: string }> = [
-  { value: undefined, label: 'All' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'pending_approval', label: 'Pending approval' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'partially_received', label: 'Partially received' },
-  { value: 'fully_received', label: 'Fully received' },
-  { value: 'cancelled', label: 'Cancelled' },
+const STATUS_OPTIONS: Array<{ value: PurchaseOrderFilter['status']; labelKey: string }> = [
+  { value: undefined, labelKey: 'common.all' },
+  { value: 'draft', labelKey: 'purchasing.draft' },
+  { value: 'pending_approval', labelKey: 'purchasing.pendingApproval' },
+  { value: 'approved', labelKey: 'purchasing.approved' },
+  { value: 'partially_received', labelKey: 'purchasing.partiallyReceived' },
+  { value: 'fully_received', labelKey: 'purchasing.fullyReceived' },
+  { value: 'cancelled', labelKey: 'purchasing.cancelled' },
 ];
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  pending_approval: 'Pending approval',
-  approved: 'Approved',
-  partially_received: 'Partially received',
-  fully_received: 'Fully received',
-  cancelled: 'Cancelled',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  draft: 'purchasing.draft',
+  pending_approval: 'purchasing.pendingApproval',
+  approved: 'purchasing.approved',
+  partially_received: 'purchasing.partiallyReceived',
+  fully_received: 'purchasing.fullyReceived',
+  cancelled: 'purchasing.cancelled',
 };
 
 export function PurchasingPage(): React.ReactElement {
@@ -86,12 +85,12 @@ export function PurchasingPage(): React.ReactElement {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Purchase Orders</h1>
-          <p className="page-subtitle">Create and manage supplier purchase orders.</p>
+          <h1 className="page-title">{t('purchaseOrders.title')}</h1>
+          <p className="page-subtitle">{t('purchasing.subtitle')}</p>
         </div>
         <button className="btn btn-primary" onClick={() => { clearOcrResult(); setShowForm(true); }}>
           <Icon name="plus" size={16} />
-          Create PO
+          {t('purchasing.createPo')}
         </button>
       </div>
 
@@ -101,16 +100,16 @@ export function PurchasingPage(): React.ReactElement {
           style={{ maxWidth: 240 }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search PO number"
-          aria-label="Search purchase orders"
+          placeholder={t('purchasing.searchPoPlaceholder')}
+          aria-label={t('purchasing.searchPo')}
         />
         <input
           className="form-input"
           style={{ maxWidth: 220 }}
           value={supplierFilter}
           onChange={(e) => setSupplierFilter(e.target.value)}
-          placeholder="Supplier ID"
-          aria-label="Filter by supplier"
+          placeholder={t('purchasing.supplierPlaceholder')}
+          aria-label={t('purchasing.filterBySupplier')}
         />
         <select
           className="form-input"
@@ -120,11 +119,11 @@ export function PurchasingPage(): React.ReactElement {
             setStatusFilter(value);
             dispatch(setFilter({ ...filter, status: value }));
           }}
-          aria-label="Filter by status"
+          aria-label={t('purchasing.filterByStatus')}
         >
           {STATUS_OPTIONS.map((o) => (
             <option key={o.value ?? 'all'} value={o.value ?? ''}>
-              {o.label}
+              {t(o.labelKey)}
             </option>
           ))}
         </select>
@@ -134,31 +133,31 @@ export function PurchasingPage(): React.ReactElement {
         <table className="table">
           <thead>
             <tr>
-              <th>PO #</th>
-              <th>Supplier</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Total</th>
+              <th>{t('purchasing.poNumber')}</th>
+              <th>{t('purchasing.supplier')}</th>
+              <th>{t('purchasing.date')}</th>
+              <th>{t('purchasing.status')}</th>
+              <th>{t('purchasing.total')}</th>
             </tr>
           </thead>
           <tbody>
             {status === 'loading' && filtered.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center' }}>Loading…</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                  No purchase orders found.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((po: PurchaseOrder) => (
-                <tr key={po.id} style={{ cursor: 'pointer' }} onClick={() => openDetail(po.id)}>
-                  <td className="num">{po.referenceNumber}</td>
-                  <td>{po.supplierId}</td>
-                  <td>{new Date(po.expectedDeliveryDate).toLocaleDateString()}</td>
-                  <td>
-                    <StatusBadge status={po.status}>{STATUS_LABELS[po.status] ?? po.status}</StatusBadge>
-                  </td>
+               <tr><td colSpan={5} style={{ textAlign: 'center' }}>{t('common.loading')}</td></tr>
+             ) : filtered.length === 0 ? (
+               <tr>
+                 <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                   {t('purchasing.noOrders')}
+                 </td>
+               </tr>
+             ) : (
+               filtered.map((po: PurchaseOrder) => (
+                 <tr key={po.id} style={{ cursor: 'pointer' }} onClick={() => openDetail(po.id)}>
+                   <td className="num">{po.referenceNumber}</td>
+                   <td>{po.supplierId}</td>
+                   <td>{new Date(po.expectedDeliveryDate).toLocaleDateString()}</td>
+                   <td>
+                     <StatusBadge status={po.status}>{t(STATUS_LABEL_KEYS[po.status] ?? po.status)}</StatusBadge>
+                   </td>
                   <td className="num">{(po.totalAmountPiasters / 100).toFixed(2)} EGP</td>
                 </tr>
               ))
@@ -170,10 +169,10 @@ export function PurchasingPage(): React.ReactElement {
       <Modal
         open={showForm}
         onClose={() => setShowForm(false)}
-        title="Create Purchase Order"
+        title={t('purchasing.createPo')}
         footer={
           <>
-            <button className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
+            <button className="btn btn-ghost" onClick={() => setShowForm(false)}>{t('purchasing.cancel')}</button>
           </>
         }
       >

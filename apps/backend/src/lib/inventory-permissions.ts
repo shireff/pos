@@ -11,11 +11,9 @@ export async function assertInventoryPermission(
     const permissions = new Set<string>(ctx.branchRoles ?? []);
     if (permissions.has(requiredPermission)) return;
     if (permissions.has('*')) return;
-    const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-    (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
-    throw error;
+    throw new ForbiddenError(requiredPermission);
   } catch (e) {
     if (e instanceof ForbiddenError) throw e;
-    throw new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
+    throw new ForbiddenError(requiredPermission);
   }
 }

@@ -8,9 +8,10 @@ import { serializeOrder } from '../../../sales/serialize';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSalesPermission(request, 'sales.void');
 
     const body: unknown = await request.json();
@@ -35,7 +36,7 @@ export async function POST(
     );
     const order = await command.execute({
       companyId,
-      orderId: params.id,
+      orderId: id,
       voidedByUserId,
       reason: data.reason,
       currentShiftSessionId: data.currentShiftSessionId ?? null,

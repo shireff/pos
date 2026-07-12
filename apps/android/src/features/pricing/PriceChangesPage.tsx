@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
-import { fetchPriceChanges, requestPriceChange, approvePriceChange, rejectPriceChange, clearPriceChangesError } from '../../lib/store/priceChangesSlice';
+import { fetchPriceChanges, requestPriceChange, approvePriceChange, rejectPriceChange } from '../../lib/store/priceChangesSlice';
 import { useToast } from '@packages/ui-components';
 import { Modal, Field } from '@packages/ui-components';
 import { Icon } from '@packages/ui-components';

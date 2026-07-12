@@ -1,5 +1,4 @@
-import { Identifier } from '@packages/shared-kernel';
-import { LoyaltyAccount, LoyaltyEvent, LoyaltyPointsAccrued } from '@packages/domain-crm';
+import { LoyaltyAccount, LoyaltyEvent } from '@packages/domain-crm';
 import { LoyaltyAccountRepository, LoyaltyEventRepository } from '../ports';
 
 export interface AccrueLoyaltyInput {

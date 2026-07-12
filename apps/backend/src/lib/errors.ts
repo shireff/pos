@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { t, type Vars } from './i18n';
 
 /**
  * Global Error Handler Utility
@@ -10,12 +11,16 @@ import { NextRequest, NextResponse } from 'next/server';
  * {
  *   success: false,
  *   error: {
- *     code: string,       // machine-readable error code
- *     message: string,    // human-readable message
+ *     code: string,       // machine-readable error code (unchanged)
+ *     message: string,    // human-readable, localized message
  *     requestId: string,  // propagated from X-Request-Id header
  *     details?: unknown,  // optional extra context (dev only)
  *   }
  * }
+ *
+ * Error codes are language-independent (NOT_FOUND, VALIDATION_ERROR,
+ * UNAUTHORIZED, FORBIDDEN, ...) while messages are localized via the i18n
+ * module (default locale: Arabic, driven by the Accept-Language header).
  */
 
 export interface ApiError {
@@ -27,6 +32,10 @@ export interface ApiError {
 export class DomainError extends Error {
   public readonly code: string;
   public readonly statusCode: number;
+  /** Optional i18n key so handleApiError can re-localize per request locale. */
+  public messageKey?: string;
+  /** Optional i18n interpolation variables. */
+  public messageVars?: Vars;
 
   public constructor(code: string, message: string, statusCode = 422) {
     super(message);
@@ -38,8 +47,10 @@ export class DomainError extends Error {
 
 export class NotFoundError extends DomainError {
   public constructor(resource: string, id: string) {
-    super('NOT_FOUND', `${resource} with id "${id}" was not found.`, 404);
+    super('NOT_FOUND', t('errors.notFound', { resource, id }), 404);
     this.name = 'NotFoundError';
+    this.messageKey = 'errors.notFound';
+    this.messageVars = { resource, id };
   }
 }
 
@@ -51,18 +62,25 @@ export class ValidationError extends DomainError {
 }
 
 export class UnauthorizedError extends DomainError {
-  public constructor(message = 'Authentication required.') {
+  public constructor(message = t('auth.unauthorized')) {
     super('UNAUTHORIZED', message, 401);
     this.name = 'UnauthorizedError';
+    this.messageKey = 'auth.unauthorized';
   }
 }
 
 export class ForbiddenError extends DomainError {
   public permissionCode?: string;
 
-  public constructor(message = 'You do not have permission to perform this action.') {
-    super('FORBIDDEN', message, 403);
+  public constructor(permissionCode?: string, message?: string) {
+    const localized = message ?? t('errors.permissionDenied', { permission: permissionCode ?? '' });
+    super('FORBIDDEN', localized, 403);
     this.name = 'ForbiddenError';
+    this.permissionCode = permissionCode;
+    if (!message) {
+      this.messageKey = 'errors.permissionDenied';
+      this.messageVars = { permission: permissionCode ?? '' };
+    }
   }
 }
 
@@ -74,12 +92,18 @@ export function handleApiError(error: unknown, request: NextRequest): NextRespon
   const isDev = process.env.NODE_ENV === 'development';
 
   if (error instanceof DomainError) {
+    // Re-localize using the request's Accept-Language (default: Arabic),
+    // keeping the original message as fallback when no key is available.
+    const message = error.messageKey
+      ? t(error.messageKey, error.messageVars, request)
+      : error.message;
+
     return NextResponse.json(
       {
         success: false,
         error: {
           code: error.code,
-          message: error.message,
+          message,
           requestId,
           ...(error instanceof ForbiddenError && error.permissionCode
             ? { permissionCode: error.permissionCode }
@@ -95,7 +119,7 @@ export function handleApiError(error: unknown, request: NextRequest): NextRespon
   const genericMessage =
     isDev && error instanceof Error
       ? error.message
-      : 'An unexpected error occurred. Please try again later.';
+      : t('errors.unexpected', undefined, request);
 
   return NextResponse.json(
     {

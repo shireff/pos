@@ -7,11 +7,6 @@ import {
 import { ConflictResolutionService } from '@packages/application-sync';
 import { ResolveConflictSchema } from '../../../schemas';
 
-function companyIdFrom(request: NextRequest): string {
-  const url = new URL(request.url);
-  return url.searchParams.get('companyId') ?? 'company-1';
-}
-
 /**
  * POST /v1/sync/conflicts/:id/resolve
  * Body: { winner: 'local' | 'remote' | 'merge', resolvedValue?: unknown }
@@ -20,11 +15,11 @@ function companyIdFrom(request: NextRequest): string {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     const db = await getMongoDb();
-    const companyId = companyIdFrom(request);
     const body: unknown = await request.json();
     const parsed = ResolveConflictSchema.safeParse(body);
     if (!parsed.success) {
@@ -40,7 +35,7 @@ export async function POST(
 
     const actorId = request.headers.get('x-actor-id');
     const resolved = await service.resolve(
-      params.id,
+      id,
       parsed.data.winner,
       actorId,
       parsed.data.resolvedValue,

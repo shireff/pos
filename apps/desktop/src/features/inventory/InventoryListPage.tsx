@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import { fetchWarehouses, fetchStockMovements } from '../../lib/store/inventorySlice';
-import { StockLevelBadge, WarehouseSelector } from '@packages/ui-components';
+import { WarehouseSelector, useT } from '@packages/ui-components';
 
 export function InventoryListPage(): React.ReactElement {
+    const t = useT();
     const dispatch = useAppDispatch();
     const { warehouses, movements } = useAppSelector((state) => state.inventory);
     const companyId = useAppSelector((state) => state.auth.user?.companyId ?? 'company-1');
@@ -31,8 +32,8 @@ export function InventoryListPage(): React.ReactElement {
         <div className="page">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Inventory</h1>
-                    <p className="page-subtitle">Stock levels and movement history.</p>
+                <h1 className="page-title">{t('inventory.inventory')}</h1>
+                <p className="page-subtitle">{t('inventory.stockLevelsAndMovement')}</p>
                 </div>
             </div>
 
@@ -41,16 +42,16 @@ export function InventoryListPage(): React.ReactElement {
                     warehouses={warehouses}
                     value={selectedWarehouse}
                     onChange={setSelectedWarehouse}
-                    label="Warehouse"
-                    placeholder="All warehouses"
+                    label={t('inventory.warehouse')}
+                    placeholder={t('inventory.allWarehouses')}
                 />
                 <input
                     className="form-input"
                     style={{ maxWidth: 280 }}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search movements"
-                    aria-label="Search movements"
+                    placeholder={t('inventory.searchMovements')}
+                    aria-label={t('inventory.searchMovements')}
                 />
                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
                     <input
@@ -58,7 +59,7 @@ export function InventoryListPage(): React.ReactElement {
                         checked={belowReorderOnly}
                         onChange={(e) => setBelowReorderOnly(e.target.checked)}
                     />
-                    Below reorder point only
+                    {t('inventory.belowReorderPointOnly')}
                 </label>
             </div>
 
@@ -66,18 +67,18 @@ export function InventoryListPage(): React.ReactElement {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Warehouse</th>
-                            <th>Type</th>
-                            <th>Quantity</th>
-                            <th>Date</th>
+                            <th>{t('inventory.product')}</th>
+                            <th>{t('inventory.warehouse')}</th>
+                            <th>{t('inventory.type')}</th>
+                            <th>{t('common.quantity')}</th>
+                            <th>{t('common.date')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredMovements.length === 0 ? (
                             <tr>
                                 <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                                    No stock movements found.
+                                    {t('inventory.noStockMovements')}
                                 </td>
                             </tr>
                         ) : (

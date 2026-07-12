@@ -8,9 +8,10 @@ import { serializeReturn } from '../../../sales/serialize';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSalesPermission(request, 'sales.return.create');
 
     const body: unknown = await request.json();
@@ -36,7 +37,7 @@ export async function POST(
     );
     const { returnEntity, autoApproved } = await command.execute({
       companyId,
-      orderId: params.id,
+      orderId: id,
       returnedByUserId,
       reason: data.reason,
       warehouseId,

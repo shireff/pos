@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
-import { fetchCoupons, createCoupon, clearPromotionsError } from '../../lib/store/promotionsSlice';
+import { fetchCoupons, createCoupon } from '../../lib/store/promotionsSlice';
 import { useToast } from '@packages/ui-components';
 import { Modal, Field } from '@packages/ui-components';
 import { Icon } from '@packages/ui-components';

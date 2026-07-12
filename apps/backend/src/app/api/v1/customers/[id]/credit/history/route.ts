@@ -6,9 +6,10 @@ import { MongoCreditLedgerEntryRepository } from '@packages/infrastructure-mongo
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertCustomersPermission(request, 'customers.credit.view');
 
     const url = new URL(request.url);
@@ -20,7 +21,7 @@ export async function GET(
     const query = new GetCreditHistoryQuery(repo);
     const result = await query.execute({
       companyId,
-      customerId: params.id,
+      customerId: id,
       limit,
       offset,
     });

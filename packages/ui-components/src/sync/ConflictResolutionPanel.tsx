@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Icon } from '../components/Icon';
 import type { SyncConflictView } from '../stores/sync.store';
+import { useT } from '../i18n';
 
 export type ConflictWinner = 'local' | 'remote' | 'merge';
 
@@ -21,6 +22,7 @@ export function ConflictResolutionPanel({
   onResolve,
   className,
 }: ConflictResolutionPanelProps) {
+  const t = useT();
   const resolved = conflict.status !== 'unresolved';
   const cell: CSSProperties = {
     flex: 1,
@@ -50,35 +52,50 @@ export function ConflictResolutionPanel({
           <div>{JSON.stringify(conflict.localValue)}</div>
         </div>
         <div style={cell}>
-          <div style={label}>Remote</div>
+          <div style={label}>{t('sync.local')}</div>
+          <div>{JSON.stringify(conflict.localValue)}</div>
+        </div>
+        <div style={cell}>
+          <div style={label}>{t('sync.remote')}</div>
           <div>{JSON.stringify(conflict.remoteValue)}</div>
         </div>
+
+        {!resolved && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" onClick={() => onResolve(conflict.id, 'local')}>
+              {t('sync.keepLocal')}
+            </button>
+            <button type="button" onClick={() => onResolve(conflict.id, 'remote')}>
+              {t('sync.keepRemote')}
+            </button>
+            <button type="button" onClick={() => onResolve(conflict.id, 'merge', conflict.remoteValue)}>
+              {t('sync.merge')}
+            </button>
+          </div>
+        )}
       </div>
 
-      {!resolved && (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={() => onResolve(conflict.id, 'local')}>
-            Keep Local
-          </button>
-          <button type="button" onClick={() => onResolve(conflict.id, 'remote')}>
-            Keep Remote
-          </button>
-          <button type="button" onClick={() => onResolve(conflict.id, 'merge', conflict.remoteValue)}>
-            Merge
-          </button>
-        </div>
-      )}
-
       {conflict.auditTrail && conflict.auditTrail.length > 0 && (
-        <ul style={{ marginTop: 12, fontSize: 12, opacity: 0.8 }}>
-          {conflict.auditTrail.map((entry, i) => (
-            <li key={i}>
-              {entry.resolution} by {entry.byUserId ?? 'system'} at{' '}
-              {new Date(entry.at).toLocaleString()}
-            </li>
-          ))}
-        </ul>
-      )}
+          <ul style={{ marginTop: 12, fontSize: 12, opacity: 0.8 }}>
+            {conflict.auditTrail.map((entry, i) => (
+              <li key={i}>
+                {entry.resolution} {t('sync.by')} {entry.byUserId ?? t('sync.system')} {t('sync.at')} {' '}
+                {new Date(entry.at).toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {conflict.auditTrail && conflict.auditTrail.length > 0 && (
+          <ul style={{ marginTop: 12, fontSize: 12, opacity: 0.8 }}>
+            {conflict.auditTrail.map((entry, i) => (
+              <li key={i}>
+                {entry.resolution} {t('sync.by')} {entry.byUserId ?? t('sync.system')} {t('sync.at')} {' '}
+                {new Date(entry.at).toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBadge, Modal, Field, Icon, WarehouseSelector, useT } from '@packages/ui-components';
+import { StatusBadge, Modal, Field, Icon, WarehouseSelector } from '@packages/ui-components';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
     fetchPurchaseOrder,
@@ -32,11 +32,9 @@ export function PurchaseOrderDetailPage({
     purchaseOrderId: string;
     onBack: () => void;
 }): React.ReactElement {
-    const t = useT();
     const dispatch = useAppDispatch();
     const po = useAppSelector((s) => s.purchasing.currentPurchaseOrder) as PurchaseOrder | null;
     const warehouses = useAppSelector((s) => s.inventory.warehouses);
-    const ocrResult = useAppSelector((s) => s.purchasing.ocrResult);
 
     const [showReceive, setShowReceive] = useState(false);
     const [showReason, setShowReason] = useState<null | 'reject' | 'cancel'>(null);

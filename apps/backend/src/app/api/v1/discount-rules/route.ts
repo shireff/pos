@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   CreateDiscountRuleCommand,
   UpdateDiscountRuleCommand,
-  DeactivateDiscountRuleCommand,
 } from '@packages/application-promotions';
 import {
   MongoDiscountRepository,
@@ -81,19 +80,6 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       priority: parsed.data.priority,
       isExclusive: parsed.data.isExclusive,
     });
-
-    return NextResponse.json({ success: true, data: discount });
-  } catch (error) {
-    return handleApiError(error as unknown, request);
-  }
-}
-
-export async function POST_DEACTIVATE(request: NextRequest, id: string): Promise<NextResponse> {
-  try {
-    await assertPromotionsPermission(request, 'promotions.discount.edit');
-
-    const command = new DeactivateDiscountRuleCommand(repo);
-    const discount = await command.execute({ id, companyId: 'company-1' });
 
     return NextResponse.json({ success: true, data: discount });
   } catch (error) {

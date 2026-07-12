@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { Db } from 'mongodb';
 import { ForbiddenError, UnauthorizedError } from './errors';
 import { getMongoDb } from './cloud-db';
+import { t } from './i18n';
 
 export interface AuthenticatedRequest extends NextRequest {
   userId?: string;
@@ -119,7 +120,7 @@ export async function requirePermission(
 ): Promise<(request: AuthenticatedRequest) => Promise<void>> {
   return async (request: AuthenticatedRequest) => {
     if (!request.userId || !request.companyId || !request.branchId) {
-      throw new UnauthorizedError('Missing authentication context');
+      throw new UnauthorizedError(t('auth.missingContext', undefined, request));
     }
 
     const userPermissions = await resolvePermissions(
@@ -129,7 +130,7 @@ export async function requirePermission(
     );
 
     if (!userPermissions.has('*') && !userPermissions.has(requiredCode)) {
-      throw new ForbiddenError(`Permission denied. Required: ${requiredCode}`);
+      throw new ForbiddenError(requiredCode);
     }
   };
 }
@@ -137,7 +138,7 @@ export async function requirePermission(
 export async function requirePlatformAdmin(request: AuthenticatedRequest): Promise<void> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing bearer token');
+    throw new UnauthorizedError(t('auth.missingToken', undefined, request));
   }
 
   const token = authHeader.slice(7);
@@ -146,15 +147,15 @@ export async function requirePlatformAdmin(request: AuthenticatedRequest): Promi
   try {
     payload = decodeJwtPayload(token);
   } catch {
-    throw new UnauthorizedError('Invalid or expired token');
+    throw new UnauthorizedError(t('auth.expiredToken', undefined, request));
   }
 
   if (payload.aud !== 'platform-admin') {
-    throw new UnauthorizedError('PLATFORM_ADMIN_TOKEN_REJECTED');
+    throw new UnauthorizedError(t('auth.platformTokenRejected', undefined, request));
   }
 
   if (!payload.adminId) {
-    throw new UnauthorizedError('Invalid platform admin token payload');
+    throw new UnauthorizedError(t('auth.platformTokenPayloadInvalid', undefined, request));
   }
 }
 
@@ -166,7 +167,7 @@ export function parseAccessToken(request: NextRequest): {
 } {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing bearer token');
+    throw new UnauthorizedError(t('auth.missingToken', undefined, request));
   }
 
   const token = authHeader.slice(7);
@@ -175,11 +176,11 @@ export function parseAccessToken(request: NextRequest): {
   try {
     payload = decodeJwtPayload(token);
   } catch {
-    throw new UnauthorizedError('Invalid or expired token');
+    throw new UnauthorizedError(t('auth.expiredToken', undefined, request));
   }
 
   if (!payload.userId || !payload.companyId) {
-    throw new UnauthorizedError('Invalid token payload');
+    throw new UnauthorizedError(t('auth.tokenPayloadInvalid', undefined, request));
   }
 
   return {

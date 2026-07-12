@@ -92,12 +92,12 @@ export function PlatformAdminPanel() {
           <div>
             <div className="admin-app-name">Smart Retail OS</div>
             <div className="admin-app-subtitle">
-              منصة إدارة النظام والعملاء
+              {t('admin.subtitle')}
             </div>
           </div>
         </div>
         <div className="admin-header-actions">
-          <span className="admin-super-badge">مشرف عام</span>
+          <span className="admin-super-badge">{t('admin.superAdmin')}</span>
           <span className="admin-user-email">{currentUser?.email}</span>
           <button
             type="button"
@@ -110,10 +110,10 @@ export function PlatformAdminPanel() {
       </header>
 
       <div className="admin-body">
-        <section className="admin-accounts-sidebar" aria-label="حسابات الشركات">
+        <section className="admin-accounts-sidebar" aria-label={t('admin.accounts')}>
           <div className="admin-sidebar-header">
-            <h2 className="admin-sidebar-title">حسابات الشركات</h2>
-            <span className="admin-sidebar-count">إجمالي: {accounts.length}</span>
+            <h2 className="admin-sidebar-title">{t('admin.accounts')}</h2>
+            <span className="admin-sidebar-count">{t('admin.totalCount', { count: accounts.length })}</span>
           </div>
 
           {status === 'loading' && accounts.length === 0 ? (
@@ -137,7 +137,7 @@ export function PlatformAdminPanel() {
                   </div>
                   <div className="admin-account-card-footer">
                     <span>{ac.companyId}</span>
-                    <span>{ac.subscription.planId || 'تجريبية'}</span>
+                    <span>{ac.subscription.planId || t('admin.trial')}</span>
                   </div>
                 </button>
               ))}
@@ -147,41 +147,41 @@ export function PlatformAdminPanel() {
           {error && <div className="admin-error">{error}</div>}
         </section>
 
-        <section className="admin-detail-panel" aria-label="تفاصيل الحساب">
+        <section className="admin-detail-panel" aria-label={t('admin.accountDetails')}>
           {!selectedAccount ? (
             <div className="admin-empty-detail">
-              يرجى تحديد شركة من القائمة لإدارتها.
+              {t('admin.selectCompanyHint')}
             </div>
           ) : (
             <div className="admin-detail-card">
               <div className="admin-detail-heading">
                 <h2 className="admin-detail-title">
-                  تفاصيل الشركة: {selectedAccount.name}
+                  {t('admin.companyDetails', { name: selectedAccount.name })}
                 </h2>
                 <p className="admin-detail-subtitle">
-                  مراجعة بيانات الاشتراك الحالي وتجاوزات رخص الاستخدام
+                  {t('admin.reviewSubscription')}
                 </p>
               </div>
 
               <div className="admin-info-grid">
                 <div className="admin-info-item">
-                  <span className="admin-info-label">رمز الشركة الفريد</span>
+                  <span className="admin-info-label">{t('admin.companyCode')}</span>
                   <span className="admin-info-value">{selectedAccount.companyId}</span>
                 </div>
                 <div className="admin-info-item">
-                  <span className="admin-info-label">طبيعة النشاط التجاري</span>
+                  <span className="admin-info-label">{t('admin.businessType')}</span>
                   <span className="admin-info-value">
                     {selectedAccount.businessType || 'retail'}
                   </span>
                 </div>
                 <div className="admin-info-item">
-                  <span className="admin-info-label">مشترك منذ</span>
+                  <span className="admin-info-label">{t('admin.subscribedSince')}</span>
                   <span className="admin-info-value">
                     {new Date(selectedAccount.createdAt).toLocaleDateString('ar-EG')}
                   </span>
                 </div>
                 <div className="admin-info-item">
-                  <span className="admin-info-label">انتهاء الفترة التجريبية</span>
+                  <span className="admin-info-label">{t('admin.trialEnds')}</span>
                   <span className="admin-info-value admin-info-value--warning">
                     {new Date(
                       selectedAccount.subscription.trialEndsAt,
@@ -189,13 +189,13 @@ export function PlatformAdminPanel() {
                   </span>
                 </div>
                 <div className="admin-info-item">
-                  <span className="admin-info-label">الباقة الحالية</span>
+                  <span className="admin-info-label">{t('system.currentPlan')}</span>
                   <span className="admin-info-value">
-                    {selectedAccount.subscription.planId || 'تجريبية'}
+                    {selectedAccount.subscription.planId || t('admin.trial')}
                   </span>
                 </div>
                 <div className="admin-info-item">
-                  <span className="admin-info-label">حالة الاشتراك</span>
+                  <span className="admin-info-label">{t('system.subscriptionStatus')}</span>
                   {statusBadge(selectedAccount.subscription.status)}
                 </div>
               </div>
@@ -204,7 +204,7 @@ export function PlatformAdminPanel() {
 
               <div className="admin-actions-section">
                 <h3 className="admin-actions-title">
-                  التحكم في التراخيص وحالة الاشتراك
+                  {t('admin.licenseControl')}
                 </h3>
                 <div className="admin-actions-row">
                   <button
@@ -216,9 +216,9 @@ export function PlatformAdminPanel() {
                       );
                       setActiveModal('plan');
                     }}
-                  >
-                    تغيير الباقة
-                  </button>
+                    >
+                      {t('admin.changePlan')}
+                    </button>
                   <button
                     type="button"
                     className="admin-action-btn admin-action-btn--blue"
@@ -226,16 +226,16 @@ export function PlatformAdminPanel() {
                       setTrialDays(7);
                       setActiveModal('extend');
                     }}
-                  >
-                    تمديد الفترة التجريبية
-                  </button>
+                    >
+                      {t('admin.extendTrial')}
+                    </button>
                   {selectedAccount.subscription.status === 'suspended' ? (
                     <button
                       type="button"
                       className="admin-action-btn admin-action-btn--green"
                       onClick={() => setActiveModal('reactivate')}
                     >
-                      إلغاء التجميد
+                      {t('admin.reactivate')}
                     </button>
                   ) : (
                     <button
@@ -243,7 +243,7 @@ export function PlatformAdminPanel() {
                       className="admin-action-btn admin-action-btn--red"
                       onClick={() => setActiveModal('suspend')}
                     >
-                      تجميد الحساب
+                      {t('admin.suspend')}
                     </button>
                   )}
                 </div>
@@ -262,35 +262,35 @@ export function PlatformAdminPanel() {
         >
           <div className="admin-modal">
             <h2 id="admin-modal-title" className="admin-modal-title">
-              {activeModal === 'plan' && 'تعديل الباقة / الترخيص'}
-              {activeModal === 'extend' && 'تمديد الفترة التجريبية'}
-              {activeModal === 'suspend' && 'تأكيد تجميد الحساب'}
-              {activeModal === 'reactivate' && 'تأكيد استعادة الحساب'}
+              {activeModal === 'plan' && t('admin.modal.editPlan')}
+              {activeModal === 'extend' && t('admin.extendTrial')}
+              {activeModal === 'suspend' && t('admin.confirmSuspend')}
+              {activeModal === 'reactivate' && t('admin.confirmReactivate')}
             </h2>
             <p className="admin-modal-subtitle">
-              العملية تجري للشركة:{' '}
+              {t('admin.operationFor')}{' '}
               <strong>{selectedAccount.name}</strong>{' '}
               ({selectedAccount.companyId})
             </p>
 
             {activeModal === 'plan' && (
               <label className="admin-modal-field">
-                اختر الباقة البديلة:
+                {t('admin.selectPlan')}
                 <select
                   className="admin-modal-select"
                   value={selectedPlan}
                   onChange={(e) => setSelectedPlan(e.target.value)}
                 >
-                  <option value="basic">الباقة الأساسية (Basic)</option>
-                  <option value="pro">الباقة المتقدمة (Pro)</option>
-                  <option value="enterprise">باقة الشركات الكبرى (Enterprise)</option>
+                  <option value="basic">{t('admin.plan.basic')}</option>
+                  <option value="pro">{t('admin.plan.pro')}</option>
+                  <option value="enterprise">{t('admin.plan.enterprise')}</option>
                 </select>
               </label>
             )}
 
             {activeModal === 'extend' && (
               <label className="admin-modal-field">
-                عدد أيام التمديد:
+                {t('admin.extensionDays')}
                 <input
                   type="number"
                   className="admin-modal-input"
@@ -302,12 +302,12 @@ export function PlatformAdminPanel() {
             )}
 
             <label className="admin-modal-field">
-              سبب العملية (مطلوب لأرشفة التدقيق):
+              {t('admin.reasonLabel')}
               <textarea
                 className="admin-modal-textarea"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="أدخل سبباً تفصيلياً…"
+                placeholder={t('admin.reasonPlaceholder')}
                 required
               />
             </label>

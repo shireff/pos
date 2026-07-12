@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Field } from '../components/ui';
 import { Icon } from '../components/Icon';
+import { useT } from '../i18n';
 
 export interface CustomerSearchResult {
   id: string;
@@ -21,6 +22,7 @@ export function CustomerSearchSheet({
   onSelect,
   searchFn,
 }: CustomerSearchSheetProps): React.ReactElement {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CustomerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,16 +63,16 @@ export function CustomerSearchSheet({
     <Modal
       open={open}
       onClose={onClose}
-      title="Search Customer"
+      title={t('customers.searchTitle')}
       size="lg"
       footer={
         <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Close
+          {t('common.close')}
         </button>
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-        <Field label="Search by name, phone, or loyalty code" htmlFor="customer-search">
+        <Field label={t('customers.searchLabel')} htmlFor="customer-search">
           <div style={{ position: 'relative' }}>
             <Icon name="search" size={18} style={{ position: 'absolute', right: 'var(--space-3)', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }} />
             <input
@@ -79,16 +81,16 @@ export function CustomerSearchSheet({
               className="form-input"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Type to search..."
+              placeholder={t('customers.searchPlaceholder')}
               style={{ paddingRight: 'var(--space-8)' }}
             />
           </div>
         </Field>
-        {loading && <div className="loading">Searching...</div>}
+        {loading && <div className="loading">{t('customers.searching')}</div>}
         {!loading && results.length === 0 && query.length > 0 && (
           <div className="empty-state">
-            <p className="empty-state-title">No customers found</p>
-            <p>Try a different search term.</p>
+            <p className="empty-state-title">{t('customers.noCustomersFound')}</p>
+            <p>{t('customers.tryDifferentTerm')}</p>
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>

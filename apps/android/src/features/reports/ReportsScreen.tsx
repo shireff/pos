@@ -13,11 +13,12 @@ import {
   fetchStoreHealth,
   fetchCashFlow,
 } from '../../lib/store/reportsSlice';
-import { Icon, type IconName } from '@packages/ui-components';
+import { Icon, type IconName, useT } from '@packages/ui-components';
 
 type ReportTab = 'daily-sales' | 'pnl' | 'inventory-valuation' | 'stock-movements' | 'branch-comparison' | 'employee-performance' | 'customer-loyalty' | 'tax' | 'supplier-performance' | 'store-health' | 'cash-flow';
 
 export function ReportsScreen(): React.ReactElement {
+  const t = useT();
   const dispatch = useAppDispatch();
   const [tab, setTab] = useState<ReportTab>('daily-sales');
   const companyId = useAppSelector((s: any) => s.auth.user?.companyId ?? 'company-1');
@@ -106,20 +107,20 @@ export function ReportsScreen(): React.ReactElement {
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4)' }}>
-      <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-4)' }}>Reports</h1>
+      <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-4)' }}>{t('reports.title')}</h1>
       <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
         {([
-          { key: 'daily-sales', label: 'Daily Sales' },
-          { key: 'pnl', label: 'P&L' },
-          { key: 'inventory-valuation', label: 'Inventory' },
-          { key: 'stock-movements', label: 'Stock' },
-          { key: 'branch-comparison', label: 'Branches' },
-          { key: 'employee-performance', label: 'Employees' },
-          { key: 'customer-loyalty', label: 'Customers' },
-          { key: 'tax', label: 'Tax' },
-          { key: 'supplier-performance', label: 'Suppliers' },
-          { key: 'store-health', label: 'Store Health' },
-          { key: 'cash-flow', label: 'Cash Flow' },
+          { key: 'daily-sales', label: t('reports.dailySales') },
+          { key: 'pnl', label: t('reports.profitLoss') },
+          { key: 'inventory-valuation', label: t('reports.inventoryValuation') },
+          { key: 'stock-movements', label: t('reports.stockMovements') },
+          { key: 'branch-comparison', label: t('reports.branchComparison') },
+          { key: 'employee-performance', label: t('reports.employeePerformance') },
+          { key: 'customer-loyalty', label: t('reports.customerLoyalty') },
+          { key: 'tax', label: t('reports.tax') },
+          { key: 'supplier-performance', label: t('reports.supplierPerformance') },
+          { key: 'store-health', label: t('reports.storeHealth') },
+          { key: 'cash-flow', label: t('reports.cashFlow') },
         ] as { key: ReportTab; label: string }[]).map((item) => (
           <button
             key={item.key}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Icon } from '@packages/ui-components';
+import { Icon, Modal, Field, useToast, useT } from '@packages/ui-components';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
   fetchSupplierById,
@@ -12,8 +12,6 @@ import {
   type PriceHistoryEntry,
   type SupplierPerformance,
 } from '../../lib/store/suppliersSlice';
-import { Modal, Field } from '@packages/ui-components';
-import { useToast } from '@packages/ui-components';
 
 type TabKey = 'overview' | 'ledger' | 'price-history' | 'performance' | 'contacts';
 
@@ -42,6 +40,7 @@ export function SupplierProfilePage({
   const performance = useAppSelector((state: any) => state.suppliers.performance as SupplierPerformance | null);
   const companyId = useAppSelector((state: any) => state.auth.user?.companyId ?? 'company-1');
   const { push } = useToast();
+  const t = useT();
 
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -99,14 +98,14 @@ export function SupplierProfilePage({
   };
 
   if (detailStatus === 'loading' && !detail) {
-    return <div className="loading">Loading supplier profile…</div>;
+    return <div className="loading">{t('suppliers.loadingProfile')}</div>;
   }
 
   if (!detail) {
     return (
       <div className="empty-state">
-        <p className="empty-state-title">Supplier not found</p>
-        <button type="button" className="btn btn-secondary" onClick={onBack}>Back to list</button>
+        <p className="empty-state-title">{t('suppliers.supplierNotFound')}</p>
+        <button type="button" className="btn btn-secondary" onClick={onBack}>{t('suppliers.backToList')}</button>
       </div>
     );
   }
@@ -121,18 +120,18 @@ export function SupplierProfilePage({
             </button>
             <h1 className="page-title">{detail.name.ar}</h1>
           </div>
-          <p className="page-subtitle">{detail.phone} · {detail.email ?? 'No email'} · {detail.currency}</p>
+          <p className="page-subtitle">{detail.phone} · {detail.email ?? t('common.noEmail')} · {detail.currency}</p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button type="button" className="btn btn-primary" onClick={() => setIsPaymentOpen(true)}>
-            Record Payment
+            {t('suppliers.recordPayment')}
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => setIsCreditNoteOpen(true)}>
-            Credit Note
+            {t('suppliers.creditNote')}
           </button>
           {detail.isActive && (
             <button type="button" className="btn btn-ghost" onClick={() => onDeactivate(detail.id)}>
-              Deactivate
+              {t('suppliers.deactivate')}
             </button>
           )}
         </div>
@@ -146,35 +145,35 @@ export function SupplierProfilePage({
             className={`tab-btn${activeTab === tab.key ? ' active' : ''}`}
             onClick={() => setActiveTab(tab.key)}
           >
-            {tab.label}
+            {t('suppliers.' + tab.key)}
           </button>
         ))}
       </div>
 
       {activeTab === 'overview' && (
         <div className="card" style={{ marginBlockStart: 'var(--space-3)' }}>
-          <h2 className="card-title">Overview</h2>
+          <h2 className="card-title">{t('suppliers.overview')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', marginBlockStart: 'var(--space-3)' }}>
             <div>
-              <div className="section-label">Balance</div>
-              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.balancePiasters.toLocaleString()} piasters</div>
+              <div className="section-label">{t('suppliers.balance')}</div>
+              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.balancePiasters.toLocaleString()} {t('common.piasters')}</div>
             </div>
             <div>
-              <div className="section-label">Payment Terms</div>
+              <div className="section-label">{t('suppliers.paymentTerms')}</div>
               <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.paymentTermsDays} days</div>
             </div>
             <div>
-              <div className="section-label">Tax ID</div>
-              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.taxId ?? 'N/A'}</div>
+              <div className="section-label">{t('suppliers.taxId')}</div>
+              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.taxId ?? t('common.none')}</div>
             </div>
             <div>
-              <div className="section-label">Status</div>
-              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.isActive ? 'Active' : 'Inactive'}</div>
+              <div className="section-label">{t('common.status')}</div>
+              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{detail.isActive ? t('common.active') : t('common.inactive')}</div>
             </div>
           </div>
           {detail.address && (
             <div style={{ marginBlockStart: 'var(--space-3)' }}>
-              <div className="section-label">Address</div>
+              <div className="section-label">{t('common.address')}</div>
               <div>{detail.address}</div>
             </div>
           )}
@@ -186,11 +185,11 @@ export function SupplierProfilePage({
           <table className="table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th className="table-numeric">Amount</th>
-                <th>Reference</th>
-                <th>Notes</th>
+                <th>{t('common.date')}</th>
+                <th>{t('common.type')}</th>
+                <th className="table-numeric">{t('common.amount')}</th>
+                <th>{t('common.reference')}</th>
+                <th>{t('common.notes')}</th>
               </tr>
             </thead>
             <tbody>
@@ -204,7 +203,7 @@ export function SupplierProfilePage({
                 </tr>
               ))}
               {(!detail.recentLedgerEntries || detail.recentLedgerEntries.length === 0) && (
-                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>No ledger entries yet</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>{t('suppliers.noLedger')}</td></tr>
               )}
             </tbody>
           </table>
@@ -216,11 +215,11 @@ export function SupplierProfilePage({
           <table className="table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Product</th>
-                <th className="table-numeric">Price</th>
-                <th>Effective</th>
-                <th>PO</th>
+                <th>{t('common.date')}</th>
+                <th>{t('purchasing.product')}</th>
+                <th className="table-numeric">{t('common.unitPrice')}</th>
+                <th>{t('common.effective')}</th>
+                <th>{t('purchaseOrders.poNumber')}</th>
               </tr>
             </thead>
             <tbody>
@@ -234,7 +233,7 @@ export function SupplierProfilePage({
                 </tr>
               ))}
               {(!detail.recentPriceHistory || detail.recentPriceHistory.length === 0) && (
-                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>No price history yet</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>{t('suppliers.noPriceHistory')}</td></tr>
               )}
             </tbody>
           </table>
@@ -244,15 +243,15 @@ export function SupplierProfilePage({
       {activeTab === 'performance' && (
         <div style={{ marginBlockStart: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           <div className="card">
-            <h2 className="card-title">On-Time Delivery</h2>
+            <h2 className="card-title">{t('suppliers.onTimeDelivery')}</h2>
             {performance ? (
               <div style={{ display: 'flex', gap: 'var(--space-4)', marginBlockStart: 'var(--space-2)' }}>
                 <div>
-                  <div className="section-label">Rate</div>
+                  <div className="section-label">{t('suppliers.rate')}</div>
                   <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{performance.onTimeDeliveryRate.rate.toFixed(1)}%</div>
                 </div>
                 <div>
-                  <div className="section-label">On Time</div>
+                  <div className="section-label">{t('suppliers.onTime')}</div>
                   <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{performance.onTimeDeliveryRate.onTimeCount} / {performance.onTimeDeliveryRate.totalCount}</div>
                 </div>
               </div>
@@ -261,7 +260,7 @@ export function SupplierProfilePage({
             )}
           </div>
           <div className="card">
-            <h2 className="card-title">Price Variance</h2>
+            <h2 className="card-title">{t('suppliers.priceVariance')}</h2>
             {performance ? (
               <div style={{ marginBlockStart: 'var(--space-2)' }}>
                 <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>{performance.priceVariance.toFixed(2)}%</div>
@@ -271,11 +270,11 @@ export function SupplierProfilePage({
             )}
           </div>
           <div className="card">
-            <h2 className="card-title">Narrative</h2>
+            <h2 className="card-title">{t('suppliers.narrative')}</h2>
             {performance ? (
               <p style={{ marginBlockStart: 'var(--space-2)', color: 'var(--color-text-secondary)' }}>{performance.narrative}</p>
             ) : (
-              <div className="loading">Loading narrative…</div>
+              <div className="loading">{t('suppliers.loadingNarrative')}</div>
             )}
           </div>
         </div>
@@ -286,10 +285,10 @@ export function SupplierProfilePage({
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Role</th>
+                <th>{t('common.name')}</th>
+                <th>{t('common.phone')}</th>
+                <th>{t('common.email')}</th>
+                <th>{t('common.role')}</th>
               </tr>
             </thead>
             <tbody>
@@ -302,7 +301,7 @@ export function SupplierProfilePage({
                 </tr>
               ))}
               {(!detail.contacts || detail.contacts.length === 0) && (
-                <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>No contacts yet</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>{t('suppliers.noContacts')}</td></tr>
               )}
             </tbody>
           </table>
@@ -310,37 +309,37 @@ export function SupplierProfilePage({
       )}
 
       {isPaymentOpen && (
-        <Modal open={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} title="Record Payment">
+        <Modal open={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} title={t('suppliers.recordPayment')}>
           <form onSubmit={handlePayment} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Field label="Amount (piasters)" required htmlFor="pay-amount">
+            <Field label={t('suppliers.amountPiasters')} required htmlFor="pay-amount">
               <input id="pay-amount" className="form-input" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} required />
             </Field>
-            <Field label="Payment Method" required htmlFor="pay-method">
+            <Field label={t('suppliers.paymentMethod')} required htmlFor="pay-method">
               <input id="pay-method" className="form-input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} required />
             </Field>
-            <Field label="Notes" htmlFor="pay-notes">
+            <Field label={t('common.notes')} htmlFor="pay-notes">
               <input id="pay-notes" className="form-input" value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} />
             </Field>
             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <button type="submit" className="btn btn-primary">Save</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsPaymentOpen(false)}>Cancel</button>
+              <button type="submit" className="btn btn-primary">{t('common.save')}</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setIsPaymentOpen(false)}>{t('common.cancel')}</button>
             </div>
           </form>
         </Modal>
       )}
 
       {isCreditNoteOpen && (
-        <Modal open={isCreditNoteOpen} onClose={() => setIsCreditNoteOpen(false)} title="Apply Credit Note">
+        <Modal open={isCreditNoteOpen} onClose={() => setIsCreditNoteOpen(false)} title={t('suppliers.applyCreditNote')}>
           <form onSubmit={handleCreditNote} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Field label="Amount (piasters)" required htmlFor="credit-amount">
+            <Field label={t('suppliers.amountPiasters')} required htmlFor="credit-amount">
               <input id="credit-amount" className="form-input" type="number" value={creditAmount} onChange={(e) => setCreditAmount(e.target.value)} required />
             </Field>
-            <Field label="Reason" required htmlFor="credit-reason">
+            <Field label={t('suppliers.reason')} required htmlFor="credit-reason">
               <input id="credit-reason" className="form-input" value={creditReason} onChange={(e) => setCreditReason(e.target.value)} required />
             </Field>
             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <button type="submit" className="btn btn-primary">Save</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsCreditNoteOpen(false)}>Cancel</button>
+              <button type="submit" className="btn btn-primary">{t('common.save')}</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setIsCreditNoteOpen(false)}>{t('common.cancel')}</button>
             </div>
           </form>
         </Modal>

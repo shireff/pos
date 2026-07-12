@@ -10,7 +10,7 @@ import {
     type TenderType,
     type Order,
 } from '../../lib/store/salesSlice';
-import { DigitalReceiptModal, type DigitalReceiptLine } from '@packages/ui-components';
+import { DigitalReceiptModal, type DigitalReceiptLine, useT } from '@packages/ui-components';
 import { getReceiptPrinter, getCashDrawer, createCameraBarcodeScanner } from '../../lib/hardware';
 import { PrinterNotAvailableError } from '@packages/infrastructure-hardware';
 
@@ -52,6 +52,7 @@ function formatEgp(piasters: number): string {
 
 export function PosScreen() {
     const dispatch = useAppDispatch();
+    const t = useT();
     const currentShift = useAppSelector((s) => s.sales.currentShift);
     const salesStatus = useAppSelector((s) => s.sales.status);
 
@@ -176,7 +177,7 @@ export function PosScreen() {
                 orderId: order.id,
                 lines,
                 grandTotalPiasters,
-                companyName: 'Smart Retail OS',
+                companyName: t('app.name'),
                 branchName: currentShift?.id ?? 'Branch',
                 cashierId: currentShift?.cashierId ?? 'cashier',
             });
@@ -258,18 +259,18 @@ export function PosScreen() {
         <div className="pos-register" style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
             <header className="row" style={{ justifyContent: 'space-between', padding: 'var(--space-3)', borderBottom: '1px solid var(--color-border)' }}>
                 <div>
-                    <strong>POS</strong>
-                    {selectedCustomerId && <span className="section-label" style={{ marginRight: 'var(--space-2)' }}>Customer: {selectedCustomerName}</span>}
+                    <strong>{t('pos.title')}</strong>
+                    {selectedCustomerId && <span className="section-label" style={{ marginRight: 'var(--space-2)' }}>{t('pos.customer')}: {selectedCustomerName}</span>}
                 </div>
                 <div className="row" style={{ gap: 'var(--space-2)' }}>
                     <button type="button" className="btn btn-sm btn-secondary" onClick={() => void handleCameraScan()} disabled={scanning}>
-                        {scanning ? 'Scanning…' : 'Scan'}
+                        {scanning ? t('pos.scanning') : t('pos.scan')}
                     </button>
                     <button type="button" className="btn btn-sm btn-secondary" onClick={() => setShowCustomerSheet(true)}>
-                        Customer
+                        {t('pos.customer')}
                     </button>
-                    <button type="button" className="btn btn-sm btn-secondary" disabled={Boolean(currentShift)} onClick={() => void dispatch(openShift({ branchId: 'branch-1', openingCashPiasters: 0 }))}>Open Shift</button>
-                    <button type="button" className="btn btn-sm" disabled={!currentShift || currentShift.status !== 'open'} onClick={() => setShowShiftClose(true)}>Close</button>
+                    <button type="button" className="btn btn-sm btn-secondary" disabled={Boolean(currentShift)} onClick={() => void dispatch(openShift({ branchId: 'branch-1', openingCashPiasters: 0 }))}>{t('pos.openShift')}</button>
+                    <button type="button" className="btn btn-sm" disabled={!currentShift || currentShift.status !== 'open'} onClick={() => setShowShiftClose(true)}>{t('common.close')}</button>
                 </div>
             </header>
 
@@ -278,7 +279,7 @@ export function PosScreen() {
                     ref={barcodeRef}
                     autoFocus
                     className="form-input"
-                    placeholder="Scan barcode or search…"
+                    placeholder={t('pos.scanBarcode')}
                     value={scanned}
                     onChange={(e) => setScanned(e.target.value)}
                     onKeyDown={async (e) => {
@@ -289,15 +290,15 @@ export function PosScreen() {
                     }}
                 />
                 <div className="row" style={{ gap: 'var(--space-2)', marginBlock: 'var(--space-2)' }}>
-                    <input className="form-input" placeholder="Search product…" value={search} onChange={(e) => setSearch(e.target.value)} />
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => runSearch(search)}>Search</button>
+                    <input className="form-input" placeholder={t('pos.searchProduct')} value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => runSearch(search)}>{t('common.search')}</button>
                 </div>
                 {searchResults.length > 0 && (
                     <ul className="list">
                         {searchResults.map((p: any) => (
                             <li key={p.id} className="row" style={{ justifyContent: 'space-between' }}>
                                 <span>{p.name} — {formatEgp(p.pricePiasters ?? 0)}</span>
-                                <button type="button" className="btn btn-sm" onClick={() => addToCart({ productVariantId: p.variantId ?? p.id, productId: p.id, name: p.name, unitPricePiasters: p.pricePiasters ?? 0 })}>Add</button>
+                                <button type="button" className="btn btn-sm" onClick={() => addToCart({ productVariantId: p.variantId ?? p.id, productId: p.id, name: p.name, unitPricePiasters: p.pricePiasters ?? 0 })}>{t('common.add')}</button>
                             </li>
                         ))}
                     </ul>
@@ -305,7 +306,7 @@ export function PosScreen() {
             </div>
 
             <div style={{ flex: 1, padding: 'var(--space-3)', overflowY: 'auto' }}>
-                {cart.length === 0 && <p className="section-label">No items scanned yet.</p>}
+                {cart.length === 0 && <p className="section-label">{t('pos.noItems')}</p>}
                 {cart.map((item) => (
                     <div key={item.key} className="card" style={{ padding: 'var(--space-3)', marginBlockEnd: 'var(--space-2)' }}>
                         <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -324,23 +325,23 @@ export function PosScreen() {
 
             <div style={{ padding: 'var(--space-3)', borderTop: '1px solid var(--color-border)' }}>
                 <div className="row" style={{ justifyContent: 'space-between', fontWeight: 700 }}>
-                    <span>Total</span>
+                    <span>{t('common.total')}</span>
                     <span className="num">{formatEgp(grandTotalPiasters)} EGP</span>
                 </div>
                 {drawerPrompt && (
                     <p className="section-label" role="status" style={{ color: 'var(--color-warning)' }}>
-                        Please open the cash drawer manually.
+                        {t('pos.pleaseOpenDrawer')}
                     </p>
                 )}
                 <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 'var(--space-3)' }} disabled={cart.length === 0 || salesStatus === 'loading'} onClick={() => setShowSheet(true)}>
-                    {salesStatus === 'loading' ? 'Processing…' : 'Charge'}
+                    {salesStatus === 'loading' ? t('pos.processing') : t('pos.charge')}
                 </button>
             </div>
 
             {showSheet && (
                 <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowSheet(false)}>
                     <div className="sheet-bottom" onClick={(e) => e.stopPropagation()}>
-                        <h3 style={{ marginTop: 0 }}>Payment</h3>
+                        <h3 style={{ marginTop: 0 }}>{t('pos.payment')}</h3>
                         <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--space-2)' }}>
                             {TENDER_TYPES.map((t) => (
                                 <button key={t} type="button" className="btn btn-sm btn-secondary" onClick={() => setPayments((p) => [...p, { tenderType: t, amountPiasters: Math.max(0, grandTotalPiasters - paidPiasters) }])}>
@@ -355,10 +356,10 @@ export function PosScreen() {
                                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPayments((ps) => ps.filter((_, i) => i !== idx))}>✕</button>
                             </div>
                         ))}
-                        {changePiasters > 0 && <p className="section-label" style={{ color: 'var(--color-success)' }}>Change: {formatEgp(changePiasters)} EGP</p>}
+                         {changePiasters > 0 && <p className="section-label" style={{ color: 'var(--color-success)' }}>{t('pos.change')}: {formatEgp(changePiasters)} EGP</p>}
                         <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 'var(--space-3)' }} disabled={paidPiasters < grandTotalPiasters} onClick={handleCompleteSale}>
-                            Pay {formatEgp(grandTotalPiasters)} EGP
-                        </button>
+                             {t('pos.pay')} {formatEgp(grandTotalPiasters)} EGP
+                         </button>
                     </div>
                 </div>
             )}
@@ -366,10 +367,10 @@ export function PosScreen() {
              {showCustomerSheet && (
                  <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowCustomerSheet(false)}>
                      <div className="sheet-bottom" onClick={(e) => e.stopPropagation()}>
-                         <h3 style={{ marginTop: 0 }}>Search Customer</h3>
-                         <input
-                             className="form-input"
-                             placeholder="Search by phone or name…"
+                          <h3 style={{ marginTop: 0 }}>{t('pos.searchCustomerTitle')}</h3>
+                          <input
+                              className="form-input"
+                              placeholder={t('pos.searchCustomer')}
                              value={customerQuery}
                              onChange={(e) => { setCustomerQuery(e.target.value); runCustomerSearch(e.target.value); }}
                          />
@@ -383,7 +384,7 @@ export function PosScreen() {
                                  ))}
                              </div>
                          )}
-                         <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 'var(--space-2)' }} onClick={() => setShowCustomerSheet(false)}>Close</button>
+                          <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 'var(--space-2)' }} onClick={() => setShowCustomerSheet(false)}>{t('common.close')}</button>
                      </div>
                  </div>
              )}
@@ -391,12 +392,12 @@ export function PosScreen() {
              {showShiftClose && (
                 <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowShiftClose(false)}>
                     <div className="card" style={{ maxWidth: 360, margin: 'auto', padding: 'var(--space-4)' }} onClick={(e) => e.stopPropagation()}>
-                        <h3 style={{ marginTop: 0 }}>Close Shift</h3>
-                        <p className="section-label">Opening: {formatEgp(currentShift?.openingCashPiasters ?? 0)} EGP</p>
-                        <input className="form-input num" placeholder="Actual cash (EGP)" value={closingCash} onChange={(e) => setClosingCash(e.target.value)} />
+                        <h3 style={{ marginTop: 0 }}>{t('pos.closeShift')}</h3>
+                        <p className="section-label">{t('pos.openingCash')}: {formatEgp(currentShift?.openingCashPiasters ?? 0)} EGP</p>
+                        <input className="form-input num" placeholder={t('pos.actualCash')} value={closingCash} onChange={(e) => setClosingCash(e.target.value)} />
                         <div className="row" style={{ justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
-                            <button type="button" className="btn btn-ghost" onClick={() => setShowShiftClose(false)}>Cancel</button>
-                            <button type="button" className="btn btn-primary" onClick={() => { if (currentShift) void dispatch(closeShift({ shiftSessionId: currentShift.id, closingCashPiasters: toPiasters(closingCash) })); setShowShiftClose(false); setClosingCash(''); }}>Close</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setShowShiftClose(false)}>{t('common.cancel')}</button>
+                             <button type="button" className="btn btn-primary" onClick={() => { if (currentShift) void dispatch(closeShift({ shiftSessionId: currentShift.id, closingCashPiasters: toPiasters(closingCash) })); setShowShiftClose(false); setClosingCash(''); }}>{t('pos.close')}</button>
                         </div>
                     </div>
                 </div>
@@ -406,9 +407,9 @@ export function PosScreen() {
                 open={showDigitalReceipt}
                 onClose={() => setShowDigitalReceipt(false)}
                 orderId={receiptOrderId}
-                companyName="Smart Retail OS"
-                branchName={currentShift?.id ?? 'Branch'}
-                cashierId={currentShift?.cashierId ?? 'cashier'}
+                companyName={t('app.name')}
+                branchName={currentShift?.id ?? t('pos.none')}
+                cashierId={currentShift?.cashierId ?? t('common.none')}
                 lines={receiptLines}
                 subtotalPiasters={subtotalPiasters}
                 discountPiasters={discountPiasters}

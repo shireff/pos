@@ -1,42 +1,43 @@
 import { z } from 'zod';
+import { t } from '../../../../lib/i18n';
 
 export const CreateCustomerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  phone: z.string().min(1, 'Phone is required'),
-  email: z.string().email('Invalid email address').optional().nullable(),
-  creditLimitPiasters: z.number().int().nonnegative('Credit limit must be non-negative').optional(),
+  name: z.string().min(1, t('validation.nameRequired')),
+  phone: z.string().min(1, t('validation.phoneRequired')),
+  email: z.string().email(t('validation.email')).optional().nullable(),
+  creditLimitPiasters: z.number().int().nonnegative(t('validation.creditLimitNonNegative')).optional(),
   notes: z.string().optional().nullable(),
 });
 
 export const UpdateCustomerSchema = z.object({
-  name: z.string().min(1, 'Name is required').optional(),
-  phone: z.string().min(1, 'Phone is required').optional(),
-  email: z.string().email('Invalid email address').optional().nullable(),
-  creditLimitPiasters: z.number().int().nonnegative('Credit limit must be non-negative').optional(),
+  name: z.string().min(1, t('validation.nameRequired')).optional(),
+  phone: z.string().min(1, t('validation.phoneRequired')).optional(),
+  email: z.string().email(t('validation.email')).optional().nullable(),
+  creditLimitPiasters: z.number().int().nonnegative(t('validation.creditLimitNonNegative')).optional(),
   notes: z.string().optional().nullable(),
 }).refine((data) => Object.keys(data).length > 0, {
-  message: 'At least one field must be provided for update',
+  message: t('validation.atLeastOneField'),
 });
 
 export const MergeCustomersSchema = z.object({
-  sourceId: z.string().uuid('sourceId must be a valid UUID'),
-  targetId: z.string().uuid('targetId must be a valid UUID'),
+  sourceId: z.string().uuid(t('validation.invalidUuid', { field: 'sourceId' })),
+  targetId: z.string().uuid(t('validation.invalidUuid', { field: 'targetId' })),
 }).refine((data) => data.sourceId !== data.targetId, {
-  message: 'Source and target customers must differ',
+  message: t('validation.sourceTargetDiffer'),
   path: ['targetId'],
 });
 
 export const RedeemLoyaltySchema = z.object({
-  points: z.number().int().positive('Points must be a positive integer'),
-  orderId: z.string().uuid('orderId must be a valid UUID').optional().nullable(),
+  points: z.number().int().positive(t('validation.pointsPositive')),
+  orderId: z.string().uuid(t('validation.invalidUuid', { field: 'orderId' })).optional().nullable(),
 });
 
 export const RecordCreditPaymentSchema = z.object({
-  amountPiasters: z.number().int().positive('Amount must be a positive integer'),
-  paymentMethod: z.string().min(1, 'Payment method is required'),
+  amountPiasters: z.number().int().positive(t('validation.amountPositive')),
+  paymentMethod: z.string().min(1, t('validation.paymentMethodRequired')),
   referenceNumber: z.string().optional().nullable(),
   referenceType: z.string().optional().nullable(),
-  referenceId: z.string().uuid('referenceId must be a valid UUID').optional().nullable(),
+  referenceId: z.string().uuid(t('validation.invalidUuid', { field: 'referenceId' })).optional().nullable(),
 });
 
 export const SearchCustomersSchema = z.object({

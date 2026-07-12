@@ -6,9 +6,10 @@ import { MongoSupplierPriceHistoryRepository } from '@packages/infrastructure-mo
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.performance.view');
 
     const url = new URL(request.url);
@@ -20,7 +21,7 @@ export async function GET(
     const repo = new MongoSupplierPriceHistoryRepository();
     const query = new GetSupplierPriceHistoryQuery(repo);
     const result = await query.execute({
-      supplierId: params.id,
+      supplierId: id,
       companyId,
       productId,
       limit,

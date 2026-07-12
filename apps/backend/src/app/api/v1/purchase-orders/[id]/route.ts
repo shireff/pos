@@ -4,7 +4,7 @@ import { assertPurchasingPermission } from '../../../../../lib/purchasing-permis
 import { handleApiError, ValidationError, NotFoundError } from '../../../../../lib/errors';
 import { MongoPurchaseOrderRepository } from '@packages/infrastructure-mongodb';
 import { UpdatePurchaseOrderSchema } from '../purchases.schemas';
-import { serializePurchaseOrder } from '../route';
+import { serializePurchaseOrder } from '../serialize';
 
 export async function GET(
   request: NextRequest,

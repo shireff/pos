@@ -4,11 +4,8 @@ import {
   fetchDiscountRules,
   createDiscountRule,
   deactivateDiscountRule,
-  clearPromotionsError,
 } from '../../lib/store/promotionsSlice';
-import { useToast } from '@packages/ui-components';
-import { Modal, Field } from '@packages/ui-components';
-import { Icon } from '@packages/ui-components';
+import { useToast, Modal, Field, Icon, useT } from '@packages/ui-components';
 
 const DISCOUNT_TYPES = [
   { value: 'item', label: 'Item' },
@@ -24,6 +21,7 @@ const DISCOUNT_TYPES = [
 export function DiscountRuleBuilderPage(): React.ReactElement {
   const dispatch = useAppDispatch();
   const { push } = useToast();
+  const t = useT();
   const { discounts, discountStatus, error } = useAppSelector((state: any) => state.promotions);
   const companyId = useAppSelector((state: any) => state.auth.user?.companyId ?? 'company-1');
 
@@ -114,7 +112,7 @@ export function DiscountRuleBuilderPage(): React.ReactElement {
         isExclusive,
         companyId,
       })).unwrap();
-      push({ type: 'success', msg: 'Discount rule created' });
+      push({ type: 'success', msg: t('discounts.ruleCreated') });
       resetForm();
       setIsCreateOpen(false);
     } catch (err) {
@@ -125,7 +123,7 @@ export function DiscountRuleBuilderPage(): React.ReactElement {
   const handleDeactivate = async (id: string) => {
     try {
       await dispatch(deactivateDiscountRule({ id, companyId })).unwrap();
-      push({ type: 'success', msg: 'Discount rule deactivated' });
+      push({ type: 'success', msg: t('discounts.ruleDeactivated') });
     } catch (err) {
       push({ type: 'error', msg: String(err) });
     }
@@ -135,35 +133,35 @@ export function DiscountRuleBuilderPage(): React.ReactElement {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Discount Rules</h1>
-          <p className="page-subtitle">Create and manage discount rules for your store.</p>
+          <h1 className="page-title">{t('discountRules.title')}</h1>
+          <p className="page-subtitle">{t('discountRules.subtitle')}</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={() => { resetForm(); setIsCreateOpen(true); }}>
-          <Icon name="plus" size={16} /> New Rule
+          <Icon name="plus" size={16} />           {t('discounts.newRule')}
         </button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
 
       {discountStatus === 'loading' && discounts.length === 0 ? (
-        <div className="loading">Loading discount rules…</div>
+        <div className="loading">{t('discounts.loadingRules')}</div>
       ) : discounts.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-state-title">No discount rules</p>
-          <p>Create a rule to start applying discounts.</p>
+          <p className="empty-state-title">{t('discounts.noRules')}</p>
+          <p>{t('discounts.createRuleToStart')}</p>
         </div>
       ) : (
         <div className="table-container" style={{ marginBlockStart: 'var(--space-3)' }}>
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Discount</th>
-                <th>Priority</th>
-                <th>Exclusive</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{t('common.name')}</th>
+                <th>{t('common.type')}</th>
+                <th>{t('common.discount')}</th>
+                <th>{t('common.priority')}</th>
+                <th>{t('discounts.exclusive')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -173,12 +171,12 @@ export function DiscountRuleBuilderPage(): React.ReactElement {
                   <td>{rule.type}</td>
                   <td>{String(rule.ruleJson.discountType ?? 'percentage')} / {String(rule.ruleJson.amount ?? 0)}</td>
                   <td className="table-numeric">{rule.priority}</td>
-                  <td className="table-numeric">{rule.isExclusive ? 'Yes' : 'No'}</td>
-                  <td>{rule.isActive ? 'Active' : 'Inactive'}</td>
+                  <td className="table-numeric">{rule.isExclusive ? t('common.yes') : t('common.no')}</td>
+                  <td>{rule.isActive ? t('common.active') : t('common.inactive')}</td>
                   <td>
                     {rule.isActive && (
                       <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleDeactivate(rule.id)}>
-                        Deactivate
+                        {t('discounts.deactivate')}
                       </button>
                     )}
                   </td>
@@ -190,99 +188,99 @@ export function DiscountRuleBuilderPage(): React.ReactElement {
       )}
 
       {isCreateOpen && (
-        <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create Discount Rule" footer={
+        <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title={t('discountRules.createRule')} footer={
           <>
-            <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>Cancel</button>
-            <button type="submit" form="discount-form" className="btn btn-primary">Save</button>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>{t('common.cancel')}</button>
+            <button type="submit" form="discount-form" className="btn btn-primary">{t('common.save')}</button>
           </>
         }>
           <form id="discount-form" onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Field label="Name" required htmlFor="dr-name">
+            <Field label={t('common.name')} required htmlFor="dr-name">
               <input id="dr-name" className="form-input" value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
-            <Field label="Type" required htmlFor="dr-type">
+            <Field label={t('common.type')} required htmlFor="dr-type">
               <select id="dr-type" className="form-input" value={type} onChange={(e) => setType(e.target.value)}>
-                {DISCOUNT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                {DISCOUNT_TYPES.map((dt) => <option key={dt.value} value={dt.value}>{t('discounts.' + dt.value)}</option>)}
               </select>
             </Field>
             <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
               <div style={{ flex: 1 }}>
-                <Field label="Discount Type" required htmlFor="dr-discount-type">
+                <Field label={t('discounts.discountType')} required htmlFor="dr-discount-type">
                   <select id="dr-discount-type" className="form-input" value={discountType} onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'fixed')}>
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed">Fixed (piasters)</option>
+                  <option value="percentage">{t('discounts.percentage')}</option>
+                  <option value="fixed">{t('discounts.fixed')}</option>
                   </select>
                 </Field>
               </div>
               <div style={{ flex: 1 }}>
-                <Field label="Amount" required htmlFor="dr-amount">
+                <Field label={t('common.amount')} required htmlFor="dr-amount">
                   <input id="dr-amount" className="form-input num" type="number" min={1} value={amount} onChange={(e) => setAmount(Number(e.target.value))} required />
                 </Field>
               </div>
             </div>
 
             {type === 'item' && (
-              <Field label="Product IDs (comma-separated)" htmlFor="dr-product-ids">
-                <input id="dr-product-ids" className="form-input" value={productIds} onChange={(e) => setProductIds(e.target.value)} placeholder="prod-1, prod-2" />
+              <Field label={t('discounts.productIds')} htmlFor="dr-product-ids">
+                <input id="dr-product-ids" className="form-input" value={productIds} onChange={(e) => setProductIds(e.target.value)} placeholder={t('discounts.productIdsPlaceholder')} />
               </Field>
             )}
             {type === 'category' && (
-              <Field label="Category IDs (comma-separated)" htmlFor="dr-category-ids">
-                <input id="dr-category-ids" className="form-input" value={categoryIds} onChange={(e) => setCategoryIds(e.target.value)} placeholder="cat-1, cat-2" />
+              <Field label={t('discounts.categoryIds')} htmlFor="dr-category-ids">
+                <input id="dr-category-ids" className="form-input" value={categoryIds} onChange={(e) => setCategoryIds(e.target.value)} placeholder={t('discounts.categoryIdsPlaceholder')} />
               </Field>
             )}
             {type === 'customer' && (
               <>
-                <Field label="Customer IDs (comma-separated)" htmlFor="dr-customer-ids">
-                  <input id="dr-customer-ids" className="form-input" value={customerIds} onChange={(e) => setCustomerIds(e.target.value)} placeholder="cust-1, cust-2" />
+                <Field label={t('discounts.customerIds')} htmlFor="dr-customer-ids">
+                  <input id="dr-customer-ids" className="form-input" value={customerIds} onChange={(e) => setCustomerIds(e.target.value)} placeholder={t('discounts.customerIdsPlaceholder')} />
                 </Field>
-                <Field label="Tier IDs (comma-separated)" htmlFor="dr-tier-ids">
-                  <input id="dr-tier-ids" className="form-input" value={tierIds} onChange={(e) => setTierIds(e.target.value)} placeholder="tier-1, tier-2" />
+                <Field label={t('discounts.tierIds')} htmlFor="dr-tier-ids">
+                  <input id="dr-tier-ids" className="form-input" value={tierIds} onChange={(e) => setTierIds(e.target.value)} placeholder={t('discounts.tierIdsPlaceholder')} />
                 </Field>
               </>
             )}
             {type === 'membership' && (
-              <Field label="Membership Level" htmlFor="dr-membership">
+              <Field label={t('discounts.membershipLevel')} htmlFor="dr-membership">
                 <input id="dr-membership" className="form-input" value={membershipLevel} onChange={(e) => setMembershipLevel(e.target.value)} />
               </Field>
             )}
             {type === 'time_based' && (
               <>
-                <Field label="Valid From" htmlFor="dr-valid-from">
+                <Field label={t('discounts.validFrom')} htmlFor="dr-valid-from">
                   <input id="dr-valid-from" className="form-input" type="datetime-local" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} />
                 </Field>
-                <Field label="Valid Until" htmlFor="dr-valid-until">
+                <Field label={t('discounts.validUntil')} htmlFor="dr-valid-until">
                   <input id="dr-valid-until" className="form-input" type="datetime-local" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
                 </Field>
               </>
             )}
             {type === 'buy_x_get_y' && (
               <>
-                <Field label="Buy Quantity" htmlFor="dr-buy-qty">
+                <Field label={t('discounts.buyQuantity')} htmlFor="dr-buy-qty">
                   <input id="dr-buy-qty" className="form-input num" type="number" min={1} value={buyQuantity} onChange={(e) => setBuyQuantity(e.target.value)} />
                 </Field>
-                <Field label="Get Quantity" htmlFor="dr-get-qty">
+                <Field label={t('discounts.getQuantity')} htmlFor="dr-get-qty">
                   <input id="dr-get-qty" className="form-input num" type="number" min={1} value={getQuantity} onChange={(e) => setGetQuantity(e.target.value)} />
                 </Field>
-                <Field label="Discount Percent" htmlFor="dr-get-pct">
+                <Field label={t('discounts.discountPercent')} htmlFor="dr-get-pct">
                   <input id="dr-get-pct" className="form-input num" type="number" min={1} max={100} value={getDiscountPercent} onChange={(e) => setGetDiscountPercent(e.target.value)} />
                 </Field>
               </>
             )}
             {type === 'quantity_break' && (
-              <Field label="Tiers (minQty,discountPct separated by semicolons)" htmlFor="dr-tiers">
-                <textarea id="dr-tiers" className="form-input" value={tiers} onChange={(e) => setTiers(e.target.value)} placeholder="5,10;10,20" rows={3} />
+              <Field label={t('discounts.tiers')} htmlFor="dr-tiers">
+                <textarea id="dr-tiers" className="form-input" value={tiers} onChange={(e) => setTiers(e.target.value)} placeholder={t('discounts.tiersPlaceholder')} rows={3} />
               </Field>
             )}
 
             <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
               <div style={{ flex: 1 }}>
-                <Field label="Priority" htmlFor="dr-priority">
+                <Field label={t('common.priority')} htmlFor="dr-priority">
                   <input id="dr-priority" className="form-input num" type="number" min={0} value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
                 </Field>
               </div>
               <div style={{ flex: 1 }}>
-                <Field label="Exclusive" htmlFor="dr-exclusive">
+                <Field label={t('discounts.exclusive')} htmlFor="dr-exclusive">
                   <input id="dr-exclusive" type="checkbox" checked={isExclusive} onChange={(e) => setIsExclusive(e.target.checked)} />
                 </Field>
               </div>

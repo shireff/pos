@@ -3,7 +3,7 @@ import { ApprovePurchaseOrderCommand } from '@packages/application-purchasing';
 import { assertPurchasingPermission, getActorId } from '../../../../../../lib/purchasing-permissions';
 import { handleApiError, NotFoundError } from '../../../../../../lib/errors';
 import { MongoPurchaseOrderRepository } from '@packages/infrastructure-mongodb';
-import { serializePurchaseOrder } from '../../route';
+import { serializePurchaseOrder } from '../../serialize';
 
 export async function POST(
   request: NextRequest,

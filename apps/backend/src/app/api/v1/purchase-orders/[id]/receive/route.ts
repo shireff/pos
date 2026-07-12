@@ -9,7 +9,7 @@ import {
   MongoStockItemRepository,
 } from '@packages/infrastructure-mongodb';
 import { ReceiveGoodsSchema } from '../../purchases.schemas';
-import { serializePurchaseOrder } from '../../route';
+import { serializePurchaseOrder } from '../../serialize';
 
 export async function POST(
   request: NextRequest,

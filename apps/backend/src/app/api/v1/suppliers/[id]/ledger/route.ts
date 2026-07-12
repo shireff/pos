@@ -6,9 +6,10 @@ import { MongoSupplierLedgerEntryRepository } from '@packages/infrastructure-mon
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSuppliersPermission(request, 'suppliers.ledger.view');
 
     const url = new URL(request.url);
@@ -19,7 +20,7 @@ export async function GET(
     const ledgerRepo = new MongoSupplierLedgerEntryRepository();
     const query = new GetSupplierLedgerQuery(ledgerRepo);
     const result = await query.execute({
-      supplierId: params.id,
+      supplierId: id,
       companyId,
       limit,
       offset,

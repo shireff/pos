@@ -3,7 +3,7 @@ import {
   GetCustomerQuery,
   UpdateCustomerCommand,
 } from '@packages/application-crm';
-import { assertCustomersPermission, getActorId } from '../../../../../lib/customers-permissions';
+import { assertCustomersPermission } from '../../../../../lib/customers-permissions';
 import { handleApiError, ValidationError } from '../../../../../lib/errors';
 import {
   MongoCustomerRepository,
@@ -16,9 +16,10 @@ import { UpdateCustomerSchema } from '../customers.schemas';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertCustomersPermission(request, 'customers.view');
 
     const url = new URL(request.url);
@@ -39,7 +40,7 @@ export async function GET(
     );
     const result = await query.execute({
       companyId,
-      customerId: params.id,
+      customerId: id,
     });
 
     return NextResponse.json({ success: true, data: result });
@@ -50,9 +51,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertCustomersPermission(request, 'customers.edit');
 
     const url = new URL(request.url);
@@ -67,7 +69,7 @@ export async function PATCH(
     const repo = new MongoCustomerRepository();
     const command = new UpdateCustomerCommand(repo);
     const customer = await command.execute({
-      customerId: params.id,
+      customerId: id,
       companyId,
       ...parsed.data,
     });

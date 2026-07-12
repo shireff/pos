@@ -4,7 +4,7 @@ import { assertPurchasingPermission } from '../../../../../../lib/purchasing-per
 import { handleApiError, ValidationError, NotFoundError } from '../../../../../../lib/errors';
 import { MongoPurchaseOrderRepository } from '@packages/infrastructure-mongodb';
 import { RejectPurchaseOrderSchema } from '../../purchases.schemas';
-import { serializePurchaseOrder } from '../../route';
+import { serializePurchaseOrder } from '../../serialize';
 
 export async function POST(
   request: NextRequest,

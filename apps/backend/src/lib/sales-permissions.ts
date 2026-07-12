@@ -17,9 +17,7 @@ export async function assertSalesPermission(
     const permissions = new Set<string>(ctx.branchRoles ?? []);
     if (permissions.has(requiredPermission)) return;
     if (ctx.branchRoles && ctx.branchRoles.length > 0) {
-      const error = new ForbiddenError(`Permission denied. Required: ${requiredPermission}`);
-      (error as ForbiddenError & { permissionCode?: string }).permissionCode = requiredPermission;
-      throw error;
+      throw new ForbiddenError(requiredPermission);
     }
   } catch (e) {
     if (e instanceof ForbiddenError) throw e;

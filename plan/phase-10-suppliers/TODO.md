@@ -1,4 +1,8 @@
 # Phase 10 — Payments TODO
+> ?? **STRICT i18n & LOCALIZATION WARNING FOR AI/DEVELOPERS:**
+> - **ALL UI text MUST use useT() / 	() with complete translation keys.** No hardcoded user-facing strings are allowed anywhere.
+> - **ALL backend errors/messages MUST use pps/backend/src/lib/errors.ts with localized messages.** No hardcoded English strings in route handlers or services.
+> - Missing or incomplete translations will be treated as a blocking bug.
 
 ## Database
 
@@ -76,3 +80,4 @@
 - [x] Zero TypeScript errors (Phase 10 files)
 - [x] All tests passing
 - [x] Update API.md if any endpoint contract was refined during implementation
+

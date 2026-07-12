@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { DiscountType } from '@packages/domain-promotions';
 
 export const CreateDiscountRuleSchema = z.object({
   name: z.string().min(1),

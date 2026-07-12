@@ -89,7 +89,7 @@ export const updateDiscountRule = createAsyncThunk<
 >('promotions/updateDiscountRule', async (input, thunkAPI) => {
   try {
     const endpoint = `${ApiEndpoints.DiscountRuleById.replace(':id', input.id)}`;
-    const { id, ...body } = input;
+    const { ...body } = input;
     const response = await client.patch(endpoint, body, {
       params: { companyId: input.companyId ?? 'company-1' },
     });

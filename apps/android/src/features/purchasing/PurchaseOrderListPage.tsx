@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBadge, Modal, Field, Icon, useT } from '@packages/ui-components';
+import { StatusBadge, Modal, Field, Icon } from '@packages/ui-components';
 import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
 import {
     fetchPurchaseOrders,
     createPurchaseOrder,
     type PurchaseOrder,
-    type PurchaseOrderFilter,
 } from '../../lib/store/purchasingSlice';
 import { PurchaseOrderDetailPage } from './PurchaseOrderDetailPage';
 
@@ -19,7 +18,6 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function PurchaseOrderListPage(): React.ReactElement {
-    const t = useT();
     const dispatch = useAppDispatch();
     const { purchaseOrders, status } = useAppSelector((s) => s.purchasing);
     const companyId = useAppSelector((s) => s.auth.user?.companyId ?? 'company-1');

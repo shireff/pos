@@ -17,14 +17,13 @@ import {
  */
 export function OcrUpload({
   purchaseOrderId,
-  companyId,
+  companyId: _companyId,
 }: {
   purchaseOrderId: string;
   companyId: string;
 }): React.ReactElement {
   const t = useT();
   const dispatch = useAppDispatch();
-  const ocrResult = useAppSelector((s) => s.purchasing.ocrResult);
   const supplierId = useAppSelector((s) => s.purchasing.currentPurchaseOrder?.supplierId) ?? '';
 
   const [fileReference, setFileReference] = useState('');
@@ -34,7 +33,7 @@ export function OcrUpload({
 
   const extract = async () => {
     if (!fileReference.trim()) {
-      setMessage('Choose an invoice image first.');
+      setMessage(t('purchasing.chooseInvoice'));
       return;
     }
     setBusy(true);
@@ -45,7 +44,7 @@ export function OcrUpload({
       ).unwrap();
       setEditable(extracted);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'OCR failed');
+      setMessage(e instanceof Error ? e.message : t('purchasing.ocrFailed'));
     } finally {
       setBusy(false);
     }
@@ -66,11 +65,11 @@ export function OcrUpload({
           taxAmountPiasters: 0,
         }),
       ).unwrap();
-      setMessage('Supplier invoice recorded from OCR data.');
+      setMessage(t('purchasing.recordedFromOcr'));
       setEditable(null);
       dispatch(clearOcrResult());
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Failed to record invoice');
+      setMessage(e instanceof Error ? e.message : t('purchasing.recordFailed'));
     } finally {
       setBusy(false);
     }
@@ -83,27 +82,27 @@ export function OcrUpload({
           className="form-input"
           value={fileReference}
           onChange={(e) => setFileReference(e.target.value)}
-          placeholder="invoice-2026-001.png"
-          aria-label="Invoice file reference"
+          placeholder={t('purchasing.invoicePlaceholder')}
+          aria-label={t('purchasing.invoiceFile')}
         />
         <button className="btn btn-secondary btn-sm" onClick={extract} disabled={busy}>
-          <Icon name="scan" size={14} /> {busy ? 'Extracting…' : 'Upload & extract'}
+          <Icon name="scan" size={14} />           {busy ? t('purchasing.extracting') : t('purchasing.uploadExtract')}
         </button>
       </div>
 
       {editable && (
         <div className="ocr-panel">
-          <p className="section-label">Extracted (review &amp; correct before applying)</p>
+          <p className="section-label">{t('purchasing.reviewExtracted')}</p>
           <div className="form-field">
-            <label className="form-label">Invoice number</label>
+            <label className="form-label">{t('purchasing.invoiceNumber')}</label>
             <input className="form-input" value={editable.invoiceNumber} onChange={(e) => setEditable({ ...editable, invoiceNumber: e.target.value })} />
           </div>
           <div className="form-field">
-            <label className="form-label">Invoice date</label>
+            <label className="form-label">{t('purchasing.invoiceDate')}</label>
             <input className="form-input" value={editable.invoiceDate} onChange={(e) => setEditable({ ...editable, invoiceDate: e.target.value })} />
           </div>
           <div className="form-field">
-            <label className="form-label">Total amount (piasters)</label>
+            <label className="form-label">{t('purchasing.totalAmountPiasters')}</label>
             <input className="form-input num" value={editable.totalAmountPiasters} onChange={(e) => setEditable({ ...editable, totalAmountPiasters: Number(e.target.value) })} inputMode="numeric" />
           </div>
           <ul className="ocr-lines">
@@ -111,9 +110,9 @@ export function OcrUpload({
               <li key={i}>{li.productName} × {li.quantity} @ {(li.unitPricePiasters / 100).toFixed(2)} EGP</li>
             ))}
           </ul>
-          <p className="field-hint">Confidence: {(editable.confidence * 100).toFixed(0)}%</p>
+          <p className="field-hint">{t('purchasing.confidence')}: {(editable.confidence * 100).toFixed(0)}%</p>
           <button className="btn btn-primary btn-sm" onClick={applyToInvoice} disabled={busy}>
-            Record supplier invoice
+            {t('purchasing.recordSupplierInvoice')}
           </button>
         </div>
       )}

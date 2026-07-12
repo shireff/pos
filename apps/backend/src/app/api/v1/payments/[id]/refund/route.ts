@@ -7,9 +7,10 @@ import { RefundPaymentSchema } from '../../payments.schemas';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    const { id } = await params;
     await assertSalesPermission(request, 'payments.tender.record');
 
     const body: unknown = await request.json();
@@ -27,7 +28,7 @@ export async function POST(
     const command = new RefundPaymentCommand(repos.paymentTransactionRepo);
     const result = await command.execute({
       companyId,
-      orderId: params.id,
+      orderId: id,
       transactionId: data.transactionId,
       amountPiasters: data.amountPiasters,
       reason: data.reason ?? undefined,

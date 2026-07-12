@@ -1,4 +1,8 @@
 # Phase 12 — Offline Sync TODO
+> ?? **STRICT i18n & LOCALIZATION WARNING FOR AI/DEVELOPERS:**
+> - **ALL UI text MUST use useT() / 	() with complete translation keys.** No hardcoded user-facing strings are allowed anywhere.
+> - **ALL backend errors/messages MUST use pps/backend/src/lib/errors.ts with localized messages.** No hardcoded English strings in route handlers or services.
+> - Missing or incomplete translations will be treated as a blocking bug.
 
 ## Database
 

@@ -12,7 +12,7 @@ import {
   type PriceHistoryEntry,
   type SupplierPerformance,
 } from '../../lib/store/suppliersSlice';
-import { Modal, Field } from '@packages/ui-components';
+import { Modal, Field, useT } from '@packages/ui-components';
 import { useToast } from '@packages/ui-components';
 
 type TabKey = 'overview' | 'ledger' | 'price-history' | 'performance' | 'contacts';
@@ -37,6 +37,7 @@ export function SupplierProfilePage({
   onDeactivate,
 }: SupplierProfilePageProps): React.ReactElement {
   const dispatch = useAppDispatch();
+  const t = useT();
   const detail = useAppSelector((s: any) => s.suppliers.selectedSupplier as SupplierDetail | null);
   const detailStatus = useAppSelector((s: any) => s.suppliers.detailStatus);
   const performance = useAppSelector((s: any) => s.suppliers.performance as SupplierPerformance | null);
@@ -73,7 +74,7 @@ export function SupplierProfilePage({
       setPaymentAmount('');
       setPaymentNotes('');
       setIsPaymentOpen(false);
-      push({ type: 'success', msg: 'Payment recorded' });
+      push({ type: 'success', msg: t('suppliers.paymentsRecorded') });
     } catch (err) {
       push({ type: 'error', msg: String(err) });
     }
@@ -92,21 +93,21 @@ export function SupplierProfilePage({
       setCreditAmount('');
       setCreditReason('');
       setIsCreditNoteOpen(false);
-      push({ type: 'success', msg: 'Credit note applied' });
+      push({ type: 'success', msg: t('suppliers.creditNoteApplied') });
     } catch (err) {
       push({ type: 'error', msg: String(err) });
     }
   };
 
   if (detailStatus === 'loading' && !detail) {
-    return <div className="loading">Loading supplier profile…</div>;
+    return <div className="loading">{t('suppliers.loadingProfile')}</div>;
   }
 
   if (!detail) {
     return (
       <div className="empty-state">
-        <p className="empty-state-title">Supplier not found</p>
-        <button type="button" className="btn btn-secondary" onClick={onBack}>Back to list</button>
+        <p className="empty-state-title">{t('suppliers.supplierNotFound')}</p>
+        <button type="button" className="btn btn-secondary" onClick={onBack}>{t('suppliers.backToList')}</button>
       </div>
     );
   }
@@ -121,18 +122,18 @@ export function SupplierProfilePage({
             </button>
             <h1 className="page-title">{detail.name.ar}</h1>
           </div>
-          <p className="page-subtitle">{detail.phone} · {detail.email ?? 'No email'} · {detail.currency}</p>
+          <p className="page-subtitle">{detail.phone} · {detail.email ?? t('suppliers.noEmail')} · {detail.currency}</p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button type="button" className="btn btn-primary" onClick={() => setIsPaymentOpen(true)}>
-            Record Payment
+            {t('suppliers.recordPayment')}
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => setIsCreditNoteOpen(true)}>
-            Credit Note
+            {t('suppliers.applyCreditNote')}
           </button>
           {detail.isActive && (
             <button type="button" className="btn btn-ghost" onClick={() => onDeactivate(detail.id)}>
-              Deactivate
+              {t('suppliers.deactivate')}
             </button>
           )}
         </div>
@@ -146,7 +147,11 @@ export function SupplierProfilePage({
             className={`tab-btn${activeTab === tab.key ? ' active' : ''}`}
             onClick={() => setActiveTab(tab.key)}
           >
-            {tab.label}
+            {tab.key === 'overview' ? t('suppliers.overview')
+              : tab.key === 'ledger' ? t('suppliers.ledger')
+              : tab.key === 'price-history' ? t('suppliers.priceHistory')
+              : tab.key === 'performance' ? t('suppliers.performance')
+              : t('suppliers.contacts')}
           </button>
         ))}
       </div>

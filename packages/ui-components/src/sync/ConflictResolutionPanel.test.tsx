@@ -2,7 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { ConflictResolutionPanel } from './ConflictResolutionPanel';
+import { LocaleProvider } from '../i18n';
 import type { SyncConflictView } from '../stores/sync.store';
+
+const render = (el: React.ReactElement) =>
+  renderToString(React.createElement(LocaleProvider, { locale: 'en' }, el));
 
 const conflict: SyncConflictView = {
   id: 'cf-1',
@@ -17,7 +21,7 @@ const conflict: SyncConflictView = {
 
 describe('ConflictResolutionPanel', () => {
   it('shows local and remote values side by side', () => {
-    const html = renderToString(
+    const html = render(
       React.createElement(ConflictResolutionPanel, { conflict, onResolve: () => undefined }),
     );
     expect(html).toContain('100');
@@ -26,7 +30,7 @@ describe('ConflictResolutionPanel', () => {
   });
 
   it('renders resolution buttons for an unresolved conflict', () => {
-    const html = renderToString(
+    const html = render(
       React.createElement(ConflictResolutionPanel, { conflict, onResolve: () => undefined }),
     );
     expect(html).toContain('Keep Local');
@@ -42,7 +46,7 @@ describe('ConflictResolutionPanel', () => {
         { at: '2026-07-10T12:05:00.000Z', byUserId: 'u1', resolution: 'resolved_remote', value: 120 },
       ],
     };
-    const html = renderToString(
+    const html = render(
       React.createElement(ConflictResolutionPanel, { conflict: resolved, onResolve: () => undefined }),
     );
     expect(html).not.toContain('Keep Local');

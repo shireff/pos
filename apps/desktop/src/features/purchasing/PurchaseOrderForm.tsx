@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useT, Icon } from '@packages/ui-components';
-import { useAppDispatch, useAppSelector } from '../../lib/store/hooks';
+import { useAppDispatch } from '../../lib/store/hooks';
 import {
   createPurchaseOrder,
   type PurchaseOrder,
-  type PurchaseOrderLine,
 } from '../../lib/store/purchasingSlice';
 
 interface DraftLine {
@@ -59,15 +58,15 @@ export function PurchaseOrderForm({
       const qty = Number(l.orderedQuantity);
       const price = Number(l.unitPricePiasters);
       if (!l.productId || !l.unitId) {
-        setError('Every line needs a product and unit.');
+        setError(t('purchasing.errLineNeedsProductUnit'));
         return;
       }
       if (!Number.isInteger(qty) || qty <= 0) {
-        setError('Ordered quantity must be a positive whole number.');
+        setError(t('purchasing.errQtyPositive'));
         return;
       }
       if (!Number.isFinite(price) || price < 0) {
-        setError('Unit price cannot be negative.');
+        setError(t('purchasing.errPriceNegative'));
         return;
       }
       parsed.push({
@@ -79,7 +78,7 @@ export function PurchaseOrderForm({
       });
     }
     if (!supplierId.trim()) {
-      setError('Supplier is required.');
+      setError(t('purchasing.errSupplierRequired'));
       return;
     }
     setSubmitting(true);
@@ -96,7 +95,7 @@ export function PurchaseOrderForm({
       ).unwrap();
       onCreated(po as unknown as PurchaseOrder);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create purchase order');
+      setError(e instanceof Error ? e.message : t('purchasing.errCreateFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -110,17 +109,17 @@ export function PurchaseOrderForm({
   return (
     <div className="po-form">
       <div className="form-field">
-        <label className="form-label" htmlFor="po-supplier">Supplier ID</label>
+        <label className="form-label" htmlFor="po-supplier">{t('purchasing.supplierId')}</label>
         <input
           id="po-supplier"
           className="form-input"
           value={supplierId}
           onChange={(e) => setSupplierId(e.target.value)}
-          placeholder="supplier-…"
+          placeholder={t('purchasing.supplierPlaceholder')}
         />
       </div>
       <div className="form-field">
-        <label className="form-label" htmlFor="po-delivery">Expected delivery date</label>
+        <label className="form-label" htmlFor="po-delivery">{t('purchasing.expectedDelivery')}</label>
         <input
           id="po-delivery"
           className="form-input"
@@ -132,10 +131,10 @@ export function PurchaseOrderForm({
 
       <div className="po-lines">
         <div className="po-lines__head">
-          <span>Product</span>
-          <span>Unit</span>
-          <span>Qty</span>
-          <span>Unit price (pt)</span>
+          <span>{t('purchasing.product')}</span>
+          <span>{t('purchasing.unit')}</span>
+          <span>{t('purchasing.qty')}</span>
+          <span>{t('purchasing.unitPricePt')}</span>
           <span />
         </div>
         {lines.map((l, idx) => (
@@ -144,13 +143,13 @@ export function PurchaseOrderForm({
               className="form-input"
               value={l.productId}
               onChange={(e) => updateLine(idx, { productId: e.target.value })}
-              placeholder="product-…"
+              placeholder={t('purchasing.productPlaceholder')}
             />
             <input
               className="form-input"
               value={l.unitId}
               onChange={(e) => updateLine(idx, { unitId: e.target.value })}
-              placeholder="unit-…"
+              placeholder={t('purchasing.unitPlaceholder')}
             />
             <input
               className="form-input num"
@@ -164,7 +163,7 @@ export function PurchaseOrderForm({
               onChange={(e) => updateLine(idx, { unitPricePiasters: e.target.value })}
               inputMode="numeric"
             />
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeLine(idx)} aria-label="Remove line">
+             <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeLine(idx)} aria-label={t('purchasing.removeLine')}>
               <Icon name="trash" size={14} />
             </button>
           </div>
@@ -172,11 +171,11 @@ export function PurchaseOrderForm({
       </div>
 
       <button type="button" className="btn btn-secondary btn-sm" onClick={addLine}>
-        <Icon name="plus" size={14} /> Add line
-      </button>
+        <Icon name="plus" size={14} /> {t('purchasing.addLine')}
+       </button>
 
-      <div className="form-field">
-        <label className="form-label" htmlFor="po-notes">Notes</label>
+       <div className="form-field">
+         <label className="form-label" htmlFor="po-notes">{t('common.notes')}</label>
         <textarea
           id="po-notes"
           className="form-input"
@@ -187,10 +186,10 @@ export function PurchaseOrderForm({
       </div>
 
       <div className="po-form__footer">
-        <span className="po-form__total">Total: {(total / 100).toFixed(2)} EGP</span>
-        <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-          {submitting ? 'Saving…' : 'Create PO'}
-        </button>
+         <span className="po-form__total">{t('purchasing.total')}: {(total / 100).toFixed(2)} EGP</span>
+         <button className="btn btn-primary" onClick={submit} disabled={submitting}>
+           {submitting ? t('purchasing.saving') : t('purchasing.createPo')}
+         </button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}

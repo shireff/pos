@@ -1,6 +1,7 @@
 import React from 'react';
 import { FefoService, NegativeStockGuardService, BatchExpiryGuardService } from '@packages/domain-inventory';
 import { Batch } from '@packages/domain-inventory';
+import { useT } from '../i18n';
 
 export interface BatchSelectorProps {
     batches: Batch[];
@@ -23,6 +24,7 @@ export function BatchSelector({
     label,
     disabled,
 }: BatchSelectorProps): React.ReactElement {
+    const t = useT();
     const sorted = FefoService.sortByExpiry(batches);
 
     const handleChange = (batchId: string) => {
@@ -47,16 +49,16 @@ export function BatchSelector({
                 onChange={(e) => handleChange(e.target.value)}
                 disabled={disabled}
             >
-                <option value="">No batch</option>
+                <option value="">{t('inventory.noBatch')}</option>
                 {sorted.map((b) => {
                     const expired = b.isExpired();
                     const insufficient = b.quantityRemaining < requiredQuantity;
-                    const label = `${b.batchNumber}${b.expiryDate ? ` (exp ${new Date(b.expiryDate).toLocaleDateString()})` : ''} — qty: ${b.quantityRemaining}`;
+                    const label = `${b.batchNumber}${b.expiryDate ? ` (${t('inventory.expiryAbbr')} ${new Date(b.expiryDate).toLocaleDateString()})` : ''} — ${t('common.qtyAbbr')}: ${b.quantityRemaining}`;
                     return (
                         <option key={b.id} value={b.id} disabled={expired || insufficient}>
                             {label}
-                            {expired ? ' [EXPIRED]' : ''}
-                            {insufficient && !expired ? ' [LOW]' : ''}
+                            {expired ? ` [${t('inventory.expired')}]` : ''}
+                            {insufficient && !expired ? ` [${t('inventory.low')}]` : ''}
                         </option>
                     );
                 })}

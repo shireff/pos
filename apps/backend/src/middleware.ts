@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { t } from './lib/i18n';
 
 /**
  * Request ID Middleware + Rate Limiting skeleton
@@ -134,7 +135,7 @@ export function middleware(request: NextRequest): NextResponse {
           success: false,
           error: {
             code: 'RATE_LIMIT_EXCEEDED',
-            message: 'Too many requests. Please try again later.',
+            message: t('common.tooManyRequests', undefined, request),
             requestId,
           },
         },
