@@ -29,6 +29,7 @@ import { TaxRulesPage } from '../features/pricing/TaxRulesPage';
 import { PriceChangesPage } from '../features/pricing/PriceChangesPage';
 import { ReportsScreen } from '../features/reports/ReportsScreen';
 import { NotificationsScreen } from '../features/notifications/NotificationsScreen';
+import { BackupRestoreScreen } from '../features/backup/BackupRestoreScreen';
 import { notificationsApi } from '../lib/api/notifications';
 import { NotificationBell } from '@packages/ui-components';
 import { ApiEndpoints } from '../lib/api/endpoints';
@@ -36,7 +37,7 @@ import { client } from '../lib/api/client';
 
 const bridge = new CapacitorHealthBridge();
 
-type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing' | 'reports' | 'coupons' | 'tax-rules' | 'notifications';
+type ActiveTab = 'catalog' | 'categories' | 'purchasing' | 'pos' | 'customers' | 'suppliers' | 'discounts' | 'pricing' | 'reports' | 'coupons' | 'tax-rules' | 'notifications' | 'backup';
 
 
 export default function AndroidPage() {
@@ -240,6 +241,7 @@ export default function AndroidPage() {
     { id: 'coupons', label: t('coupons.title'), icon: 'qr' },
     { id: 'tax-rules', label: t('taxRules.title'), icon: 'receipt' },
     { id: 'notifications', label: t('notifications.title'), icon: 'bell' },
+    { id: 'backup', label: t('backup.title'), icon: 'archive' },
   ];
 
   return (
@@ -282,7 +284,8 @@ export default function AndroidPage() {
          {activeTab === 'reports' && <ReportsScreen />}
          {activeTab === 'coupons' && <CouponsPage />}
          {activeTab === 'tax-rules' && <TaxRulesPage />}
-         {activeTab === 'notifications' && <NotificationsScreen />}
+          {activeTab === 'notifications' && <NotificationsScreen />}
+          {activeTab === 'backup' && <BackupRestoreScreen />}
        </div>
 
 

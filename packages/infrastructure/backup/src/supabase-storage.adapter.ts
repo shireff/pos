@@ -59,6 +59,18 @@ export class SupabaseStorageAdapter {
   }
 
   /**
+   * Deletes an encrypted backup file from Supabase Storage.
+   * @param remoteKey — the storage path returned from upload()
+   */
+  public async remove(remoteKey: string): Promise<void> {
+    const { error } = await this.client.storage.from(this.bucketName).remove([remoteKey]);
+
+    if (error) {
+      throw new Error(`Supabase remove failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Lists remote backup snapshots for a given company.
    */
   public async listSnapshots(companyId: string): Promise<BackupMetadata[]> {

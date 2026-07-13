@@ -126,3 +126,20 @@ export { AISourceBadge } from './ai/AISourceBadge';
 export type { AISourceBadgeProps } from './ai/AISourceBadge';
 export { OcrReviewPanel } from './ai/OcrReviewPanel';
 export type { OcrReviewPanelProps, OcrField } from './ai/OcrReviewPanel';
+
+/* Backup & Restore (Phase 17) */
+export { BackupHistoryList } from './backup/BackupHistoryList';
+export type { BackupHistoryListProps } from './backup/BackupHistoryList';
+export { BackupHealthIndicator } from './backup/BackupHealthIndicator';
+export type { BackupHealthIndicatorProps } from './backup/BackupHealthIndicator';
+export { RestoreConfirmDialog } from './backup/RestoreConfirmDialog';
+export type { RestoreConfirmDialogProps } from './backup/RestoreConfirmDialog';
+export { BackupProgressBanner } from './backup/BackupProgressBanner';
+export type { BackupProgressBannerProps, BackupProgressStatus } from './backup/BackupProgressBanner';
+export type {
+  BackupView,
+  BackupType,
+  BackupSource,
+  BackupHealth,
+  BackupCollectionStat,
+} from './backup/types';

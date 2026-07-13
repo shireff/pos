@@ -41,6 +41,33 @@ export class SubscriptionWriteLockGuard {
       throw new Error('Subscription is write-locked and cannot be modified at this time');
     }
   }
+
+  /**
+   * Commands that are exempt from the write-lock (data-safety operations).
+   * Backup creation and restore must remain available even when the account is
+   * trial_expired or suspended (Security.md §8, BR-BAK-004).
+   */
+  public static readonly BYPASS_WRITE_LOCK_COMMANDS = new Set<string>([
+    'CreateBackupCommand',
+    'RestoreBackupCommand',
+  ]);
+
+  /**
+   * Ensures the subscription is writable, unless `commandType` is a registered
+   * write-lock bypass (e.g. backup/restore). Backup/restore always succeed.
+   */
+  public static ensureWritableFor(
+    commandType: string,
+    subscription: Subscription,
+    asOf: Date = new Date(),
+  ): void {
+    if (SubscriptionWriteLockGuard.BYPASS_WRITE_LOCK_COMMANDS.has(commandType)) {
+      return;
+    }
+    if (EntitlementResolver.isWriteLocked(subscription, asOf)) {
+      throw new Error('Subscription is write-locked and cannot be modified at this time');
+    }
+  }
 }
 
 /**

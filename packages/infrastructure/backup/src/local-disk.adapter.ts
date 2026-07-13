@@ -39,9 +39,10 @@ export class LocalDiskAdapter {
   /**
    * Writes a backup to disk.
    * Compresses → Encrypts → Saves with SHA-256 checksum.
+   * @param id — optional explicit backup id (UUIDv7). Generated when omitted.
    */
-  public async write(companyId: string, rawData: Buffer): Promise<BackupMetadata> {
-    const id = crypto.randomUUID();
+  public async write(companyId: string, rawData: Buffer, id?: string): Promise<BackupMetadata> {
+    const backupId = id ?? crypto.randomUUID();
     const createdAt = new Date().toISOString();
 
     const compressed = await gzip(rawData);
@@ -57,13 +58,13 @@ export class LocalDiskAdapter {
 
     const checksum = crypto.createHash('sha256').update(encryptedData).digest('hex');
 
-    const dataPath = path.join(this.backupDir, `${id}${DATA_SUFFIX}`);
-    const metaPath = path.join(this.backupDir, `${id}${METADATA_SUFFIX}`);
+    const dataPath = path.join(this.backupDir, `${backupId}${DATA_SUFFIX}`);
+    const metaPath = path.join(this.backupDir, `${backupId}${METADATA_SUFFIX}`);
 
     fs.writeFileSync(dataPath, encryptedData);
 
     const metadata: BackupMetadata = {
-      id,
+      id: backupId,
       createdAt,
       checksum,
       companyId,
@@ -77,7 +78,7 @@ export class LocalDiskAdapter {
   }
 
   /**
-   * Reads and verifies a backup, then decrypts and decompresses it.
+   * Reads and verifies a backup from local disk, then decrypts and decompresses it.
    * Throws a plain-language error if integrity check fails.
    */
   public async read(id: string): Promise<Buffer> {
@@ -92,10 +93,30 @@ export class LocalDiskAdapter {
     const metaRaw = fs.readFileSync(metaPath, 'utf8');
     const meta = JSON.parse(metaRaw) as BackupMetadata;
 
+    return this.decrypt(encryptedData, meta.checksum);
+  }
+
+  /**
+   * Returns the raw encrypted bytes for a backup (used for cloud upload).
+   */
+  public getEncryptedData(id: string): Buffer {
+    const dataPath = path.join(this.backupDir, `${id}${DATA_SUFFIX}`);
+    if (!fs.existsSync(dataPath)) {
+      throw new Error(`Backup not found: ${id}`);
+    }
+    return fs.readFileSync(dataPath);
+  }
+
+  /**
+   * Verifies the checksum of an encrypted buffer and decrypts it.
+   * Used for restores from remote storage where the file is supplied as a buffer.
+   * Throws a plain-language error if integrity check fails.
+   */
+  public async decrypt(encryptedData: Buffer, expectedChecksum: string): Promise<Buffer> {
     const actualChecksum = crypto.createHash('sha256').update(encryptedData).digest('hex');
-    if (actualChecksum !== meta.checksum) {
+    if (actualChecksum !== expectedChecksum) {
       throw new Error(
-        `Backup integrity check failed for "${id}". ` +
+        `Backup integrity check failed. ` +
           `The backup file may be corrupted or tampered with. ` +
           `Please select a different restore point.`,
       );

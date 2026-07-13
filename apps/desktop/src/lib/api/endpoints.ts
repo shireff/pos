@@ -144,6 +144,12 @@ export enum ApiEndpoints {
   NotificationMarkRead = '/api/v1/notifications/:id/read',
   NotificationsReadAll = '/api/v1/notifications/read-all',
   NotificationPreferences = '/api/v1/notification-preferences',
+
+  // ── Backup & Restore (Phase 17) ──────────────────────────────
+  Backups = '/api/v1/backups',
+  BackupById = '/api/v1/backups/:id',
+  BackupRestore = '/api/v1/backups/:id/restore',
+  BackupVerify = '/api/v1/backups/:id/verify',
 }
 
 export function buildEndpoint(

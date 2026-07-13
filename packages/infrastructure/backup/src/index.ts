@@ -1,10 +1,23 @@
 export type { BackupPayload, BackupMetadata } from './backup-payload';
 export { LocalDiskAdapter } from './local-disk.adapter';
 export { SupabaseStorageAdapter } from './supabase-storage.adapter';
-export {
-  createSupabaseStorageAdapterFromEnv,
-  loadSupabaseStorageConfigFromEnv,
-} from './supabase-storage.config';
+export { createSupabaseStorageAdapterFromEnv, loadSupabaseStorageConfigFromEnv } from './supabase-storage.config';
 export { BackupQueue, InMemoryBackupQueueStorage } from './backup-queue';
 export type { BackupQueueStorage, QueuedBackupItem } from './backup-queue';
 export { BackupScheduler } from './backup-scheduler';
+export type { DailySchedule } from './backup-scheduler';
+export { BackupKeyProvider, EnvFileSecretStore, BACKUP_PASSPHRASE_SECRET } from './backup-key-provider';
+export type { SecretStore, BackupKey } from './backup-key-provider';
+export type { BackupManifest, BackupManifestStorage } from './backup-manifest';
+export { BACKUP_MANIFESTS_COLLECTION, totalRows, describeBackupType } from './backup-manifest';
+export type { BackupType, BackupSource, BackupCollectionStat } from './backup-manifest';
+export { IncrementalBackupEngine, serializeSnapshot, deserializeSnapshot } from './incremental-backup';
+export type { BackupDataSource, BackupCollectionSnapshot } from './incremental-backup';
+export { RestoreManager } from './restore-manager';
+export type { RestoreTarget, RestoreResult } from './restore-manager';
+export { IntegrityChecker } from './integrity-checker';
+export type { IntegrityResult } from './integrity-checker';
+export { CleanupPolicy, DEFAULT_RETENTION } from './cleanup-policy';
+export type { RetentionConfig, CleanupDecision } from './cleanup-policy';
+export { BackupHealthMonitor, STALE_THRESHOLD_HOURS } from './backup-health-monitor';
+export type { BackupHealth, BackupHealthStatus } from './backup-health-monitor';

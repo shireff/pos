@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { t, type Vars } from './i18n';
+import { t, translateBackupErrorCode, type Vars } from './i18n';
 
 /**
  * Global Error Handler Utility
@@ -112,6 +112,29 @@ export function handleApiError(error: unknown, request: NextRequest): NextRespon
         },
       },
       { status: error.statusCode, headers: { 'X-Request-Id': requestId } },
+    );
+  }
+
+  // Structured backup errors from @packages/application-backup (carry code
+  // + statusCode, localized via translateBackupErrorCode).
+  if (
+    error &&
+    typeof (error as { code?: unknown }).code === 'string' &&
+    typeof (error as { statusCode?: unknown }).statusCode === 'number'
+  ) {
+    const code = (error as { code: string }).code;
+    const statusCode = (error as { statusCode: number }).statusCode;
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code,
+          message: translateBackupErrorCode(code, request),
+          requestId,
+          ...(isDev ? { stack: error instanceof Error ? error.stack : undefined } : {}),
+        },
+      },
+      { status: statusCode, headers: { 'X-Request-Id': requestId } },
     );
   }
 

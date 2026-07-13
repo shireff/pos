@@ -590,3 +590,65 @@
   .po-lines__head { display: none; }
   .po-lines__row { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─── Backup & Restore (Phase 17) ─────────────────────────────────────────── */
+.backup-actions { display: inline-flex; gap: var(--space-2); flex-wrap: wrap; }
+.backup-sub { color: var(--color-text-tertiary); font-size: var(--font-size-xs); margin-top: 2px; }
+
+.backup-health {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+.backup-health--ok { border-color: var(--color-success); background: var(--color-success-soft); }
+.backup-health--warn { border-color: var(--color-danger); background: var(--color-danger-soft); }
+.backup-health--none { border-color: var(--color-border-strong); }
+.backup-health__icon { display: flex; color: var(--color-text-secondary); }
+.backup-health--ok .backup-health__icon { color: var(--color-success); }
+.backup-health--warn .backup-health__icon { color: var(--color-danger); }
+.backup-health__body { display: flex; flex-direction: column; }
+.backup-health__title { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+.backup-health__value { font-weight: var(--font-weight-semibold); }
+.backup-health__msg { font-size: var(--font-size-xs); color: var(--color-text-tertiary); }
+
+.backup-title-row { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+.backup-confirm__warn {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+  color: var(--color-warning-on);
+  font-size: var(--font-size-sm);
+}
+.backup-confirm__meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+.backup-confirm__meta .section-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-bottom: 2px;
+}
+
+.backup-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+.backup-progress--running { background: var(--color-info-soft); color: var(--color-info-on); }
+.backup-progress--ok { background: var(--color-success-soft); color: var(--color-success-on); }
+.backup-progress--error { background: var(--color-danger-soft); color: var(--color-danger-on); }
+.spinner--sm { width: 16px; height: 16px; }

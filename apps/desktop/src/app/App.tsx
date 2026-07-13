@@ -22,6 +22,7 @@ import { TaxRuleEditorPage, PriceChangePage, PricingPage } from '../features/pri
 import { OwnerDashboard, BranchManagerDashboard, CashierDashboard } from '../features/reports';
 import { NotificationsPage } from '../features/notifications/NotificationsPage';
 import { NotificationPreferencesPage } from '../features/notifications/NotificationPreferencesPage';
+import { BackupRestorePage } from '../features/settings/BackupRestorePage';
 import { notificationsApi } from '../lib/api/notifications';
 import { bootstrapDesktop } from '../bootstrap/desktop-bridge';
 import { checkSelfLock, logger, getApiErrorMessage } from '@packages/shared-kernel';
@@ -54,7 +55,7 @@ export default function App() {
   const [pin, setPin] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [activeView, setActiveView] = useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing' | 'reports' | 'discount-rules' | 'coupons' | 'tax-rules' | 'price-changes' | 'notifications' | 'notification-preferences'>('catalog');
+  const [activeView, setActiveView] =     useState<'catalog' | 'purchasing' | 'customers' | 'suppliers' | 'pos' | 'discounts' | 'pricing' | 'reports' | 'discount-rules' | 'coupons' | 'tax-rules' | 'price-changes' | 'notifications' | 'notification-preferences' | 'backup'>('catalog');
   const [showMfaSetup, setShowMfaSetup] = useState(false);
   const [setupCode, setSetupCode] = useState('');
   const [lockMode, setLockMode] = useState<'trial_expired' | 'suspended' | null>(null);
@@ -415,7 +416,14 @@ export default function App() {
                 className={`top-nav__item${activeView === 'notifications' || activeView === 'notification-preferences' ? ' active' : ''}`}
                 onClick={() => setActiveView('notifications')}
               >
-                <Icon name="bell" size={16} /> Notifications
+                  <Icon name="bell" size={16} /> Notifications
+              </button>
+              <button
+                type="button"
+                className={`top-nav__item${activeView === 'backup' ? ' active' : ''}`}
+                onClick={() => setActiveView('backup')}
+              >
+                <Icon name="archive" size={16} /> Backup
               </button>
               <div className="top-nav__bell">
                 <NotificationBell
@@ -427,7 +435,7 @@ export default function App() {
                 />
               </div>
           </nav>
-          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'discount-rules' ? <DiscountRuleBuilderPage /> : activeView === 'coupons' ? <CouponManagementPage /> : activeView === 'pricing' ? <PricingPage /> : activeView === 'tax-rules' ? <TaxRuleEditorPage /> : activeView === 'price-changes' ? <PriceChangePage /> : activeView === 'notifications' ? <NotificationsPage /> : activeView === 'notification-preferences' ? <NotificationPreferencesPage /> : activeView === 'reports' ? (() => {
+          {activeView === 'catalog' ? <CatalogPage /> : activeView === 'purchasing' ? <PurchasingPage /> : activeView === 'customers' ? <CustomerListPage /> : activeView === 'suppliers' ? <SupplierListPage /> : activeView === 'discounts' ? <DiscountsPage /> : activeView === 'discount-rules' ? <DiscountRuleBuilderPage /> : activeView === 'coupons' ? <CouponManagementPage /> : activeView === 'pricing' ? <PricingPage /> : activeView === 'tax-rules' ? <TaxRuleEditorPage /> : activeView === 'price-changes' ? <PriceChangePage /> : activeView === 'notifications' ? <NotificationsPage /> :           activeView === 'notification-preferences' ? <NotificationPreferencesPage /> : activeView === 'backup' ? <BackupRestorePage /> : activeView === 'reports' ? (() => {
             const roles = auth.branchRoles ?? [];
             if (roles.includes('reports.all_branches')) return <OwnerDashboard isOffline={isOffline} />;
             if (roles.includes('reports.view.inventory')) return <BranchManagerDashboard isOffline={isOffline} />;

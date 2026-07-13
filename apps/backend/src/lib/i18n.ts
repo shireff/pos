@@ -140,6 +140,17 @@ const ar: Dict = {
   'notifications.digest.dailyTitle': 'ملخص الإشعارات اليومي',
   'notifications.digest.dailyBody': 'لديك {count} إشعارات جديدة اليوم.',
   'notifications.rateLimitSummary': 'إشعارات إضافية في تصنيف {category} اليوم.',
+
+  // Backup & Restore (Phase 17)
+  'backup.error.integrityFailed': 'فشل التحقق من سلامة النسخة الاحتياطية. قد يكون الملف تالفاً أو تم التلاعب به.',
+  'backup.error.notFound': 'النسخة الاحتياطية غير موجودة.',
+  'backup.error.confirmationRequired': 'يلزم تأكيد الاستعادة بكتابة "RESTORE".',
+  'backup.error.decryptFailed': 'تعذّر فك تشفير النسخة الاحتياطية.',
+  'backup.error.restoreFailed': 'فشلت عملية الاستعادة.',
+
+  // Lock (data-safety carve-out — backup/restore remain available)
+  'lock.trialExpired': 'انتهت فترة التجربة وتم قفل الحساب.',
+  'lock.accountSuspended': 'تم إيقاف الحساب مؤقتاً.',
 };
 
 const en: Dict = {
@@ -251,6 +262,17 @@ const en: Dict = {
   'notifications.digest.dailyTitle': 'Daily notification digest',
   'notifications.digest.dailyBody': 'You have {count} new notifications today.',
   'notifications.rateLimitSummary': 'More {category} alerts occurred today.',
+
+  // Backup & Restore (Phase 17)
+  'backup.error.integrityFailed': 'Backup integrity check failed. The file may be corrupted or tampered with.',
+  'backup.error.notFound': 'Backup not found.',
+  'backup.error.confirmationRequired': 'Restore requires typing "RESTORE" to confirm.',
+  'backup.error.decryptFailed': 'Backup could not be decrypted.',
+  'backup.error.restoreFailed': 'Restore failed.',
+
+  // Lock (data-safety carve-out — backup/restore remain available)
+  'lock.trialExpired': 'Trial period ended and the account is locked.',
+  'lock.accountSuspended': 'The account has been suspended.',
 };
 
 const dictionaries: Record<Locale, Dict> = { ar, en };
@@ -314,6 +336,23 @@ export function createT(localeOrRequest: NextRequest | Locale): (key: string, va
 }
 
 // ─── Translate ──────────────────────────────────────────────────────────────
+
+/**
+ * Maps an application-layer backup error code to a localized message.
+ * Used by handleApiError to localize BackupError instances from
+ * @packages/application-backup without coupling errors.ts to that package.
+ */
+export function translateBackupErrorCode(code: string, localeOrRequest?: NextRequest | Locale): string {
+  const map: Record<string, string> = {
+    BACKUP_INTEGRITY_CHECK_FAILED: 'backup.error.integrityFailed',
+    BACKUP_NOT_FOUND: 'backup.error.notFound',
+    RESTORE_REQUIRES_CONFIRMATION: 'backup.error.confirmationRequired',
+    BACKUP_DECRYPT_FAILED: 'backup.error.decryptFailed',
+    BACKUP_RESTORE_FAILED: 'backup.error.restoreFailed',
+  };
+  const key = map[code];
+  return key ? t(key, undefined, localeOrRequest) : t('errors.unexpected', undefined, localeOrRequest);
+}
 
 export type Vars = Record<string, string | number>;
 
